@@ -11,10 +11,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { backendRepo, devSettings } from "./backend-config.mjs";
+import { e2eBuildFolder, e2eDatabaseSuffix, e2eWorkFolderName, e2ePorts } from "./e2e-slot.mjs";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const isWindows = process.platform === "win32";
-const E2E_PORTS = { api: 8083, web: 3008 };
+const E2E_PORTS = e2ePorts;
 /** The access token's lifetime in the e2e API (normally 5 minutes): short, so the tests see the silent session refresh. Same value in tests/e2e/helpers.ts. */
 const ACCESS_TOKEN_TTL_SECONDS = 15;
 
@@ -32,7 +33,7 @@ const newestModification = (directory) => readdirSync(directory, { withFileTypes
 /** postgresql://user:password@host:port/db -> the same server, database "db_e2e". */
 function e2eDatabaseUrl(developmentUrl) {
   const url = new URL(developmentUrl);
-  url.pathname = `/${url.pathname.replace(/^\//, "")}_e2e`;
+  url.pathname = `/${url.pathname.replace(/^\//, "")}${e2eDatabaseSuffix}`;
   url.search = "";
   return url;
 }
@@ -69,7 +70,7 @@ async function backend() {
   const url = e2eDatabaseUrl(developmentUrl);
   await ensureDatabase(developmentUrl, url);
   // run a copy: rebuilding the backend while the tests run must not touch the jar in use
-  const workFolder = path.join(os.tmpdir(), "juristrack-e2e");
+  const workFolder = path.join(os.tmpdir(), e2eWorkFolderName);
   mkdirSync(workFolder, { recursive: true });
   const jarCopy = path.join(workFolder, "backend.jar");
   copyFileSync(apiJar(), jarCopy);
@@ -99,7 +100,7 @@ async function backend() {
 }
 
 function frontend() {
-  const buildFolder = "dist-e2e";
+  const buildFolder = e2eBuildFolder;
   const environment = { ...process.env, BACKEND_URL: `http://127.0.0.1:${E2E_PORTS.api}`, WEB_PORT: String(E2E_PORTS.web), BUILD_DIR: buildFolder, VITE_DEV_OTP_CODE: "000000" };
   const builtPage = path.join(root, buildFolder, "index.html");
   const sourcesChangedAt = Math.max(newestModification(path.join(root, "src")), statSync(path.join(root, "index.html")).mtimeMs, statSync(path.join(root, "vite.config.ts")).mtimeMs);

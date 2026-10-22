@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { e2ePorts } from "./scripts/e2e-slot.mjs";
 
 /**
  * End-to-end tests run against their own environment (scripts/e2e-env.mjs): the API from the backend checkout on :8083
@@ -14,10 +15,10 @@ export default defineConfig({
   retries: 0,
   timeout: 90_000,
   reporter: [["list"]],
-  use: { baseURL: "http://localhost:3008", trace: "retain-on-failure" },
+  use: { baseURL: `http://localhost:${e2ePorts.web}`, trace: "retain-on-failure" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: [
-    { command: "node scripts/e2e-env.mjs backend", url: "http://127.0.0.1:8083/actuator/health", reuseExistingServer: false, timeout: 600_000 },
-    { command: "node scripts/e2e-env.mjs frontend", url: "http://localhost:3008/login", reuseExistingServer: false, timeout: 600_000 },
+    { command: "node scripts/e2e-env.mjs backend", url: `http://127.0.0.1:${e2ePorts.api}/actuator/health`, reuseExistingServer: false, timeout: 600_000 },
+    { command: "node scripts/e2e-env.mjs frontend", url: `http://localhost:${e2ePorts.web}/login`, reuseExistingServer: false, timeout: 600_000 },
   ],
 });

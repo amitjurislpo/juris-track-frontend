@@ -8,6 +8,11 @@ const { devSettings } = (await import(pathToFileURL(path.join(import.meta.dirnam
   devSettings: () => { databaseUrl: string; superAdminEmail: string };
 };
 const developmentSettings = devSettings();
+// E2E_SLOT (0..9) gives a parallel run its own ports and database, see scripts/e2e-slot.mjs
+const { e2ePorts, e2eDatabaseSuffix } = (await import(pathToFileURL(path.join(import.meta.dirname, "..", "..", "scripts", "e2e-slot.mjs")).href)) as {
+  e2ePorts: { api: number; web: number };
+  e2eDatabaseSuffix: string;
+};
 
 /** The seeded super admin (platform user without a business) (the e2e database is seeded by the backend's `reset` command). */
 export const SUPER_ADMIN_EMAIL = developmentSettings.superAdminEmail;
@@ -31,7 +36,7 @@ export const WRONG_CODE = "That code is wrong or has expired. Request a new one.
 /** The e2e database (never the development one): same server, database "<db>_e2e". */
 function e2eDatabaseUrl() {
   const url = new URL(developmentSettings.databaseUrl);
-  url.pathname = `/${url.pathname.replace(/^\//, "")}_e2e`;
+  url.pathname = `/${url.pathname.replace(/^\//, "")}${e2eDatabaseSuffix}`;
   url.search = "";
   return url.toString();
 }
@@ -93,7 +98,7 @@ export const toastWith = (page: Page, text: string) => page.locator(".toast").fi
 export const tableRows = (page: Page) => page.locator("table.t tbody tr");
 
 /** The e2e web app's origin: the API accepts a cookie-authenticated write only with this Origin header. */
-export const WEB_ORIGIN = "http://localhost:3008";
+export const WEB_ORIGIN = `http://localhost:${e2ePorts.web}`;
 
 /**
  * A signed-in API client outside the browser (own cookies), for test set-up through the real API. The e2e access token lives
