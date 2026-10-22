@@ -52,7 +52,7 @@ To show the fixed sign-in code on the login page in development, set `VITE_DEV_O
 | `npm run preview` | Serve `dist/` locally (with the `/api` proxy) |
 | `npm run typecheck` / `npm run lint` | `tsc --noEmit` / ESLint |
 | `npm test` | Unit tests (roles and navigation, safe redirect, i18n) |
-| `npm run test:e2e` | Playwright end-to-end tests (see below; no specs yet) |
+| `npm run test:e2e` | Playwright end-to-end tests (see below) |
 
 ## Roles and pages
 
@@ -88,7 +88,7 @@ server {
 
   location /api/ {
     proxy_pass http://127.0.0.1:8082;
-    proxy_set_header Host $host;                 # the API compares Origin with Host / X-Forwarded-Host
+    proxy_set_header Host $host;                 # the API accepts writes only with Origin = its juristrack.frontend-origin (this site)
     proxy_set_header X-Forwarded-Host $host;
     proxy_set_header X-Forwarded-For $remote_addr;
   }
@@ -126,8 +126,12 @@ The tests drive a real browser against a real API and database, so they need the
 or set `BACKEND_REPO`) and Docker running. `scripts/e2e-env.mjs` builds the API jar with the backend's Maven Wrapper (when missing), starts it on
 :8083 with a throw-away database `<db>_e2e` (reset and seeded; files go to the temp folder), builds the SPA into `dist-e2e/` and serves it on
 :3008. Development data is never touched. Every sign-in code is `000000`. `E2E_BUILD=1` rebuilds the jar and the SPA. Run it against a fresh copy
-of the backend repo (`BACKEND_REPO=<copy>`), not the one that has the dev API running. The specs themselves come with the pages
-(`tests/e2e/helpers.ts` has the shared helpers); the backend has no sign-in yet, so nothing was run.
+of the backend repo (`BACKEND_REPO=<copy>`), not the one that has the dev API running. The e2e API gives access tokens a 15-second
+lifetime (instead of 5 minutes) so the tests also cover the silent session refresh.
+
+`tests/e2e/auth.spec.ts` covers sign-in for every role (super admin, owner, manager, employee from the demo seed), wrong / unknown /
+inactive codes, route protection, sign-out and the session refresh; the page specs come with the pages (`tests/e2e/helpers.ts` has the
+shared helpers).
 
 ## Working rules
 
