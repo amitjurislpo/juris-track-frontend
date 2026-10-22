@@ -1,6 +1,6 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { expect, type Page } from "@playwright/test";
+import { expect, type Browser, type Page } from "@playwright/test";
 import { Client } from "pg";
 
 // the e2e database and the seeded super admin login come from the backend repo's application-dev.properties (BACKEND_REPO, default ../juris-track-backend)
@@ -70,3 +70,24 @@ export async function login(page: Page, email: string) {
 export async function expectLanded(page: Page, landingPath: string) {
   await expect(page).toHaveURL(new RegExp(`${landingPath}$`), { timeout: 15_000 });
 }
+
+/** A second person at the same time: a fresh browser context (own cookies), signed in and on their landing page. Close its context when done. */
+export async function signInElsewhere(browser: Browser, email: string, landingPath: string): Promise<Page> {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await login(page, email);
+  await expectLanded(page, landingPath);
+  return page;
+}
+
+/** How many sign-in codes were ever stored for this email (no new row = no code was sent). */
+export async function storedCodeCount(email: string): Promise<number> {
+  const [row] = await sql<{ count: string }>("SELECT count(*) FROM login_otps WHERE email = $1", [email.toLowerCase()]);
+  return Number(row.count);
+}
+
+/** A short message shown by the app after a write (the API's `message`). */
+export const toastWith = (page: Page, text: string) => page.locator(".toast").filter({ hasText: text });
+
+/** The rows of the page's list table. */
+export const tableRows = (page: Page) => page.locator("table.t tbody tr");

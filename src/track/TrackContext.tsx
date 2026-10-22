@@ -12,6 +12,12 @@ export interface TrackUser {
   role: Role;
   /** null for the super admin (a platform user without a business). */
   businessName: string | null;
+  /** null when not set. */
+  employeeCode: string | null;
+  /** "First Last" of the reporting manager; null when the user reports to nobody. */
+  managerName: string | null;
+  /** The business's IANA time zone; null for the super admin. */
+  businessTimeZone: string | null;
 }
 
 /**
@@ -32,6 +38,8 @@ export interface TrackContextValue {
   toast: (message: string, kind?: "ok" | "bad") => void;
   /** Called when the API answers 401: renew the session and return true to repeat the request, or end the session. */
   onUnauthorized?: (info: { isQuiet: boolean }) => Promise<boolean>;
+  /** Called when the API answers 403 `BUSINESS_SUSPENDED`: the host shows its "access is paused" screen instead of the pages. */
+  onBusinessSuspended?: () => void;
 }
 
 const TrackContext = createContext<TrackContextValue | null>(null);
@@ -54,6 +62,7 @@ export function TrackProvider({ value, children }: { value: TrackContextValue; c
       getHeaders: () => latest.current.getHeaders(),
       onUnauthorized: (info) => latest.current.onUnauthorized?.(info) ?? Promise.resolve(false),
       translateMessage: (text) => latest.current.t(text),
+      onBusinessSuspended: () => latest.current.onBusinessSuspended?.(),
       queryClient,
     }),
     [value.apiBasePath, queryClient],

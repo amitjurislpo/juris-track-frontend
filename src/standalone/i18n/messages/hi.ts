@@ -44,4 +44,12 @@ export const standaloneHindiMessages: Record<string, string> = {
   "Language": "भाषा",
   "Page not found": "पृष्ठ नहीं मिला",
   "This page doesn't exist, or you don't have access to it.": "यह पृष्ठ मौजूद नहीं है, या आपके पास इसकी अनुमति नहीं है।",
+  // a page that failed to load (PageErrorBoundary)
+  "Something went wrong": "कुछ गड़बड़ हो गई",
+  "You don't have access to this": "आपके पास इसकी अनुमति नहीं है",
+  "Not found": "नहीं मिला",
+  "Retry": "फिर से कोशिश करें",
+  // a suspended business (BusinessSuspendedScreen)
+  "Your company's access is paused": "आपकी कंपनी की पहुँच रोकी गई है",
+  "Try again": "फिर से जाँचें",
 };

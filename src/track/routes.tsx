@@ -1,10 +1,19 @@
-import type { ComponentType } from "react";
+import { lazy, type ComponentType } from "react";
 import { ComingSoon } from "./components/ComingSoon";
 import type { Role } from "./roles";
 
+// built pages load on first use (the host's Suspense boundary shows the loading state meanwhile)
+const ProfilePage = lazy(() => import("./pages/profile/page"));
+const EmployeesPage = lazy(() => import("./pages/admin-employees/page"));
+const NewEmployeePage = lazy(() => import("./pages/admin-employee-new/page"));
+const EmployeePage = lazy(() => import("./pages/admin-employee/page"));
+const SettingsPage = lazy(() => import("./pages/admin-settings/page"));
+const BusinessesPage = lazy(() => import("./pages/platform/page"));
+const BusinessPage = lazy(() => import("./pages/platform-business/page"));
+
 /**
  * Every JurisTrack page. `roles` are the roles that may open it (see RequireRole). The host mounts these under its own
- * layout (the standalone shell, or JurisOne's). The pages are placeholders until their phase.
+ * layout (the standalone shell, or JurisOne's). Pages of later phases are "Coming soon" placeholders until they are built.
  */
 export interface TrackRoute {
   /** Path without a leading slash (`admin/teams/:id`). */
@@ -29,24 +38,22 @@ export const trackRoutes: TrackRoute[] = [
   { path: "dashboard", title: "Dashboard", roles: BUSINESS_USERS, Page: placeholder("Dashboard") },
   { path: "my-time", title: "My Time", roles: BUSINESS_USERS, Page: placeholder("My Time") },
   { path: "my-history", title: "My History", roles: BUSINESS_USERS, Page: placeholder("My History") },
-  { path: "profile", title: "Profile", roles: BUSINESS_USERS, Page: placeholder("Profile") },
+  { path: "profile", title: "Profile", roles: BUSINESS_USERS, Page: ProfilePage },
   // manager: the Team tab (the people who report to them)
   { path: "team", title: "Team", roles: MANAGER_ONLY, Page: placeholder("Team") },
   { path: "team/employees/:id", title: "Employee", roles: MANAGER_ONLY, Page: placeholder("Employee") },
   { path: "team/reports", title: "Reports", roles: MANAGER_ONLY, Page: placeholder("Reports") },
   // admin (the business owner)
   { path: "admin", title: "Overview", roles: ADMIN_ONLY, Page: placeholder("Overview") },
-  { path: "admin/employees", title: "Employees", roles: ADMIN_ONLY, Page: placeholder("Employees") },
-  { path: "admin/employees/new", title: "New employee", roles: ADMIN_ONLY, Page: placeholder("New employee") },
-  { path: "admin/employees/:id", title: "Employee", roles: ADMIN_ONLY, Page: placeholder("Employee") },
+  { path: "admin/employees", title: "Employees", roles: ADMIN_ONLY, Page: EmployeesPage },
+  { path: "admin/employees/new", title: "New employee", roles: ADMIN_ONLY, Page: NewEmployeePage },
+  { path: "admin/employees/:id", title: "Employee", roles: ADMIN_ONLY, Page: EmployeePage },
   { path: "admin/time-tracking", title: "Time Tracking", roles: ADMIN_ONLY, Page: placeholder("Time Tracking") },
   { path: "admin/reports", title: "Reports", roles: ADMIN_ONLY, Page: placeholder("Reports") },
   { path: "admin/audit-log", title: "Audit Log", roles: ADMIN_ONLY, Page: placeholder("Audit Log") },
-  { path: "admin/settings", title: "Settings", roles: ADMIN_ONLY, Page: placeholder("Settings") },
-  // platform (super admin: businesses and their owners)
-  { path: "platform", title: "Businesses", roles: SUPER_ADMIN_ONLY, Page: placeholder("Businesses") },
-  { path: "platform/businesses/:id", title: "Business", roles: SUPER_ADMIN_ONLY, Page: placeholder("Business") },
+  { path: "admin/settings", title: "Settings", roles: ADMIN_ONLY, Page: SettingsPage },
+  // platform (super admin: creates businesses and their owners)
+  { path: "platform", title: "Businesses", roles: SUPER_ADMIN_ONLY, Page: BusinessesPage },
+  { path: "platform/businesses/:id", title: "Business", roles: SUPER_ADMIN_ONLY, Page: BusinessPage },
   { path: "platform/audit", title: "Audit Log", roles: SUPER_ADMIN_ONLY, Page: placeholder("Audit Log") },
-  // first run: the administrator creates the organization
-  { path: "setup", title: "Setup", roles: ADMIN_ONLY, Page: placeholder("Setup") },
 ];

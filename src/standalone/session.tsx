@@ -1,10 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
+import { ApiError, BUSINESS_SUSPENDED } from "@/track/api";
 import type { TrackUser } from "@/track/TrackContext";
 import { standaloneApi } from "./api";
 
 /**
  * The signed-in user: the answer of `GET /api/me`. This is a contract the backend implements:
- * `{ id, firstName, lastName, email, role, businessName }` (`role` includes SUPER_ADMIN, whose `businessName` is null) (inside the usual `{ ok: true, data }` envelope), 401 when signed out.
+ * `{ id, firstName, lastName, email, role, businessName, employeeCode, managerName, businessTimeZone }` (`role` includes SUPER_ADMIN,
+ * whose `businessName` and `businessTimeZone` are null) inside the usual `{ ok: true, data }` envelope; 401 when signed out, 403
+ * `BUSINESS_SUSPENDED` when the user's business is suspended.
  */
 export type CurrentUser = TrackUser;
 
@@ -17,14 +20,16 @@ export const fullNameOf = (user: CurrentUser) => `${user.firstName} ${user.lastN
 
 /**
  * The signed-in user, or null when signed out. The API validates the session on every request, so this is re-fetched
- * whenever data is invalidated. `isLoading` is true until the first answer.
+ * whenever data is invalidated. `isLoading` is true until the first answer. `isBusinessSuspended`: signed in, but the
+ * platform has suspended the user's business (then `user` is null and the app shows the "access is paused" screen).
  */
-export function useCurrentUser(): { user: CurrentUser | null; isLoading: boolean } {
+export function useCurrentUser(): { user: CurrentUser | null; isLoading: boolean; isBusinessSuspended: boolean } {
   const query = useQuery({
     queryKey: CURRENT_USER_QUERY_KEY,
     queryFn: fetchCurrentUser,
     // keep showing the user while a refetch runs
     placeholderData: (previousUser) => previousUser,
   });
-  return { user: query.data ?? null, isLoading: query.isPending };
+  const isBusinessSuspended = query.error instanceof ApiError && query.error.code === BUSINESS_SUSPENDED;
+  return { user: isBusinessSuspended ? null : (query.data ?? null), isLoading: query.isPending, isBusinessSuspended };
 }

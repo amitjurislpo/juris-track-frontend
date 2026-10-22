@@ -4,8 +4,9 @@ The JurisTrack web app: a React single-page app (Vite + TypeScript + React Route
 (start, break, resume, end day), reporting managers and their reports, reports and the audit log. It has no server of its own; every number on screen comes
 from the Spring Boot API in the backend repo (`juris-track-backend`).
 
-> **Status:** Phase 1 and 2 skeleton. Sign-in, the shell, the role-based navigation and one "Coming soon" placeholder per page
-> exist; the real pages follow the backend modules (see `references/MIGRATION_PLAN.md` in the backend repo).
+> **Status:** Sign-in, the shell, the role-based navigation and module 1 (organization and employees: the super admin's
+> businesses, the owner's employees and settings, everybody's profile) are built. The other pages are "Coming soon" placeholders
+> that follow the backend modules (see `references/MIGRATION_PLAN.md` in the backend repo).
 
 ## Stack
 
@@ -51,7 +52,7 @@ To show the fixed sign-in code on the login page in development, set `VITE_DEV_O
 | `npm run build` | Typecheck, then build static files into `dist/` |
 | `npm run preview` | Serve `dist/` locally (with the `/api` proxy) |
 | `npm run typecheck` / `npm run lint` | `tsc --noEmit` / ESLint |
-| `npm test` | Unit tests (roles and navigation, safe redirect, i18n) |
+| `npm test` | Unit tests (time engine, roles and navigation, safe redirect, i18n, list query strings, PATCH bodies, problem codes, API client) |
 | `npm run test:e2e` | Playwright end-to-end tests (see below) |
 
 ## Roles and pages
@@ -63,17 +64,39 @@ business has the same personal section; roles only add pages for looking at othe
 |---|---|
 | `EMPLOYEE` | Personal section only: `dashboard`, `my-time`, `my-history`, `profile`. Lands on `/dashboard`. |
 | `MANAGER` | Personal section, plus the **Team** group: `team` (live board of my reports), `team/employees/:id` (one report's history), `team/reports` (reports and CSV). Lands on `/team`; the personal section stays one click away. |
-| `ADMIN` (shown as "Owner") | Personal section, plus **Administration**: `admin` (overview), `admin/employees` (list, `new`, `:id`, including assigning each employee's manager), `admin/time-tracking` (live board of everyone), `admin/reports`, `admin/audit-log`, `admin/settings`; `setup` on first run. Lands on `/admin`. |
-| `SUPER_ADMIN` | Platform pages only (no business): `platform` (businesses), `platform/businesses/:id`, `platform/audit`. Lands on `/platform`. |
+| `ADMIN` (shown as "Owner") | Personal section, plus **Administration**: `admin` (overview), `admin/employees` (list, `new`, `:id`, including assigning each employee's manager), `admin/time-tracking` (live board of everyone), `admin/reports`, `admin/audit-log`, `admin/settings`. Lands on `/admin`. |
+| `SUPER_ADMIN` | Platform pages only (no business): `platform` (businesses), `platform/businesses/:id`, `platform/audit`. Creates each business together with its owner. Lands on `/platform`. |
 
-All pages are "Coming soon" placeholders for now. The sidebar groups (`src/standalone/nav.ts`) are "My workspace", "Team", "Administration" and "Platform".
+The sidebar groups (`src/standalone/nav.ts`) are "My workspace", "Team", "Administration" and "Platform".
+
+Built pages (module 1, in `src/track/pages/`):
+
+| Route | Folder | What it does |
+|---|---|---|
+| `platform` | `platform` | Businesses: search (name, owner's name or email), status filter (all / active / suspended), sortable columns, pages; "New business" creates a business and its owner. |
+| `platform/businesses/:id` | `platform-business` | One business: owner, head counts, settings; edit the settings; suspend / reactivate (with a confirmation and an optional reason). |
+| `admin/employees` | `admin-employees` | The owner's people: search, status (active / inactive / all), role and manager filters, sortable columns, pages; a row opens the employee. |
+| `admin/employees/new` | `admin-employee-new` | Add an employee (role Employee or Manager, reporting manager chosen from the active managers and owners). |
+| `admin/employees/:id` | `admin-employee` | Edit an employee (only the changed fields are sent; removing the manager sends null), deactivate / reactivate. |
+| `admin/settings` | `admin-settings` | Business name, time zone, stale workday hours (1 to 48), display time zones (up to 8). |
+| `profile` | `profile` | The signed-in user's own account (read-only, from `GET /api/me`). |
+
+List pages keep their search, filters, sorting and paging in the URL under the API's own query parameter names (`search`, `status`, `role`,
+`managerId`, `sort`, `sortDirection`, `page`, `pageSize`), so a list can be bookmarked and the values go to the API unchanged. The shared UI
+is in `src/track/components` (list controls in `list/`, `Modal`, `ConfirmDialog`, `FormField`, `StatusChip`, `EmptyState`); the pure helpers
+(query strings, PATCH bodies, problem codes to messages and form fields) are in `src/track/lib` and unit tested.
+
+When the platform suspends a business, its signed-in users get 403 `BUSINESS_SUSPENDED` from the API; the standalone app then shows a
+"Your company's access is paused" screen with a sign-out button instead of the pages (`src/standalone/components/BusinessSuspendedScreen.tsx`).
 
 ## The API contract the app assumes
 
-- `GET /api/me` -> `{ id, firstName, lastName, email, role, businessName }` (`role` is `SUPER_ADMIN`, `ADMIN` (shown as "Owner"), `MANAGER` or `EMPLOYEE`; `businessName` is null for `SUPER_ADMIN`), 401 when signed out.
+- `GET /api/me` -> `{ id, firstName, lastName, email, role, businessName, employeeCode, managerName, businessTimeZone }` (`role` is `SUPER_ADMIN`, `ADMIN` (shown as "Owner"), `MANAGER` or `EMPLOYEE`; `businessName` and `businessTimeZone` are null for `SUPER_ADMIN`), 401 when signed out, 403 `BUSINESS_SUSPENDED` when the business is suspended.
+- The full contract (every endpoint, field and error code) is `references/API.md` in the backend repo.
 - `POST /api/auth/otp-requests` `{ email }` mails a 6-digit code; `POST /api/auth/sessions` `{ email, otp, remember }` creates the session
   (cookies); `DELETE /api/auth/sessions/current` signs out; `POST /api/auth/session-refreshes` renews the session cookies.
-- Success answers are `{ ok: true, data?, message? }`; errors are RFC 7807 problem details (`detail`).
+- Success answers are `{ ok: true, data?, message? }`; errors are RFC 7807 problem details (`detail` is shown, `code` is mapped to a clear message
+  in `src/track/lib/problems.ts`, `errors[{ field, message }]` of a 400 are shown next to their form fields).
 
 ## Deploying (standalone)
 
@@ -109,11 +132,12 @@ only kept so that it can be. The boundary:
 - **What the host provides, through `TrackContext`** (`src/track/TrackContext.tsx`, given to `<TrackProvider value=…>`):
   - `apiBasePath`: where the API lives (`/api` standalone; the JurisOne gateway path when embedded). Pages use paths relative to it.
   - `getHeaders()`: extra headers for every call, for example `Authorization: Bearer <token>` (empty for the standalone cookie session).
-  - `user`: `{ id, firstName, lastName, email, role, businessName }`, with `role` one of `SUPER_ADMIN`, `ADMIN`, `MANAGER`, `EMPLOYEE` and `businessName` null for the super admin.
+  - `user`: `{ id, firstName, lastName, email, role, businessName, employeeCode, managerName, businessTimeZone }`, with `role` one of `SUPER_ADMIN`, `ADMIN`, `MANAGER`, `EMPLOYEE` and `businessName` / `businessTimeZone` null for the super admin.
   - `t(text, variables?)`: the translate function (the English text is the key; the host merges the Hindi dictionaries exported by `src/track/messages`).
   - `navigate(to)`: moves to a JurisTrack path, or back in history with a negative number.
   - `toast(message, kind?)`: shows a short message.
   - `onUnauthorized?(info)`: called on a 401; renew the session and return true to repeat the request.
+  - `onBusinessSuspended?()`: called on a 403 `BUSINESS_SUSPENDED`; the host shows its own "access is paused" screen.
 - **What the host must also supply:** React Router (the pages read route and search params and use `Navigate` and `useLocation`),
   a TanStack `QueryClientProvider`, a `Suspense` boundary and an error boundary around the pages, and a shell that is compatible with the JurisOne
   design CSS (`src/globals.css` is the design prototype CSS; the pages rely on its classes such as `page-h`, `card`, `empty`, `btn`).
@@ -130,8 +154,11 @@ of the backend repo (`BACKEND_REPO=<copy>`), not the one that has the dev API ru
 lifetime (instead of 5 minutes) so the tests also cover the silent session refresh.
 
 `tests/e2e/auth.spec.ts` covers sign-in for every role (super admin, owner, manager, employee from the demo seed), wrong / unknown /
-inactive codes, route protection, sign-out and the session refresh; the page specs come with the pages (`tests/e2e/helpers.ts` has the
-shared helpers).
+inactive codes, route protection, sign-out and the session refresh. `tests/e2e/organization.spec.ts` covers module 1: the super admin
+creates, finds, suspends and reactivates a business (its owner is paused and gets no code meanwhile), duplicate emails and codes, the owner's
+settings, adding a manager and an employee, editing and manager reassignment (checking the PATCH bodies), the manager-cycle and
+manager-with-reports refusals, deactivation ending the open session, the employees list (search, filters, sorting, pages), role protection of
+the owner's pages and API, and the profile. `tests/e2e/helpers.ts` has the shared helpers.
 
 ## Working rules
 

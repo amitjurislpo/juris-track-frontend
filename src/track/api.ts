@@ -1,5 +1,8 @@
 import type { QueryClient } from "@tanstack/react-query";
-import type { ActionResult } from "./action";
+import type { ActionResult, FieldError } from "./action";
+
+/** The problem code of a request by a user whose business the platform has suspended (403). */
+export const BUSINESS_SUSPENDED = "BUSINESS_SUSPENDED";
 
 /**
  * The API client. It is built from settings (`ApiClientOptions`), never from a fixed address: JurisTrack standalone uses `/api`
@@ -15,6 +18,8 @@ export interface ApiClientOptions {
   onUnauthorized?: (info: { isQuiet: boolean }) => Promise<boolean>;
   /** Shows the API's fixed English messages in the reader's language. */
   translateMessage?: (text: string) => string;
+  /** Called when the API answers 403 `BUSINESS_SUSPENDED` (the user's business was suspended while they were signed in). */
+  onBusinessSuspended?: () => void;
   /** Refetched after every successful write. */
   queryClient: QueryClient;
 }
@@ -26,12 +31,18 @@ export interface ApiResponse<T> {
 
 export class ApiError extends Error {
   status: number;
-  constructor(message: string, status: number) {
+  /** The problem details' stable `code` (`NOT_FOUND`, `BUSINESS_SUSPENDED`, …), when the API sent one. */
+  code: string | undefined;
+  constructor(message: string, status: number, code?: string) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.code = code;
   }
 }
+
+const isFieldError = (value: unknown): value is FieldError =>
+  typeof value === "object" && value !== null && typeof (value as FieldError).field === "string" && typeof (value as FieldError).message === "string";
 
 type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -52,13 +63,24 @@ export function createApiClient(options: ApiClientOptions) {
     let parsed: ActionResult<T>;
     try {
       const json = await response.json();
-      // errors arrive as RFC 7807 problem details: { status, code, detail, ... }
-      parsed = typeof json?.ok === "boolean" ? (json as ActionResult<T>) : { ok: false, error: String(json?.detail ?? FALLBACK_ERROR) };
+      // errors arrive as RFC 7807 problem details: { status, code, detail, errors?: [{ field, message }], ... }
+      if (typeof json?.ok === "boolean") parsed = json as ActionResult<T>;
+      else {
+        parsed = { ok: false, error: String(json?.detail ?? FALLBACK_ERROR) };
+        if (typeof json?.code === "string") parsed.code = json.code;
+        if (Array.isArray(json?.errors)) parsed.errors = json.errors.filter(isFieldError);
+      }
     } catch {
       parsed = { ok: false, error: FALLBACK_ERROR };
     }
-    if (!parsed.ok) parsed = { ...parsed, error: translateMessage(parsed.error) };
-    else if (parsed.message) parsed = { ...parsed, message: translateMessage(parsed.message) };
+    if (!parsed.ok) {
+      parsed = {
+        ...parsed,
+        error: translateMessage(parsed.error),
+        ...(parsed.errors ? { errors: parsed.errors.map((fieldError) => ({ field: fieldError.field, message: translateMessage(fieldError.message) })) } : {}),
+      };
+      if (response.status === 403 && parsed.code === BUSINESS_SUSPENDED) options.onBusinessSuspended?.();
+    } else if (parsed.message) parsed = { ...parsed, message: translateMessage(parsed.message) };
     return { status: response.status, body: parsed };
   }
 
@@ -75,14 +97,14 @@ export function createApiClient(options: ApiClientOptions) {
   async function get<T>(path: string): Promise<T | null> {
     const response = await call<T>("GET", path, undefined, { isQuiet: true });
     if (response.status === 401) return null;
-    if (!response.body.ok) throw new ApiError(response.body.error, response.status);
+    if (!response.body.ok) throw new ApiError(response.body.error, response.status, response.body.code);
     return response.body.data as T;
   }
 
   /** GET returning `data`; throws an ApiError on any error. */
   async function data<T>(path: string): Promise<T> {
     const response = await call<T>("GET", path);
-    if (!response.body.ok) throw new ApiError(response.body.error, response.status);
+    if (!response.body.ok) throw new ApiError(response.body.error, response.status, response.body.code);
     return response.body.data as T;
   }
 

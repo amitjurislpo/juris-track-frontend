@@ -6,7 +6,8 @@ import { PageErrorBoundary } from "@/standalone/components/PageErrorBoundary";
 import { ToastProvider, useToast } from "@/standalone/components/Toasts";
 import { useT } from "@/standalone/i18n/client";
 import { queryClient } from "@/standalone/query";
-import { useCurrentUser, type CurrentUser } from "@/standalone/session";
+import { CURRENT_USER_QUERY_KEY, useCurrentUser, type CurrentUser } from "@/standalone/session";
+import { BusinessSuspendedScreen } from "@/standalone/components/BusinessSuspendedScreen";
 import { PageLoading } from "@/track/PageLoading";
 import { TrackProvider, type TrackContextValue } from "@/track/TrackContext";
 
@@ -24,11 +25,13 @@ function StandaloneTrack({ user }: { user: CurrentUser }) {
     navigate: (to) => { if (typeof to === "number") void navigate(to); else void navigate(to); },
     toast,
     onUnauthorized: handleUnauthorized,
+    // the business was suspended while signed in: asking "who am I?" again gets the same 403, and the layout shows the paused screen
+    onBusinessSuspended: () => { void queryClient.invalidateQueries({ queryKey: CURRENT_USER_QUERY_KEY }); },
   }), [user, t, navigate, toast]);
   return (
     <TrackProvider value={contextValue}>
       <Shell user={user}>
-        <PageErrorBoundary key={currentLocation.pathname} onRetry={() => { void queryClient.invalidateQueries(); }}>
+        <PageErrorBoundary key={currentLocation.pathname} t={t} onRetry={() => { void queryClient.invalidateQueries(); }}>
           <Suspense fallback={<PageLoading />}>
             <Outlet />
           </Suspense>
@@ -40,9 +43,10 @@ function StandaloneTrack({ user }: { user: CurrentUser }) {
 
 /** Layout of every signed-in page: the shell (sidebar, top bar) around the page. */
 export function AppLayout() {
-  const { user, isLoading } = useCurrentUser();
+  const { user, isLoading, isBusinessSuspended } = useCurrentUser();
   const currentLocation = useLocation();
   if (isLoading) return <PageLoading />;
+  if (isBusinessSuspended) return <BusinessSuspendedScreen />;
   if (!user) return <Navigate to={`/login${currentLocation.pathname !== "/" ? `?next=${encodeURIComponent(currentLocation.pathname + currentLocation.search)}` : ""}`} replace />;
   return (
     <ToastProvider>

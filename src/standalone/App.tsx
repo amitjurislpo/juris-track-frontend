@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router";
 import { setNavigator } from "@/standalone/api";
 import { AppLayout } from "@/standalone/components/AppLayout";
+import { BusinessSuspendedScreen } from "@/standalone/components/BusinessSuspendedScreen";
 import { NotFound } from "@/standalone/components/NotFound";
 import { I18nProvider } from "@/standalone/i18n/client";
 import { queryClient } from "@/standalone/query";
@@ -22,8 +23,9 @@ function Titled({ title, children }: { title: string; children: React.ReactNode 
 
 /** `/` goes to the user's landing page, or to sign-in. */
 function Root() {
-  const { user, isLoading } = useCurrentUser();
+  const { user, isLoading, isBusinessSuspended } = useCurrentUser();
   if (isLoading) return <PageLoading />;
+  if (isBusinessSuspended) return <BusinessSuspendedScreen />;
   return <Navigate to={user ? homeFor(user.role) : "/login"} replace />;
 }
 

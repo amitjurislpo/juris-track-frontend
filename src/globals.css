@@ -558,6 +558,8 @@ a.ws{color:var(--text)}
 /* clickable rows and cards are keyboard-reachable — show where focus is */
 table.t tbody tr[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 @media(max-width:700px){.hide-sm{display:none}}
+.show-sm{display:none}
+@media(max-width:700px){.person small.show-sm{display:block}}
 /* keyboard: skip link appears on focus; main takes focus without a ring */
 .skip{position:fixed;left:12px;top:-60px;z-index:200;padding:10px 14px;border-radius:10px;background:var(--elev);color:var(--text);box-shadow:var(--shadow2);font-weight:600;text-decoration:none;transition:top .15s}
 .skip:focus{top:12px}
@@ -611,6 +613,14 @@ main.content:focus{outline:none}
 
 /* narrow screens: the top bar keeps only the page title (ellipsised) so its buttons never overlap it */
 @media(max-width:560px){.top{gap:6px}.crumbs{flex:1 1 0;min-width:0;overflow:hidden}.crumbs>span,.crumbs>svg{display:none}.crumbs b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.top .grow{display:none}.top select{max-width:92px}}
+
+/* a wide column and a narrow side column (an employee's form and their account card); one column on narrow screens */
+.split{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;align-items:start}
+.cards2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+@media(max-width:860px){.split,.cards2{grid-template-columns:1fr}}
+/* the "access is paused" screen of a suspended business */
+.paused{min-height:100vh;display:grid;place-items:center;padding:20px;background:var(--bg)}
+.paused .empty{max-width:520px}
 
 /* avatars: a photo fills the circle */
 .avatar{position:relative;overflow:hidden}
