@@ -20,7 +20,15 @@ export const PROBLEM_MESSAGES: Record<string, string> = {
   LAST_ACTIVE_OWNER: "The business must keep at least one active owner.",
   BUSINESS_SUSPENDED: "Your company's access to JurisTrack is suspended. Please contact support.",
   FORBIDDEN: "You don't have permission to do that.",
+  // time events (POST /me/time-events): the state changed elsewhere (another tab or device) or the button was out of date
+  WORKDAY_NOT_STARTED: "Your workday has not started yet. Select Start work first.",
+  NOT_ON_BREAK: "You are not on a break any more. Your timer has been refreshed.",
+  BREAK_IN_PROGRESS: "You are on a break. Select Back to work before ending your workday.",
+  TIME_RECORD_INCONSISTENT: "Your time record is in an unexpected state. Please contact an administrator to review it.",
 };
+
+/** The problem code of an open workday whose intervals do not match its status (an administrator has to correct it). */
+export const TIME_RECORD_INCONSISTENT = "TIME_RECORD_INCONSISTENT";
 
 /** The form field each code belongs to (where its message is shown). */
 export const PROBLEM_FIELDS: Record<string, string> = {

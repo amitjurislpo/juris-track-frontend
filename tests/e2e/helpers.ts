@@ -1,6 +1,6 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { expect, type Browser, type Page } from "@playwright/test";
+import { expect, request, type APIRequestContext, type Browser, type Page } from "@playwright/test";
 import { Client } from "pg";
 
 // the e2e database and the seeded super admin login come from the backend repo's application-dev.properties (BACKEND_REPO, default ../juris-track-backend)
@@ -91,3 +91,22 @@ export const toastWith = (page: Page, text: string) => page.locator(".toast").fi
 
 /** The rows of the page's list table. */
 export const tableRows = (page: Page) => page.locator("table.t tbody tr");
+
+/** The e2e web app's origin: the API accepts a cookie-authenticated write only with this Origin header. */
+export const WEB_ORIGIN = "http://localhost:3008";
+
+/**
+ * A signed-in API client outside the browser (own cookies), for test set-up through the real API. The e2e access token lives
+ * 15 seconds, so make a new one for each piece of set-up instead of keeping it. Dispose it when done.
+ */
+export async function apiSession(email: string): Promise<APIRequestContext> {
+  const session = await request.newContext({ baseURL: WEB_ORIGIN, extraHTTPHeaders: { Origin: WEB_ORIGIN } });
+  expect((await session.post("/api/auth/otp-requests", { data: { email } })).status()).toBe(200);
+  expect((await session.post("/api/auth/sessions", { data: { email, otp: OTP } })).status()).toBe(201);
+  return session;
+}
+
+/** Renews the session cookies of a signed-in page, so `page.request` calls are not refused with an expired access token. */
+export async function renewSession(page: Page) {
+  expect((await page.request.post("/api/auth/session-refreshes", { headers: { Origin: WEB_ORIGIN } })).status()).toBe(201);
+}

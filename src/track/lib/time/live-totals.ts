@@ -34,3 +34,19 @@ export function liveTotals(workday: LiveTotalsSnapshot, nowMilliseconds: number)
     breakCount: workday.breakCount,
   };
 }
+
+/**
+ * The figures to show for a workday: an ended day's own totals, exactly as the API computed them (so the timer, the summary and
+ * the history always agree to the second); an open day's advanced to `nowMilliseconds` from its timestamps.
+ */
+export function workdayFigures(workday: WorkdaySnapshot, nowMilliseconds: number): LiveTotals {
+  if (!workday.endedAt) return liveTotals(workday, nowMilliseconds);
+  return {
+    productiveSeconds: workday.productiveSeconds,
+    breakSeconds: workday.breakSeconds,
+    currentWorkSeconds: 0,
+    currentBreakSeconds: 0,
+    spanSeconds: workday.spanSeconds,
+    breakCount: workday.breakCount,
+  };
+}

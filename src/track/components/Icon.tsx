@@ -26,6 +26,10 @@ const ICONS: Record<string, string> = {
   plus: '<path d="M12 5v14M5 12h14"/>',
   lock: '<rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+  // time tracking
+  play: '<path d="M7 4.5v15l12-7.5z"/>',
+  pause: '<path d="M8.5 5v14M15.5 5v14"/>',
+  stop: '<rect x="6" y="6" width="12" height="12" rx="2.5"/>',
 };
 
 export function Icon({ name: iconName, size = 18 }: { name: string; size?: number }) {

@@ -4,9 +4,10 @@ The JurisTrack web app: a React single-page app (Vite + TypeScript + React Route
 (start, break, resume, end day), reporting managers and their reports, reports and the audit log. It has no server of its own; every number on screen comes
 from the Spring Boot API in the backend repo (`juris-track-backend`).
 
-> **Status:** Sign-in, the shell, the role-based navigation and module 1 (organization and employees: the super admin's
-> businesses, the owner's employees and settings, everybody's profile) are built. The other pages are "Coming soon" placeholders
-> that follow the backend modules (see `references/MIGRATION_PLAN.md` in the backend repo).
+> **Status:** Sign-in, the shell, the role-based navigation, module 1 (organization and employees: the super admin's
+> businesses, the owner's employees and settings, everybody's profile) and module 2 (personal time tracking: dashboard, My time,
+> My history, the display time zone switcher) are built. The other pages are "Coming soon" placeholders that follow the backend
+> modules (see `references/MIGRATION_PLAN.md` in the backend repo).
 
 ## Stack
 
@@ -52,7 +53,7 @@ To show the fixed sign-in code on the login page in development, set `VITE_DEV_O
 | `npm run build` | Typecheck, then build static files into `dist/` |
 | `npm run preview` | Serve `dist/` locally (with the `/api` proxy) |
 | `npm run typecheck` / `npm run lint` | `tsc --noEmit` / ESLint |
-| `npm test` | Unit tests (time engine, roles and navigation, safe redirect, i18n, list query strings, PATCH bodies, problem codes, API client) |
+| `npm test` | Unit tests (time engine, live totals and clock offset, time buttons per state, history query and chart data, display time zone, roles and navigation, safe redirect, i18n, list query strings, PATCH bodies, problem codes, API client) |
 | `npm run test:e2e` | Playwright end-to-end tests (see below) |
 
 ## Roles and pages
@@ -69,7 +70,7 @@ business has the same personal section; roles only add pages for looking at othe
 
 The sidebar groups (`src/standalone/nav.ts`) are "My workspace", "Team", "Administration" and "Platform".
 
-Built pages (module 1, in `src/track/pages/`):
+Built pages (modules 1 and 2, in `src/track/pages/`):
 
 | Route | Folder | What it does |
 |---|---|---|
@@ -80,11 +81,29 @@ Built pages (module 1, in `src/track/pages/`):
 | `admin/employees/:id` | `admin-employee` | Edit an employee (only the changed fields are sent; removing the manager sends null), deactivate / reactivate. |
 | `admin/settings` | `admin-settings` | Business name, time zone, stale workday hours (1 to 48), display time zones (up to 8). |
 | `profile` | `profile` | The signed-in user's own account (read-only, from `GET /api/me`). |
+| `dashboard` | `dashboard` | Today at a glance (state, live productive and break time, the same time buttons as My time), this week's productive and break time per day, the last five workdays (a row opens the workday). |
+| `my-time` | `my-time` | The timer: state chip, big productive timer, Start work / Take a break / Back to work / End workday (confirmation) / Start again, today's totals and timeline, the "Not ended" warning, the summary of a day ended after midnight. |
+| `my-history` | `my-history` | History of a date range (`range` = today, yesterday, week, month (default), custom with `from` / `to`), the range's totals and average per day, productive and break time per day (SVG chart), the workdays (sortable, paged); a row opens the workday with its intervals. |
 
 List pages keep their search, filters, sorting and paging in the URL under the API's own query parameter names (`search`, `status`, `role`,
 `managerId`, `sort`, `sortDirection`, `page`, `pageSize`), so a list can be bookmarked and the values go to the API unchanged. The shared UI
 is in `src/track/components` (list controls in `list/`, `Modal`, `ConfirmDialog`, `FormField`, `StatusChip`, `EmptyState`); the pure helpers
 (query strings, PATCH bodies, problem codes to messages and form fields) are in `src/track/lib` and unit tested.
+
+**Time tracking** (`GET /api/me/time`, `POST /api/me/time-events`, `GET /api/workdays/mine`, `GET /api/workdays/{workdayId}`). The pages never
+count time themselves: every figure is computed from the last server snapshot (`closedProductiveSeconds + (now - activeWorkStartedAt)`), and
+"now" is the server's clock as measured on each answer (`serverTime` against the middle of the round trip, `src/track/lib/time/clock-offset.ts`),
+so a wrong browser clock or a sleeping tab never changes a figure. The display ticks once a second and stops while the tab is hidden; the state
+is read again every 30 seconds while a timer is visible, when the tab comes back and when the network returns. A time button is disabled while
+a request runs (a double click sends one event); a repeat the API reports as `alreadyApplied` just refreshes; the 409 codes get clear messages;
+`TIME_RECORD_INCONSISTENT` shows an error with a "Check again" button. The button rules per state are in `src/track/lib/time/timer-actions.ts`.
+
+**Display time zone.** The top bar's "Show times in" switcher (every user of a business) offers the business time zone and the business's
+display time zones (from `GET /api/me/time`), each with its current time. The choice is per browser, kept in `localStorage`
+(`juristrack.displayTimeZone`; a display preference the API never needs, so not a cookie; when storage is blocked the choice lasts until a
+reload). It changes the clock times on the time pages (start, end, intervals); workday dates and date ranges stay in the business time zone
+as the API returns them, and durations do not change. The switcher (`src/standalone/components/TimeZoneSwitcher.tsx`) is built on the
+`useDisplayTimeZone` hook of `src/track`, so an embedding host can offer its own.
 
 When the platform suspends a business, its signed-in users get 403 `BUSINESS_SUSPENDED` from the API; the standalone app then shows a
 "Your company's access is paused" screen with a sign-out button instead of the pages (`src/standalone/components/BusinessSuspendedScreen.tsx`).
@@ -93,6 +112,8 @@ When the platform suspends a business, its signed-in users get 403 `BUSINESS_SUS
 
 - `GET /api/me` -> `{ id, firstName, lastName, email, role, businessName, employeeCode, managerName, businessTimeZone }` (`role` is `SUPER_ADMIN`, `ADMIN` (shown as "Owner"), `MANAGER` or `EMPLOYEE`; `businessName` and `businessTimeZone` are null for `SUPER_ADMIN`), 401 when signed out, 403 `BUSINESS_SUSPENDED` when the business is suspended.
 - The full contract (every endpoint, field and error code) is `references/API.md` in the backend repo.
+- Time tracking: `GET /api/me/time`, `POST /api/me/time-events` `{ type: START | BREAK | RESUME | END }`, `GET /api/workdays/mine`
+  (`range`, `from`, `to`, `sort`, `sortDirection` (default `desc`), `page`, `pageSize`), `GET /api/workdays/{workdayId}`.
 - `POST /api/auth/otp-requests` `{ email }` mails a 6-digit code; `POST /api/auth/sessions` `{ email, otp, remember }` creates the session
   (cookies); `DELETE /api/auth/sessions/current` signs out; `POST /api/auth/session-refreshes` renews the session cookies.
 - Success answers are `{ ok: true, data?, message? }`; errors are RFC 7807 problem details (`detail` is shown, `code` is mapped to a clear message
@@ -158,7 +179,12 @@ inactive codes, route protection, sign-out and the session refresh. `tests/e2e/o
 creates, finds, suspends and reactivates a business (its owner is paused and gets no code meanwhile), duplicate emails and codes, the owner's
 settings, adding a manager and an employee, editing and manager reassignment (checking the PATCH bodies), the manager-cycle and
 manager-with-reports refusals, deactivation ending the open session, the employees list (search, filters, sorting, pages), role protection of
-the owner's pages and API, and the profile. `tests/e2e/helpers.ts` has the shared helpers.
+the owner's pages and API, and the profile. `tests/e2e/time-tracking.spec.ts` covers module 2: start, break (productive time stands still),
+resume and end (confirmation) with the summary matching the history row, a reload and a second browser showing the same state, Start again
+reopening the day, a double click and parallel requests creating one workday, an inconsistent time record, the manager and the owner tracking
+their own time, the super admin kept out (pages and API), history ranges, custom range, totals, sorting, pages and the workday dialog, the time
+zone switcher, a night shift flagged "Not ended" and ended after midnight, deactivation closing a running workday and ending the session, and a
+suspended business pausing the timer. `tests/e2e/helpers.ts` has the shared helpers (including `apiSession` for set-up through the real API).
 
 ## Working rules
 

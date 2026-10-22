@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, matchPath, useLocation } from "react-router";
 import { Avatar } from "@/standalone/components/Avatar";
 import { LanguageSwitcher } from "@/standalone/components/LanguageSwitcher";
+import { TimeZoneSwitcher } from "@/standalone/components/TimeZoneSwitcher";
 import { useT } from "@/standalone/i18n/client";
 import { signOut } from "@/standalone/login/actions";
 import { navFor } from "@/standalone/nav";
@@ -90,6 +91,7 @@ export function Shell({ user, children }: { user: CurrentUser; children: React.R
             <button className="icon-btn" onClick={toggleTheme} aria-label={theme === "dark" ? t("Switch to light theme") : t("Switch to dark theme")}>
               <Icon name={theme === "dark" ? "sun" : "moon"} size={17} />
             </button>
+            {user.role !== "SUPER_ADMIN" && <TimeZoneSwitcher />}
             <LanguageSwitcher />
             <div className="menu-anchor" style={{ position: "relative" }}>
               <button className="profile" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-haspopup="menu" aria-expanded={isMenuOpen}>

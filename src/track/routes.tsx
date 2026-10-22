@@ -3,6 +3,9 @@ import { ComingSoon } from "./components/ComingSoon";
 import type { Role } from "./roles";
 
 // built pages load on first use (the host's Suspense boundary shows the loading state meanwhile)
+const DashboardPage = lazy(() => import("./pages/dashboard/page"));
+const MyTimePage = lazy(() => import("./pages/my-time/page"));
+const MyHistoryPage = lazy(() => import("./pages/my-history/page"));
 const ProfilePage = lazy(() => import("./pages/profile/page"));
 const EmployeesPage = lazy(() => import("./pages/admin-employees/page"));
 const NewEmployeePage = lazy(() => import("./pages/admin-employee-new/page"));
@@ -35,9 +38,9 @@ const ADMIN_ONLY: readonly Role[] = ["ADMIN"];
 
 export const trackRoutes: TrackRoute[] = [
   // personal time tracking: the same for every user of a business, whatever the role
-  { path: "dashboard", title: "Dashboard", roles: BUSINESS_USERS, Page: placeholder("Dashboard") },
-  { path: "my-time", title: "My Time", roles: BUSINESS_USERS, Page: placeholder("My Time") },
-  { path: "my-history", title: "My History", roles: BUSINESS_USERS, Page: placeholder("My History") },
+  { path: "dashboard", title: "Dashboard", roles: BUSINESS_USERS, Page: DashboardPage },
+  { path: "my-time", title: "My Time", roles: BUSINESS_USERS, Page: MyTimePage },
+  { path: "my-history", title: "My History", roles: BUSINESS_USERS, Page: MyHistoryPage },
   { path: "profile", title: "Profile", roles: BUSINESS_USERS, Page: ProfilePage },
   // manager: the Team tab (the people who report to them)
   { path: "team", title: "Team", roles: MANAGER_ONLY, Page: placeholder("Team") },

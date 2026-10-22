@@ -68,3 +68,26 @@ export interface Employee {
   createdAt: string;
   activeReportCount: number;
 }
+
+/** A row of `GET /workdays/mine` (the signed-in user's history); an open day's figures run to the time of the answer. */
+export interface WorkdayHistoryRow {
+  id: string;
+  date: string;
+  status: "WORKING" | "ON_BREAK" | "DAY_ENDED";
+  isStale: boolean;
+  startedAt: string;
+  endedAt: string | null;
+  productiveSeconds: number;
+  breakSeconds: number;
+  spanSeconds: number;
+  breakCount: number;
+}
+
+/** `GET /workdays/mine`: one page of workdays plus the whole range's totals and one chart point per date. */
+export interface WorkdayHistory extends ListPage<WorkdayHistoryRow> {
+  range: "today" | "yesterday" | "week" | "month" | "custom";
+  from: string;
+  to: string;
+  totals: { workdays: number; productiveSeconds: number; breakSeconds: number; spanSeconds: number; breakCount: number };
+  dailySeries: { date: string; productiveSeconds: number; breakSeconds: number; workdays: number }[];
+}

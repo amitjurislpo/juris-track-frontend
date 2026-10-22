@@ -37,9 +37,14 @@ export {
   ACTIVITY_LABELS,
   type LiveStatus,
   type TimelineSegment,
-  type ActivityKind,
+  type ActivityType,
   type WorkdaySnapshot,
-  type EmployeeTimeState,
-  type TimeCommand,
-  type TimeCommandResult,
+  type TimeState,
+  type TimeEventType,
+  type TimeEventResult,
 } from "./lib/time/types";
+export { measureClockOffset, serverNow } from "./lib/time/clock-offset";
+export { displayTimeZoneChoices, resolveDisplayTimeZone } from "./lib/time/display-time-zone";
+// The display time zone: an embedding host can build its own switcher on this hook (the standalone shell has one).
+export { useDisplayTimeZone, type DisplayTimeZone } from "./time/useDisplayTimeZone";
+export { useServerClock } from "./time/useServerClock";

@@ -42,6 +42,7 @@ export const standaloneHindiMessages: Record<string, string> = {
   "Dark theme": "डार्क थीम",
   "Sign out": "साइन आउट",
   "Language": "भाषा",
+  "Show times in": "समय इस क्षेत्र में दिखाएँ",
   "Page not found": "पृष्ठ नहीं मिला",
   "This page doesn't exist, or you don't have access to it.": "यह पृष्ठ मौजूद नहीं है, या आपके पास इसकी अनुमति नहीं है।",
   // a page that failed to load (PageErrorBoundary)
