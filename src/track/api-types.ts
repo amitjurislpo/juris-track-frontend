@@ -64,6 +64,8 @@ export interface Employee {
   email: string;
   role: Exclude<Role, "SUPER_ADMIN">;
   isActive: boolean;
+  /** False = the owner switched sign-in off: the person stays in the business but cannot sign in. */
+  isLoginEnabled: boolean;
   managerId: string | null;
   managerName: string | null;
   lastLoginAt: string | null;

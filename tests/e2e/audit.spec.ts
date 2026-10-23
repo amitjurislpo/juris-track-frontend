@@ -58,6 +58,9 @@ test.describe.serial("audit log", () => {
     await page.getByLabel("Reporting manager", { exact: true }).selectOption({ label: "Manish Manager" });
     await page.getByRole("button", { name: "Add employee" }).click();
     await expect(toastWith(page, "Employee added.")).toBeVisible();
+    await expect(page).toHaveURL(/\/admin\/employees$/); // the list, where the new person is opened
+    await page.getByRole("searchbox").fill(PERSON.email);
+    await page.getByRole("link", { name: `${PERSON.firstName} ${PERSON.lastName}` }).click();
     await expect(page).toHaveURL(/\/admin\/employees\/[0-9a-f-]{36}$/);
     // edit
     await page.getByLabel("Employee code", { exact: true }).fill(PERSON.newCode);

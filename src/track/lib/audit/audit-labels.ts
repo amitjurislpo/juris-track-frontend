@@ -37,6 +37,8 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   "employee.updated": "Employee updated",
   "employee.deactivated": "Employee deactivated",
   "employee.reactivated": "Employee reactivated",
+  "employee.login_disabled": "Employee login disabled",
+  "employee.login_enabled": "Employee login enabled",
   "employee.change_refused": "Employee change refused",
   "time.workday_started": "Workday started",
   "time.workday_reopened": "Workday reopened",
