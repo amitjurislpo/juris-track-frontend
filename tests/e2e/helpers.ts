@@ -60,7 +60,7 @@ export async function requestCode(page: Page, email: string) {
   // wait for hydration: a click can otherwise beat React to the form
   await page.goto("/login", { waitUntil: "networkidle" });
   await page.getByLabel("Email").fill(email);
-  await page.getByRole("button", { name: "Login", exact: true }).click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Check your email" })).toBeVisible();
 }
 

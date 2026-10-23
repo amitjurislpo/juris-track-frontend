@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ConfirmDialog } from "@/track/components/ConfirmDialog";
 import { Icon } from "@/track/components/Icon";
 import { timerActionsFor, type TimerAction } from "@/track/lib/time/timer-actions";
@@ -24,16 +24,27 @@ export function TimeActionButtons({ status, runner, endSummary, isLarge = true }
   const actions = timerActionsFor(status, runner.runningEvent !== null || runner.inconsistencyMessage !== null);
   const hints = actions.flatMap((action) => (action.hint ? [action.hint] : []));
 
+  const buttonsRef = useRef<HTMLDivElement>(null);
+
+  /** After an event the pressed button turns into the next one; if the browser dropped the focus meanwhile, put it on the first enabled button. */
+  const restoreFocus = () => {
+    requestAnimationFrame(() => {
+      const isFocusLost = !document.activeElement || document.activeElement === document.body;
+      if (isFocusLost) buttonsRef.current?.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus();
+    });
+  };
+
   const press = (action: TimerAction) => {
     if (action.needsConfirmation) setIsConfirmingEnd(true);
-    else void runner.run(action.event);
+    else void runner.run(action.event).then(restoreFocus);
   };
 
   return (
     <>
-      <div className="timer-actions">
-        {actions.map((action) => (
-          <span key={action.event} className={action.isPrimary && status === "NOT_STARTED" ? "punch" : undefined}>
+      <div className="timer-actions" ref={buttonsRef}>
+        {actions.map((action, position) => (
+          // keyed by position: the button the user pressed stays in place and only changes its label, so a keyboard user keeps the focus
+          <span key={position} className={action.isPrimary && status === "NOT_STARTED" ? "punch" : undefined}>
             {action.isPrimary && status === "NOT_STARTED" && action.isEnabled && <span className="halo" aria-hidden="true"></span>}
             <button type="button" className={`btn ${action.isPrimary ? "btn-gold" : ""} ${isLarge ? "btn-lg" : ""}`.trim()} disabled={!action.isEnabled}
               aria-busy={runner.runningEvent === action.event || undefined} onClick={() => press(action)}>
@@ -50,7 +61,7 @@ export function TimeActionButtons({ status, runner, endSummary, isLarge = true }
           body={<>{t("Your final productive and break time will be recorded. You can start again later today if needed.")}{endSummary && <><br /><b>{endSummary}</b></>}</>}
           confirmLabel={t("End workday")}
           isBusy={runner.runningEvent !== null}
-          onConfirm={() => { void runner.run("END").then(() => setIsConfirmingEnd(false)); }}
+          onConfirm={() => { void runner.run("END").then(() => { setIsConfirmingEnd(false); restoreFocus(); }); }}
           onClose={() => setIsConfirmingEnd(false)}
         />
       )}

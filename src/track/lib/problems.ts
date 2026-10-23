@@ -19,19 +19,25 @@ export const PROBLEM_MESSAGES: Record<string, string> = {
   CANNOT_DEACTIVATE_SELF: "You cannot deactivate your own account.",
   LAST_ACTIVE_OWNER: "The business must keep at least one active owner.",
   BUSINESS_SUSPENDED: "Your company's access to JurisTrack is suspended. Please contact support.",
-  FORBIDDEN: "You don't have permission to do that.",
   // time events (POST /me/time-events): the state changed elsewhere (another tab or device) or the button was out of date
   WORKDAY_NOT_STARTED: "Your workday has not started yet. Select Start work first.",
   NOT_ON_BREAK: "You are not on a break any more. Your timer has been refreshed.",
   BREAK_IN_PROGRESS: "You are on a break. Select Back to work before ending your workday.",
-  TIME_RECORD_INCONSISTENT: "Your time record is in an unexpected state. Please contact an administrator to review it.",
+  TIME_RECORD_INCONSISTENT: "Your time record is in an unexpected state. Please contact your business owner to review it.",
   // time corrections by a manager or the owner (PATCH /workdays/{workdayId}/work-sessions|break-sessions/{sessionId}, PUT /workdays/{workdayId}/status)
   CANNOT_CORRECT_OWN_TIME: "You cannot correct your own time. Ask your manager or the owner to do it.",
   TIME_INTERVAL_OVERLAP: "The corrected interval overlaps another work or break interval. Choose times that do not overlap.",
   WORKDAY_MUST_START_WITH_WORK: "A workday must begin with a work interval: a break cannot come first.",
   INTERVAL_STILL_RUNNING: "This interval is still running. Close the workday instead of setting an end time.",
+  CORRECTION_OUT_OF_RANGE: "A time must be on the workday's date or the day after, in the business time zone.",
+  WORKDAY_OVERLAP: "The corrected time overlaps another workday of this person. Their hours would count twice.",
   // reports (GET /reports/workdays as CSV): more rows than one file may hold
   EXPORT_TOO_LARGE: "This export has too many rows for one file. Narrow the date range or choose fewer people, then export again.",
+  // any write: the request body is above the API's limit (64 KB)
+  PAYLOAD_TOO_LARGE: "The request is too large.",
+  // linking a business to JurisOne (PUT /businesses/{businessId}/jurisone-link)
+  BUSINESS_ALREADY_LINKED: "This business is already linked to another JurisOne business. Unlink it first.",
+  JURISONE_BUSINESS_IN_USE: "Another business is already linked to that JurisOne business.",
 };
 
 /** The problem code of an open workday whose intervals do not match its status (an administrator has to correct it). */

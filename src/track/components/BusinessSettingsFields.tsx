@@ -48,7 +48,7 @@ export function BusinessSettingsFields({ form, onChange, errors }: { form: Busin
           <option value="">{isDisplayListFull ? t("The list is full (8 time zones)") : t("Add a display time zone…")}</option>
           {zones.filter((zone) => !form.displayTimeZones.includes(zone)).map((zone) => <option key={zone} value={zone}>{zone}</option>)}
         </select>
-        {displayZoneError && <span className="err">{displayZoneError}</span>}
+        {displayZoneError && <span className="err" role="alert">{displayZoneError}</span>}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { TrackLink } from "@/track/components/TrackLink";
 import type { BusinessRow, ListPage } from "@/track/api-types";
 import { EmptyState } from "@/track/components/EmptyState";
 import { Icon } from "@/track/components/Icon";
@@ -60,7 +60,7 @@ export default function BusinessesPage() {
                     <div className="person">
                       <span className="kpi-ico" style={{ width: 34, height: 34, background: "var(--accentsoft)", color: "var(--accent)" }}><Icon name="building" size={16} /></span>
                       <div>
-                        <b><Link to={`/platform/businesses/${business.id}`} style={{ color: "inherit", textDecoration: "none" }} onClick={(e) => e.stopPropagation()}>{business.name}</Link></b>
+                        <b><TrackLink to={`/platform/businesses/${business.id}`} style={{ color: "inherit", textDecoration: "none" }} onClick={(e) => e.stopPropagation()}>{business.name}</TrackLink></b>
                         {business.isLinkedToJurisone && <small>{t("Linked to JurisOne")}</small>}
                       </div>
                     </div>

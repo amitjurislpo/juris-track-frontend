@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { TrackLink } from "@/track/components/TrackLink";
 import type { WorkdayHistory, WorkdayHistoryRow } from "@/track/api-types";
 import { EmptyState } from "@/track/components/EmptyState";
 import { PageHeader } from "@/track/components/PageHeader";
@@ -62,7 +62,7 @@ export default function DashboardPage() {
         <section className="card span-12 enter" style={{ ["--i" as string]: 3, padding: 0, overflow: "hidden" }} aria-labelledby="recent-heading">
           <div className="card-h" style={{ padding: "16px 16px 0" }}>
             <h3 id="recent-heading">{t("Last workdays")}</h3>
-            <Link className="btn btn-sm btn-ghost" to="/my-history">{t("View history")}</Link>
+            <TrackLink className="btn btn-sm btn-ghost" to="/my-history">{t("View history")}</TrackLink>
           </div>
           {recent.rows.length > 0
             ? <WorkdayHistoryTable rows={recent.rows} timeZone={timeZone} onOpen={(workdayId) => setOpenWorkday(recent.rows.find((row) => row.id === workdayId) ?? null)} />

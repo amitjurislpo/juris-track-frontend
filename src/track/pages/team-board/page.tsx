@@ -1,5 +1,5 @@
-import { Link } from "react-router";
-import { ApiError } from "@/track/api";
+import { TrackLink } from "@/track/components/TrackLink";
+import { ApiError, isNetworkError } from "@/track/api";
 import type { TeamBoard } from "@/track/api-types";
 import { EmptyState } from "@/track/components/EmptyState";
 import { Pagination } from "@/track/components/list/Pagination";
@@ -43,7 +43,7 @@ export default function TeamBoardPage() {
   const data = reading.value;
   const scope = selectedScope(user.role, searchParams.scope);
   const hasFilters = Boolean(searchParams.search) || Boolean(searchParams.status && searchParams.status.toLowerCase() !== "all");
-  const isReconnecting = board.isRefetchError && !(board.error instanceof ApiError && board.error.status < 500);
+  const isReconnecting = board.isRefetchError && (isNetworkError(board.error) || !(board.error instanceof ApiError && board.error.status < 500));
 
   return (
     <div className="col">
@@ -69,7 +69,7 @@ export default function TeamBoardPage() {
         {!data.rows.length && data.metrics.total === 0 && (
           isOwner && scope === "all"
             ? <EmptyState title={t("Nobody to show yet")} text={t("Add employees to see who is working.")}>
-                <Link className="btn btn-sm" to="/admin/employees/new">{t("Add employee")}</Link>
+                <TrackLink className="btn btn-sm" to="/admin/employees/new">{t("Add employee")}</TrackLink>
               </EmptyState>
             : <EmptyState title={t("Nobody reports to you yet")}
                 text={isOwner ? t("Assign people to yourself as their manager on the Employees page.") : t("When the owner makes you somebody's manager, they appear here.")} />

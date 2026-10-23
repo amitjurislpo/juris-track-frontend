@@ -234,7 +234,7 @@ test.describe.serial("personal time tracking", () => {
     await expect(timeStatus(page)).toHaveText("On break");
     await button(page, "Back to work").click();
     const alert = page.getByRole("alert").filter({ hasText: "Your time record needs attention" });
-    await expect(alert).toContainText("Your time record is in an unexpected state. Please contact an administrator to review it.");
+    await expect(alert).toContainText("Your time record is in an unexpected state. Please contact your business owner to review it.");
     await expect(button(page, "Back to work")).toBeDisabled();
 
     // an administrator corrects it; "Check again" reads the state again

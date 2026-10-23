@@ -125,16 +125,57 @@ export function eachDay(from: DateKey, to: DateKey): DateKey[] {
   return days;
 }
 
+/** How a wall-clock time relates to the clock changes of its time zone. */
+export type LocalTimeKind = "normal" | "gap" | "ambiguous";
+
+const DAY_MILLISECONDS = 86_400_000;
+
 /**
- * Parses an <input type="datetime-local"> value ("2026-10-01T09:30") as a wall-clock time in the given time zone.
- * Returns null when malformed.
+ * The instants at which the wall clock of `timeZone` shows this date and time: one normally, none inside a spring-forward gap,
+ * two (earlier first) inside the repeated hour of a fall-back change.
  */
-export function parseZonedDateTime(value: string, timeZone: string): Date | null {
+function instantsShowing(key: DateKey, timeZone: string, hour: number, minute: number, second: number): Date[] {
+  const [year, month, day] = key.split("-").map(Number) as [number, number, number];
+  const wallClockAsUtc = Date.UTC(year, month - 1, day, hour, minute, second);
+  const offsets = new Set([
+    timeZoneOffsetMilliseconds(new Date(wallClockAsUtc - DAY_MILLISECONDS), timeZone),
+    timeZoneOffsetMilliseconds(new Date(wallClockAsUtc + DAY_MILLISECONDS), timeZone),
+  ]);
+  return [...offsets]
+    .map((offset) => wallClockAsUtc - offset)
+    .filter((instant) => timeZoneOffsetMilliseconds(new Date(instant), timeZone) === wallClockAsUtc - instant)
+    .sort((first, second) => first - second)
+    .map((instant) => new Date(instant));
+}
+
+/**
+ * Reads an <input type="datetime-local"> value ("2026-10-01T09:30") as a wall-clock time in the given time zone and says whether
+ * that time is normal, does not exist (`gap`: the clocks jumped forward over it; the instant is then one hour earlier, as in
+ * `zonedTimeToUtc`) or happens twice (`ambiguous`: the clocks went back). For a time that happens twice, `reference` (the value
+ * the field held before the user edited it) picks the occurrence closest to it, so a time in the repeated hour is not moved by an
+ * hour; without a reference the earlier occurrence is used. Returns null when malformed.
+ */
+export function resolveZonedDateTime(value: string, timeZone: string, reference?: Date | string | null): { instant: Date; kind: LocalTimeKind } | null {
   const match = LOCAL_DATE_TIME_PATTERN.exec(value);
   if (!match || !isDateKey(match[1])) return null;
   const [hour, minute, second] = [Number(match[2]), Number(match[3]), Number(match[4] ?? 0)];
   if (hour > 23 || minute > 59 || second > 59) return null;
-  return zonedTimeToUtc(match[1], timeZone, hour, minute, second);
+  const candidates = instantsShowing(match[1], timeZone, hour, minute, second);
+  if (candidates.length === 0) return { instant: zonedTimeToUtc(match[1], timeZone, hour, minute, second), kind: "gap" };
+  if (candidates.length === 1) return { instant: candidates[0], kind: "normal" };
+  const referenceTime = reference == null ? NaN : (typeof reference === "string" ? Date.parse(reference) : reference.getTime());
+  const closest = Number.isNaN(referenceTime)
+    ? candidates[0]
+    : candidates.reduce((best, candidate) => (Math.abs(candidate.getTime() - referenceTime) < Math.abs(best.getTime() - referenceTime) ? candidate : best));
+  return { instant: closest, kind: "ambiguous" };
+}
+
+/**
+ * Parses an <input type="datetime-local"> value ("2026-10-01T09:30") as a wall-clock time in the given time zone (see
+ * `resolveZonedDateTime` for clock changes and `reference`). Returns null when malformed.
+ */
+export function parseZonedDateTime(value: string, timeZone: string, reference?: Date | string | null): Date | null {
+  return resolveZonedDateTime(value, timeZone, reference)?.instant ?? null;
 }
 
 /** Formats an instant as a datetime-local input value in the given time zone. */

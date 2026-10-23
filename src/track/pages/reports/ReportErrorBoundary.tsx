@@ -1,5 +1,5 @@
 import { Component, type ReactNode } from "react";
-import { ApiError, BUSINESS_SUSPENDED } from "@/track/api";
+import { ApiError, BUSINESS_SUSPENDED, isNetworkError } from "@/track/api";
 
 interface ReportErrorBoundaryProps {
   children: ReactNode;
@@ -14,7 +14,7 @@ interface ReportErrorBoundaryProps {
 
 /** A clear headline and hint for a report the API refused (translation keys). */
 function explanationOf(error: Error): { headline: string; hint: string; canClearFilters: boolean } {
-  if (!(error instanceof ApiError)) return { headline: "The report could not be loaded", hint: "Check your connection and try again.", canClearFilters: false };
+  if (!(error instanceof ApiError) || isNetworkError(error)) return { headline: "The report could not be loaded", hint: "Check your connection and try again.", canClearFilters: false };
   if (error.status === 403) return { headline: "You can't see this report", hint: "Reports show only the people you are allowed to see.", canClearFilters: true };
   if (error.status === 404) return { headline: "Not in your report", hint: "The chosen employee or manager is not among the people you can see.", canClearFilters: true };
   if (error.status === 400) return { headline: "Some filters are not valid", hint: "Change or clear the filters and try again.", canClearFilters: true };

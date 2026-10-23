@@ -1,3 +1,4 @@
+import { useQueryErrorResetBoundary } from "@tanstack/react-query";
 import { Suspense, type ReactNode } from "react";
 import { Modal } from "@/track/components/Modal";
 import { PageLoading } from "@/track/PageLoading";
@@ -9,6 +10,7 @@ import { useTimeState } from "@/track/time/useTimeState";
 import { useTrack } from "@/track/TrackContext";
 import { useData } from "@/track/usePage";
 import { Timeline } from "./Timeline";
+import { WorkdayDetailErrorBoundary } from "./WorkdayDetailErrorBoundary";
 import { WorkdayStatusChip } from "./WorkdayStatusChip";
 import { WorkdaySummary } from "./WorkdaySummary";
 
@@ -46,11 +48,14 @@ export function WorkdayDetailModal({ workdayId, dateKey, timeZone, onClose, rend
   renderExtras?: WorkdayExtras;
 }) {
   const { t } = useTrack();
+  const { reset } = useQueryErrorResetBoundary();
   return (
     <Modal title={formatDateKey(dateKey)} eyebrow={t("Workday")} onClose={onClose}>
-      <Suspense fallback={<PageLoading />}>
-        <WorkdayDetail workdayId={workdayId} timeZone={timeZone} renderExtras={renderExtras} />
-      </Suspense>
+      <WorkdayDetailErrorBoundary t={t} onRetry={reset}>
+        <Suspense fallback={<PageLoading />}>
+          <WorkdayDetail workdayId={workdayId} timeZone={timeZone} renderExtras={renderExtras} />
+        </Suspense>
+      </WorkdayDetailErrorBoundary>
     </Modal>
   );
 }

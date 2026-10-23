@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { nextSortDirection, type SortDirection } from "@/track/lib/list-query";
+import { sortChangeOf, type SortDirection } from "@/track/lib/list-query";
+import { useTrack } from "@/track/TrackContext";
 import { useListQuery } from "./useListQuery";
 
 /**
@@ -13,6 +14,7 @@ export function SortableHeader({ sortKey, defaultSort, defaultDirection = "asc",
   children: ReactNode;
   className?: string;
 }) {
+  const { readCurrentSearch } = useTrack();
   const { read, update } = useListQuery();
   const currentSort = read("sort", defaultSort);
   const directionInUrl = read("sortDirection");
@@ -20,7 +22,7 @@ export function SortableHeader({ sortKey, defaultSort, defaultDirection = "asc",
   const isSorted = currentSort === sortKey;
   return (
     <th className={className} aria-sort={isSorted ? (currentDirection === "asc" ? "ascending" : "descending") : "none"}>
-      <button className="sh" type="button" onClick={() => update({ sort: sortKey, sortDirection: nextSortDirection(currentSort, currentDirection, sortKey) })}>
+      <button className="sh" type="button" onClick={() => update(sortChangeOf(readCurrentSearch(), sortKey, defaultSort, defaultDirection))}>
         {children}
         <i aria-hidden="true">{isSorted ? (currentDirection === "asc" ? "↑" : "↓") : "↕"}</i>
       </button>

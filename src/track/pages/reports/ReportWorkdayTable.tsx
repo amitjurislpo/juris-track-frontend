@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { TrackLink } from "@/track/components/TrackLink";
 import type { ReportWorkdayRow } from "@/track/api-types";
 import { SortableHeader } from "@/track/components/list/SortableHeader";
 import { WorkdayStatusChip } from "@/track/components/time/WorkdayStatusChip";
@@ -43,7 +43,7 @@ export function ReportWorkdayTable({ rows, timeZone, employeePath }: { rows: Rep
               <td style={{ whiteSpace: "nowrap" }}>{formatDateKey(row.date)}</td>
               <td>
                 <div className="person"><div>
-                  <b><Link to={employeePath(row.employee.id)} style={{ color: "inherit" }}>{row.employee.name}</Link></b>
+                  <b><TrackLink to={employeePath(row.employee.id)} style={{ color: "inherit" }}>{row.employee.name}</TrackLink></b>
                   {row.employee.employeeCode && <small className="muted num">{row.employee.employeeCode}</small>}
                 </div></div>
               </td>

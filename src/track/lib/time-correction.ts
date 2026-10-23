@@ -6,7 +6,7 @@
  */
 import type { ActionResult } from "../action";
 import { formErrorsOf, type FormErrors } from "./problems";
-import { parseZonedDateTime, toZonedInputValue } from "./time/business-calendar";
+import { resolveZonedDateTime, toZonedInputValue } from "./time/business-calendar";
 import { computeTotals, type WorkdayTotals } from "./time/interval-math";
 import type { TimelineSegment, WorkdaySnapshot } from "./time/types";
 
@@ -17,11 +17,20 @@ const REASON_TOO_SHORT = "Give a reason of at least 5 characters.";
 const REASON_TOO_LONG = "The reason must be at most 500 characters.";
 const FUTURE_TIME = "Times cannot be in the future.";
 const INVALID_TIME = "Enter a date and time.";
+const NONEXISTENT_TIME = "This time does not exist on that date: the clocks move forward. Choose another time.";
 
-/** A datetime-local value ("2026-10-22T15:00") read as a wall-clock time in `timeZone`, as a UTC ISO instant; null when malformed. */
-export function zonedInputToIsoInstant(value: string, timeZone: string): string | null {
-  const instant = parseZonedDateTime(value.trim(), timeZone);
-  return instant ? instant.toISOString() : null;
+/**
+ * A datetime-local value ("2026-10-22T15:00") read as a wall-clock time in `timeZone`, as a UTC ISO instant; null when malformed.
+ * `reference` is the value the field held before it was edited: inside the repeated hour of a fall-back clock change it picks the
+ * occurrence closest to it (see `resolveZonedDateTime`).
+ */
+export function zonedInputToIsoInstant(value: string, timeZone: string, reference?: string | null): string | null {
+  return resolveZonedDateTime(value.trim(), timeZone, reference)?.instant.toISOString() ?? null;
+}
+
+/** True when the value names a time that does not exist (inside the hour the clocks skip in spring). */
+function isSkippedLocalTime(value: string, timeZone: string): boolean {
+  return resolveZonedDateTime(value.trim(), timeZone)?.kind === "gap";
 }
 
 /** The message for a reason, or null when it is fine (5 to 500 characters after trimming). */
@@ -77,10 +86,12 @@ export function checkIntervalCorrection(segment: TimelineSegment, form: Interval
   const errors: Record<string, string> = {};
   const isStartChanged = form.startedAt !== initial.startedAt;
   const isEndChanged = !isRunning && form.endedAt !== initial.endedAt;
-  const startedAt = isStartChanged ? zonedInputToIsoInstant(form.startedAt, timeZone) : segment.startedAt;
-  const endedAt = isRunning ? null : isEndChanged ? zonedInputToIsoInstant(form.endedAt, timeZone) : segment.endedAt;
+  const startedAt = isStartChanged ? zonedInputToIsoInstant(form.startedAt, timeZone, segment.startedAt) : segment.startedAt;
+  const endedAt = isRunning ? null : isEndChanged ? zonedInputToIsoInstant(form.endedAt, timeZone, segment.endedAt) : segment.endedAt;
   if (!startedAt) errors.startedAt = INVALID_TIME;
+  else if (isStartChanged && isSkippedLocalTime(form.startedAt, timeZone)) errors.startedAt = NONEXISTENT_TIME;
   if (!isRunning && !endedAt) errors.endedAt = form.endedAt.trim() ? INVALID_TIME : "An end time is required.";
+  else if (isEndChanged && isSkippedLocalTime(form.endedAt, timeZone)) errors.endedAt = NONEXISTENT_TIME;
   if (startedAt && Date.parse(startedAt) > nowMilliseconds) errors.startedAt = FUTURE_TIME;
   if (endedAt && Date.parse(endedAt) > nowMilliseconds) errors.endedAt = FUTURE_TIME;
   if (startedAt && endedAt && !errors.endedAt && Date.parse(endedAt) <= Date.parse(startedAt)) errors.endedAt = "The end time must be after the start time.";
@@ -130,8 +141,9 @@ export function lastRecordedActivity(workday: WorkdaySnapshot): number {
  */
 export function checkCloseWorkday(workday: WorkdaySnapshot, endInput: string, reason: string, timeZone: string, nowMilliseconds: number): { errors: Record<string, string>; body: CloseWorkdayBody | null } {
   const errors: Record<string, string> = {};
-  const endedAt = endInput.trim() ? zonedInputToIsoInstant(endInput, timeZone) : null;
+  const endedAt = endInput.trim() ? zonedInputToIsoInstant(endInput, timeZone, new Date(lastRecordedActivity(workday)).toISOString()) : null;
   if (endInput.trim() && !endedAt) errors.endedAt = INVALID_TIME;
+  else if (endedAt && isSkippedLocalTime(endInput, timeZone)) errors.endedAt = NONEXISTENT_TIME;
   else if (endedAt && Date.parse(endedAt) > nowMilliseconds) errors.endedAt = FUTURE_TIME;
   // the form shows minutes: compare with the last activity cut to its minute, the API decides on the exact instant
   else if (endedAt && Date.parse(endedAt) < Math.floor(lastRecordedActivity(workday) / 60_000) * 60_000) errors.endedAt = "The end time cannot be before the last recorded activity.";

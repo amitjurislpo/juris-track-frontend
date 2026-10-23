@@ -18,14 +18,15 @@ import { DATE_PRESET_LABELS } from "@/track/lib/audit/audit-query";
 const CATALOGUE_ACTIONS = [
   "auth.sign_in_code_requested", "auth.signed_in", "auth.sign_in_failed", "auth.sign_in_code_burnt", "auth.rate_limited", "auth.signed_out",
   "auth.session_revoked_refresh_reuse", "auth.session_refresh_failed",
-  "security.access_denied", "security.suspended_business_request", "security.invalid_session_cookie", "security.cross_site_request_blocked",
+  "security.access_denied", "security.suspended_business_request", "security.invalid_session_cookie", "security.cross_site_request_blocked", "security.out_of_scope_access",
   "access.employee_list_viewed", "access.employee_viewed", "access.business_list_viewed", "access.business_viewed",
+  "access.team_member_viewed", "access.team_member_workdays_viewed", "access.workday_viewed", "reports.viewed", "reports.exported",
   "audit.exported",
   "business.created", "business.updated", "business.suspended", "business.reactivated",
   "employee.created", "employee.updated", "employee.deactivated", "employee.reactivated", "employee.change_refused",
   "time.workday_started", "time.workday_reopened", "time.break_started", "time.work_resumed", "time.workday_ended", "time.event_failed",
-  "workday.closed",
-  "integration.business_provisioned", "integration.business_linked", "integration.business_updated",
+  "workday.closed", "time.session_adjusted", "time.workday_closed", "time.correction_refused",
+  "integration.business_provisioned", "integration.business_linked", "integration.business_unlinked", "integration.business_updated",
   "integration.user_provisioned", "integration.user_linked", "integration.user_updated", "integration.token_rejected", "integration.user_refused",
 ];
 
@@ -34,7 +35,7 @@ const hindi = (text: string) => HINDI_MESSAGES[text] ?? text;
 
 describe("audit action labels", () => {
   it("label every action of the catalogue, and only those", () => {
-    expect(CATALOGUE_ACTIONS).toHaveLength(41);
+    expect(CATALOGUE_ACTIONS).toHaveLength(51);
     for (const action of CATALOGUE_ACTIONS) expect(AUDIT_ACTION_LABELS[action], action).toBeTruthy();
     expect(Object.keys(AUDIT_ACTION_LABELS).sort()).toEqual([...CATALOGUE_ACTIONS].sort());
   });

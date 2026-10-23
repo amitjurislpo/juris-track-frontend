@@ -5,6 +5,18 @@ import type { ActionResult, FieldError } from "./action";
 export const BUSINESS_SUSPENDED = "BUSINESS_SUSPENDED";
 
 /**
+ * The problem code the client itself gives a request that never got an answer (offline, the API or proxy down, the connection
+ * dropped, a timeout). It comes back in the normal problem shape (`status` 0), so forms show it and pages can offer a retry.
+ */
+export const NETWORK_ERROR = "NETWORK_ERROR";
+
+/** The message of a `NETWORK_ERROR` (a translation key). */
+const NETWORK_ERROR_MESSAGE = "Could not reach the server. Please check your connection and try again.";
+
+/** How long one request may take before it counts as unreachable. */
+const REQUEST_TIMEOUT_MILLISECONDS = 30_000;
+
+/**
  * The API client. It is built from settings (`ApiClientOptions`), never from a fixed address: JurisTrack standalone uses `/api`
  * with a cookie session, embedded in JurisOne it uses the JurisOne gateway with a token in the Authorization header.
  * Paths passed to the client are relative to the base path (`/time/state`, not `/api/time/state`).
@@ -61,6 +73,12 @@ type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 const FALLBACK_ERROR = "Something went wrong. Please try again.";
 
+/** True for an error that came from a request that got no answer at all (see `NETWORK_ERROR`). */
+export const isNetworkError = (error: unknown): boolean => error instanceof ApiError && error.code === NETWORK_ERROR;
+
+/** The answer given for a request that never got one. */
+const unreachable = <T,>(): ActionResult<T> => ({ ok: false, error: NETWORK_ERROR_MESSAGE, code: NETWORK_ERROR });
+
 export function createApiClient(options: ApiClientOptions) {
   const translateMessage = options.translateMessage ?? ((text: string) => text);
 
@@ -91,13 +109,20 @@ export function createApiClient(options: ApiClientOptions) {
 
   async function send<T>(method: Method, path: string, body: unknown): Promise<ApiResponse<T>> {
     const isWrite = method !== "GET";
-    const response = await fetch(`${options.basePath}${path}`, {
-      method,
-      headers: { accept: "application/json", ...(isWrite ? { "content-type": "application/json" } : {}), ...(await options.getHeaders()) },
-      body: isWrite ? JSON.stringify(body ?? {}) : undefined,
-      credentials: "same-origin",
-      cache: "no-store",
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${options.basePath}${path}`, {
+        method,
+        headers: { accept: "application/json", ...(isWrite ? { "content-type": "application/json" } : {}), ...(await options.getHeaders()) },
+        body: isWrite ? JSON.stringify(body ?? {}) : undefined,
+        credentials: "same-origin",
+        cache: "no-store",
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MILLISECONDS),
+      });
+    } catch {
+      // offline, the API or proxy is down, the connection dropped or the request timed out: the normal problem shape, never a rejection
+      return { status: 0, body: translateResult(0, unreachable<T>()) };
+    }
     return { status: response.status, body: translateResult(response.status, await readJson<T>(response)) };
   }
 
@@ -121,15 +146,20 @@ export function createApiClient(options: ApiClientOptions) {
    */
   async function file(path: string, accept: string): Promise<ApiFileResult> {
     const answer = await withSessionRenewal(path, false, async () => {
-      const response = await fetch(`${options.basePath}${path}`, {
-        method: "GET",
-        headers: { accept, ...(await options.getHeaders()) },
-        credentials: "same-origin",
-        cache: "no-store",
-      });
-      return { status: response.status, response };
+      try {
+        const response = await fetch(`${options.basePath}${path}`, {
+          method: "GET",
+          headers: { accept, ...(await options.getHeaders()) },
+          credentials: "same-origin",
+          cache: "no-store",
+        });
+        return { status: response.status, response };
+      } catch {
+        return { status: 0, response: null };
+      }
     });
     const { response } = answer;
+    if (!response) return { ok: false, error: translateMessage(NETWORK_ERROR_MESSAGE), code: NETWORK_ERROR };
     const contentType = response.headers.get("content-type") ?? "";
     if (response.ok && !contentType.includes("json")) {
       return { ok: true, blob: await response.blob(), contentDisposition: response.headers.get("content-disposition") };

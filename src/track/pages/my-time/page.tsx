@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
-import { ApiError } from "@/track/api";
+import { TrackLink } from "@/track/components/TrackLink";
+import { ApiError, isNetworkError } from "@/track/api";
 import { Icon } from "@/track/components/Icon";
 import { PageHeader } from "@/track/components/PageHeader";
 import { PageLoading } from "@/track/PageLoading";
@@ -52,9 +52,9 @@ export default function MyTimePage() {
   return (
     <div className="col">
       <PageHeader eyebrow={t("My workspace")} title={t("My Time")} sub={formatDateKey(reading.state.today)}>
-        <Link className="btn" to="/my-history"><Icon name="cal" size={15} />{t("My History")}</Link>
+        <TrackLink className="btn" to="/my-history"><Icon name="cal" size={15} />{t("My History")}</TrackLink>
       </PageHeader>
-      <TimerPanel reading={reading} runner={runner} timeZone={timeZone} isOffline={isBrowserOffline || (timeState.isRefetchError && !(timeState.error instanceof ApiError))} />
+      <TimerPanel reading={reading} runner={runner} timeZone={timeZone} isOffline={isBrowserOffline || (timeState.isRefetchError && (isNetworkError(timeState.error) || !(timeState.error instanceof ApiError)))} />
     </div>
   );
 }

@@ -179,12 +179,47 @@ describe("correctionErrorsOf", () => {
   });
 
   it("has a message and its Hindi for every correction code and for the form's own messages", () => {
-    for (const code of ["CANNOT_CORRECT_OWN_TIME", "TIME_INTERVAL_OVERLAP", "WORKDAY_MUST_START_WITH_WORK", "INTERVAL_STILL_RUNNING"]) {
+    for (const code of ["CANNOT_CORRECT_OWN_TIME", "TIME_INTERVAL_OVERLAP", "WORKDAY_MUST_START_WITH_WORK", "INTERVAL_STILL_RUNNING", "CORRECTION_OUT_OF_RANGE", "WORKDAY_OVERLAP"]) {
       expect(HINDI_MESSAGES[PROBLEM_MESSAGES[code]], code).toBeTruthy();
     }
     for (const message of ["Give a reason of at least 5 characters.", "The reason must be at most 500 characters.", "Times cannot be in the future.",
-      "Enter a date and time.", "An end time is required.", "The end time must be after the start time.", "The end time cannot be before the last recorded activity."]) {
+      "Enter a date and time.", "An end time is required.", "The end time must be after the start time.", "The end time cannot be before the last recorded activity.",
+      "This time does not exist on that date: the clocks move forward. Choose another time."]) {
       expect(HINDI_MESSAGES[message], message).toBeTruthy();
     }
+  });
+});
+
+describe("daylight-saving changes in the corrections", () => {
+  // New York, 2026-11-01: the clocks go back at 02:00 EDT, so 01:00-02:00 happens twice (05:00Z-06:00Z in EDT, 06:00Z-07:00Z in EST)
+  const NIGHT_WORK: TimelineSegment = { id: "n1", type: "WORK", startedAt: "2026-11-01T04:00:00Z", endedAt: "2026-11-01T06:30:00Z" };
+  const NIGHT_NOW = Date.parse("2026-11-02T12:00:00Z");
+
+  it("an end that is the second 01:30 (EST) is shown as 01:30 and left alone when the user changes only the start", () => {
+    const form = initialIntervalForm(NIGHT_WORK, NEW_YORK);
+    expect(form.endedAt).toBe("2026-11-01T01:30");
+    const check = checkIntervalCorrection(NIGHT_WORK, { ...form, startedAt: "2026-10-31T23:30", reason: REASON }, NEW_YORK, NIGHT_NOW);
+    expect(check.body).toEqual({ startedAt: "2026-11-01T03:30:00.000Z", reason: REASON });
+  });
+
+  it("an end edited to another time in the repeated hour keeps the occurrence nearest to the stored end (no one-hour jump)", () => {
+    const check = checkIntervalCorrection(NIGHT_WORK, { startedAt: initialIntervalForm(NIGHT_WORK, NEW_YORK).startedAt, endedAt: "2026-11-01T01:45", reason: REASON }, NEW_YORK, NIGHT_NOW);
+    expect(check.errors).toEqual({});
+    expect(check.body).toEqual({ endedAt: "2026-11-01T06:45:00.000Z", reason: REASON });
+  });
+
+  it("refuses a changed time that does not exist (the spring gap) and says why", () => {
+    const segment: TimelineSegment = { id: "s1", type: "WORK", startedAt: "2026-03-08T06:00:00Z", endedAt: "2026-03-08T09:00:00Z" };
+    const check = checkIntervalCorrection(segment, { startedAt: "2026-03-08T02:30", endedAt: initialIntervalForm(segment, NEW_YORK).endedAt, reason: REASON }, NEW_YORK, NIGHT_NOW);
+    expect(check.errors.startedAt).toBe("This time does not exist on that date: the clocks move forward. Choose another time.");
+    expect(check.body).toBeNull();
+  });
+
+  it("closing a workday at a time that does not exist is refused; the repeated hour is read near the last activity", () => {
+    const day = workday([{ ...NIGHT_WORK, endedAt: null }], null);
+    expect(checkCloseWorkday({ ...day, startedAt: "2026-03-08T05:00:00Z", segments: [{ ...NIGHT_WORK, startedAt: "2026-03-08T05:00:00Z", endedAt: null }] }, "2026-03-08T02:30", REASON, NEW_YORK, NIGHT_NOW).errors.endedAt)
+      .toBe("This time does not exist on that date: the clocks move forward. Choose another time.");
+    const afterOverlap = workday([{ ...NIGHT_WORK, endedAt: "2026-11-01T06:10:00Z" }], null);
+    expect(checkCloseWorkday(afterOverlap, "2026-11-01T01:30", REASON, NEW_YORK, NIGHT_NOW).body?.endedAt).toBe("2026-11-01T06:30:00.000Z");
   });
 });

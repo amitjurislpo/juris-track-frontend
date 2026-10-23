@@ -33,7 +33,7 @@ export function DailyChart({ points, height = 170, label }: { points: DailyChart
                 break: formatDuration(bar.breakSeconds),
               });
               return (
-                <g key={bar.date} role="img" tabIndex={0} aria-label={description}>
+                <g key={bar.date} role="img" aria-label={description}>
                   <title>{description}</title>
                   <rect className="hit" x={`${i * slotShare}%`} width={`${slotShare}%`} y={0} height={height} rx={6} />
                   <rect className="work" x={`${(i + 0.2) * slotShare}%`} width={`${slotShare * 0.6}%`} y={height - productiveHeight} height={productiveHeight} rx={2} />
@@ -42,7 +42,7 @@ export function DailyChart({ points, height = 170, label }: { points: DailyChart
               );
             })}
           </svg>
-          <div className="daychart-x" aria-hidden="true">
+          <div className={`daychart-x${chart.bars.length <= 7 ? " daychart-x-few" : ""}`} aria-hidden="true">
             {chart.bars.map((bar) => (
               <span key={bar.date}>{bar.hasLabel ? formatDateKey(bar.date, { weekday: chart.bars.length <= 7, year: false }).replace(",", "") : ""}</span>
             ))}

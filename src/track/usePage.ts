@@ -1,7 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useParams } from "react-router";
+import { useMemo } from "react";
 import { apiData } from "./api";
-import { useSearchRecord } from "./router";
 import { useTrack, type TrackContextValue } from "./TrackContext";
 
 /**
@@ -9,9 +8,9 @@ import { useTrack, type TrackContextValue } from "./TrackContext";
  *   const { user, t, searchParams, params } = usePage();   (the route already checked the role, see RequireRole)
  */
 export function usePage(): Pick<TrackContextValue, "user" | "t"> & { searchParams: Record<string, string>; params: Record<string, string> } {
-  const { user, t } = useTrack();
-  const searchParams = useSearchRecord();
-  const params = useParams() as Record<string, string>;
+  const { user, t, location } = useTrack();
+  const { search, params } = location;
+  const searchParams = useMemo<Record<string, string>>(() => Object.fromEntries(new URLSearchParams(search).entries()), [search]);
   return { user, t, searchParams, params };
 }
 

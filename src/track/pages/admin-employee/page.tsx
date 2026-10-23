@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { TrackLink } from "@/track/components/TrackLink";
 import type { Employee } from "@/track/api-types";
 import { Icon } from "@/track/components/Icon";
 import { PageHeader } from "@/track/components/PageHeader";
@@ -32,7 +32,7 @@ export default function EmployeePage() {
     <div className="col">
       <PageHeader back="/admin/employees" eyebrow={`${t(ROLE_LABELS[employee.role])}${employee.employeeCode ? ` · ${employee.employeeCode}` : ""}`} title={fullName(employee)}
         sub={<StatusChip isGood={employee.isActive} label={employee.isActive ? t("Active") : t("Inactive")} />}>
-        {!isSelf && <Link className="btn" to={`/admin/time-tracking/${encodeURIComponent(employee.id)}`}><Icon name="clock" size={15} />{t("Time and history")}</Link>}
+        {!isSelf && <TrackLink className="btn" to={`/admin/time-tracking/${encodeURIComponent(employee.id)}`}><Icon name="clock" size={15} />{t("Time and history")}</TrackLink>}
         {!isSelf && <EmployeeStatusButton employee={employee} />}
       </PageHeader>
       <div className="split enter" style={{ ["--i" as string]: 1 }}>
@@ -42,7 +42,7 @@ export default function EmployeePage() {
           <KeyValue label={t("Reporting manager")}>{employee.managerName ?? t("No manager")}</KeyValue>
           <KeyValue label={t("Active reports")}>
             {employee.activeReportCount > 0
-              ? <Link to={`/admin/employees?managerId=${employee.id}`}>{employee.activeReportCount}</Link>
+              ? <TrackLink to={`/admin/employees?managerId=${employee.id}`}>{employee.activeReportCount}</TrackLink>
               : 0}
           </KeyValue>
           <KeyValue label={t("Last sign-in")}>{employee.lastLoginAt ? formatDateTime(employee.lastLoginAt, timeZone) : t("Never")}</KeyValue>

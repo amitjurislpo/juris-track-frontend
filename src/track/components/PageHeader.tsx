@@ -1,4 +1,3 @@
-import { useLocation } from "react-router";
 import { ROLES, homeFor } from "../roles";
 import { useTrack } from "../TrackContext";
 import { Icon } from "./Icon";
@@ -11,9 +10,9 @@ const LANDING_PATHS = ["/", ...ROLES.map(homeFor)];
  * (the parent page) when given, else to the previous page.
  */
 export function PageHeader({ back, eyebrow, title, sub, children }: { back?: string; eyebrow: React.ReactNode; title: React.ReactNode; sub?: React.ReactNode; children?: React.ReactNode }) {
-  const { t, navigate } = useTrack();
-  const { pathname } = useLocation();
-  const goBack = () => { if (back) navigate(back); else if ((window.history.state as { idx?: number } | null)?.idx) navigate(-1); else navigate("/"); };
+  const { t, navigate, canGoBack, location } = useTrack();
+  const { pathname } = location;
+  const goBack = () => { if (back) navigate(back); else if (canGoBack()) navigate(-1); else navigate("/"); };
   return (
     <div className="page-h enter">
       <div>

@@ -5,7 +5,7 @@ import { statusToggleChange } from "./statusToggleChange";
 
 /** The status filter: Working / On break / Day ended / Not ended as toggle buttons, any number at once (`?status=WORKING,NOT_ENDED`); none = every status. */
 export function StatusFilter({ selected }: { selected: readonly ReportStatus[] }) {
-  const { t } = useTrack();
+  const { t, readCurrentSearch } = useTrack();
   const { update } = useListQuery();
   return (
     <div className="report-statuses" role="group" aria-label={t("Status")}>
@@ -13,7 +13,7 @@ export function StatusFilter({ selected }: { selected: readonly ReportStatus[] }
       {REPORT_STATUSES.map((status) => {
         const isOn = selected.includes(status);
         return (
-          <button key={status} type="button" className={isOn ? "pill on" : "pill"} aria-pressed={isOn} onClick={() => update(statusToggleChange(status))}>
+          <button key={status} type="button" className={isOn ? "pill on" : "pill"} aria-pressed={isOn} onClick={() => update(statusToggleChange(status, readCurrentSearch()))}>
             {t(REPORT_STATUS_LABELS[status])}
           </button>
         );

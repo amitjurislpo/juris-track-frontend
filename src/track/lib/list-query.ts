@@ -34,9 +34,25 @@ export function nextSortDirection(currentSort: string, currentDirection: SortDir
   return currentDirection === "asc" ? "desc" : "asc";
 }
 
-/** What a pager shows: rows `from`–`to` of `total` (1-based), and the number of the last page. */
-export function pageRange(page: number, pageSize: number, total: number): { from: number; to: number; lastPage: number } {
+/**
+ * The URL changes of a click on the column `columnKey`, worked out from the query string of the address bar (not from what is
+ * rendered: while the rows of the last change are still loading, the rendered header lags, so a quick second click would
+ * ask for the same direction again).
+ */
+export function sortChangeOf(search: string, columnKey: string, defaultSort: string, defaultDirection: SortDirection): { sort: string; sortDirection: SortDirection } {
+  const parameters = new URLSearchParams(search);
+  const directionInUrl = parameters.get("sortDirection");
+  const currentDirection: SortDirection = directionInUrl === "desc" || directionInUrl === "asc" ? directionInUrl : defaultDirection;
+  return { sort: columnKey, sortDirection: nextSortDirection(parameters.get("sort") || defaultSort, currentDirection, columnKey) };
+}
+
+/**
+ * What a pager shows: rows `from`–`to` of `total` (1-based), the number of the last page, and the page actually shown. A `page`
+ * beyond the last one (a bookmarked URL, or the last row of the last page was removed) shows the last page's range, never "26-25 of 25".
+ */
+export function pageRange(page: number, pageSize: number, total: number): { from: number; to: number; lastPage: number; shownPage: number } {
   const lastPage = Math.max(1, Math.ceil(total / pageSize));
-  if (total === 0) return { from: 0, to: 0, lastPage };
-  return { from: (page - 1) * pageSize + 1, to: Math.min(total, page * pageSize), lastPage };
+  const shownPage = Math.min(Math.max(1, Math.floor(page) || 1), lastPage);
+  if (total === 0) return { from: 0, to: 0, lastPage, shownPage };
+  return { from: (shownPage - 1) * pageSize + 1, to: Math.min(total, shownPage * pageSize), lastPage, shownPage };
 }

@@ -11,8 +11,8 @@ function headlineOf(error: Error): string {
   return "Something went wrong";
 }
 
-/** Catches a page's failed data load (403/404 included) and offers a retry. Reset by navigation (key on the path). */
-export class PageErrorBoundary extends Component<{ children: ReactNode; onRetry: () => void; t: T }, { error: Error | null }> {
+/** Catches a page's failed data load (403/404 included) and offers a retry (and, for a 400, to clear the filters in the address). Reset by navigation (key on the path). */
+export class PageErrorBoundary extends Component<{ children: ReactNode; onRetry: () => void; /** Drops the address's query string (offered for a 400: a bad filter in the address). */ onReset?: () => void; t: T }, { error: Error | null }> {
   state = { error: null as Error | null };
   static getDerivedStateFromError(error: Error) { return { error }; }
   render() {
@@ -23,7 +23,12 @@ export class PageErrorBoundary extends Component<{ children: ReactNode; onRetry:
       <div className="empty" role="alert">
         <b className="display">{t(headlineOf(error))}</b>
         <span className="muted">{error.message}</span>
-        <button type="button" className="btn btn-sm" onClick={() => { this.setState({ error: null }); this.props.onRetry(); }}>{t("Retry")}</button>
+        <span style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+          {error instanceof ApiError && error.status === 400 && this.props.onReset && (
+            <button type="button" className="btn btn-sm" onClick={() => { this.setState({ error: null }); this.props.onReset?.(); }}>{t("Clear filters")}</button>
+          )}
+          <button type="button" className="btn btn-sm" onClick={() => { this.setState({ error: null }); this.props.onRetry(); }}>{t("Retry")}</button>
+        </span>
       </div>
     );
   }

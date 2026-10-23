@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { TrackLink } from "@/track/components/TrackLink";
 import type { TeamMemberRow } from "@/track/api-types";
 import { SortableHeader } from "@/track/components/list/SortableHeader";
 import { WorkdayStatusChip } from "@/track/components/time/WorkdayStatusChip";
@@ -41,7 +41,7 @@ export function TeamBoardTable({ rows, nowMilliseconds, timeZone }: { rows: Team
                 onClick={() => navigate(memberPath)} onKeyDown={(e) => { if (e.key === "Enter") navigate(memberPath); }}>
                 <td>
                   <div className="person"><div>
-                    <b><Link to={memberPath} style={{ color: "inherit", textDecoration: "none" }} onClick={(e) => e.stopPropagation()}>{name}</Link></b>
+                    <b><TrackLink to={memberPath} style={{ color: "inherit", textDecoration: "none" }} onClick={(e) => e.stopPropagation()}>{name}</TrackLink></b>
                     <small>{row.employee.employeeCode ?? row.employee.email}</small>
                   </div></div>
                 </td>

@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
+import { NETWORK_ERROR } from "../api";
 import { problemMessage, TIME_RECORD_INCONSISTENT } from "../lib/problems";
 import type { TimeEventType } from "../lib/time/types";
 import { recordTimeEvent } from "../pages/my-time/actions";
@@ -52,10 +53,9 @@ export function useTimeEvent(): TimeEventRunner {
         return;
       }
       if (result.code === TIME_RECORD_INCONSISTENT) setInconsistencyMessage(problemMessage(result, t));
+      else if (result.code === NETWORK_ERROR) toast(t(UNREACHABLE), "bad");
       else toast(problemMessage(result, t), "bad");
       await refreshState();
-    } catch {
-      toast(t(UNREACHABLE), "bad");
     } finally {
       isRunning.current = false;
       setRunningEvent(null);

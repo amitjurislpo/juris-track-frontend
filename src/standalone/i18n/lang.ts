@@ -13,6 +13,10 @@ export function readLang(): Lang {
 
 /** Remembers the chosen language for a year. */
 export function writeLang(lang: Lang) {
-  document.cookie = `${LANG_COOKIE}=${lang}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+  try {
+    document.cookie = `${LANG_COOKIE}=${lang}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+  } catch {
+    // cookies are blocked (a sandboxed frame): the language still changes for this visit
+  }
   document.documentElement.lang = lang;
 }

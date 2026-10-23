@@ -2,6 +2,7 @@
  * Display names of time zones (ported from the old app's lib/time/zones.ts; display only, so it has no backend equivalent).
  * Labels come from Intl so any IANA zone works; "America/New_York" shows EDT or EST depending on the date.
  */
+import { displayLocale } from "./display-language";
 
 /**
  * Intl.supportedValuesOf("timeZone") returns some legacy ICU names (e.g. "Asia/Calcutta"). Offer the modern IANA names instead;
@@ -34,8 +35,9 @@ const initialsOf = (name: string) =>
     .join("")
     .toUpperCase();
 
-function zoneName(timeZone: string, style: "short" | "long", instant: Date): string {
-  const part = new Intl.DateTimeFormat("en-US", { timeZone, timeZoneName: style })
+/** Short names stay English ("IST", "EDT": they are codes), long names follow the display language. */
+function zoneName(timeZone: string, style: "short" | "long", instant: Date, locale = "en-US"): string {
+  const part = new Intl.DateTimeFormat(locale, { timeZone, timeZoneName: style })
     .formatToParts(instant)
     .find((candidate) => candidate.type === "timeZoneName");
   return part?.value ?? timeZone;
@@ -51,10 +53,10 @@ export function zoneAbbreviation(timeZone: string, instant: Date = new Date()): 
 
 /** Friendly label: "India Standard Time (IST)". */
 export function zoneLabel(timeZone: string, instant: Date = new Date()): string {
-  return `${zoneName(timeZone, "long", instant)} (${zoneAbbreviation(timeZone, instant)})`;
+  return `${zoneLongName(timeZone, instant)} (${zoneAbbreviation(timeZone, instant)})`;
 }
 
 /** Long name at an instant: "India Standard Time", "Eastern Daylight Time". */
 export function zoneLongName(timeZone: string, instant: Date = new Date()): string {
-  return zoneName(timeZone, "long", instant);
+  return zoneName(timeZone, "long", instant, displayLocale());
 }

@@ -1,5 +1,11 @@
 /** Hindi for the fixed messages the API sends back (errors and success notices). The English text is the key. */
 export const trackHindiApiMessages: Record<string, string> = {
+  "Could not reach the server. Please check your connection and try again.": "सर्वर से संपर्क नहीं हो सका। कृपया अपना कनेक्शन जाँचें और दोबारा कोशिश करें।",
+  "A time must be on the workday's date or the day after, in the business time zone.": "समय कार्यदिवस की तारीख़ या उसके अगले दिन का होना चाहिए (व्यवसाय के समय क्षेत्र में)।",
+  "The corrected time overlaps another workday of this person. Their hours would count twice.": "सुधारा हुआ समय इस व्यक्ति के किसी दूसरे कार्यदिवस से टकराता है। उनके घंटे दो बार गिने जाएँगे।",
+  "The request is too large.": "अनुरोध बहुत बड़ा है।",
+  "This business is already linked to another JurisOne business. Unlink it first.": "यह व्यवसाय पहले से किसी दूसरे JurisOne व्यवसाय से जुड़ा है। पहले उसका लिंक हटाएँ।",
+  "Another business is already linked to that JurisOne business.": "उस JurisOne व्यवसाय से पहले ही कोई दूसरा व्यवसाय जुड़ा है।",
   "Something went wrong. Please try again.": "कुछ गड़बड़ हो गई। कृपया दोबारा कोशिश करें।",
   // sign-in and session (backend AuthService, exceptions, OriginCheckFilter)
   "If that account exists and is active, a 6-digit code is on its way to the email.": "अगर यह खाता मौजूद और सक्रिय है, तो 6 अंकों का कोड ईमेल पर भेजा जा रहा है।",
@@ -16,7 +22,7 @@ export const trackHindiApiMessages: Record<string, string> = {
   "Some details are invalid.": "कुछ विवरण मान्य नहीं हैं।",
   "That already exists.": "यह पहले से मौजूद है।",
   "Not found.": "नहीं मिला।",
-  "Your company's access to JurisTrack is suspended. Please contact support.": "ज्यूरिस ट्रैक तक आपकी कंपनी की पहुँच निलंबित है। कृपया सहायता से संपर्क करें।",
+  "Your company's access to JurisTrack is suspended. Please contact support.": "JurisTrack तक आपकी कंपनी की पहुँच निलंबित है। कृपया सहायता से संपर्क करें।",
   // businesses and settings (BusinessController, BusinessSettingsController, BusinessService)
   "Business created.": "व्यवसाय बनाया गया।",
   "Business saved.": "व्यवसाय सहेजा गया।",
@@ -52,7 +58,7 @@ export const trackHindiApiMessages: Record<string, string> = {
   "This employee code is already in use.": "यह कर्मचारी कोड पहले से उपयोग में है।",
   "An employee's role is EMPLOYEE or MANAGER.": "कर्मचारी की भूमिका कर्मचारी या मैनेजर होती है।",
   "The owner's role cannot be changed here.": "मालिक की भूमिका यहाँ नहीं बदली जा सकती।",
-  "This manager still has active reports. Give them another manager first.": "इस मैनेजर को अभी भी सक्रिय लोग रिपोर्ट करते हैं। पहले उन्हें कोई दूसरा मैनेजर दें।",
+  "This manager still has active reports. Give them another manager first.": "इस मैनेजर के अधीन अभी भी सक्रिय कर्मचारी हैं। पहले उन्हें कोई दूसरा मैनेजर सौंपें।",
   "An employee cannot be their own manager.": "कोई कर्मचारी अपना ही मैनेजर नहीं हो सकता।",
   "Choose a manager from this business.": "इसी व्यवसाय से मैनेजर चुनें।",
   "The chosen manager is deactivated.": "चुना गया मैनेजर निष्क्रिय है।",
@@ -63,7 +69,7 @@ export const trackHindiApiMessages: Record<string, string> = {
   // time tracking (TimeTrackingController, TimeTrackingService, WorkdayHistoryService)
   "Workday started. Have a productive day.": "कार्यदिवस शुरू हुआ। आपका दिन उत्पादक हो।",
   "Break started. Your productive timer is paused.": "ब्रेक शुरू हुआ। आपका उत्पादक टाइमर रुका हुआ है।",
-  "Welcome back. Your productive timer is running.": "वापसी पर स्वागत है। आपका उत्पादक टाइमर चल रहा है।",
+  "Welcome back. Your productive timer is running.": "फिर से स्वागत है। आपका उत्पादक टाइमर चल रहा है।",
   "Workday ended. Your summary is ready.": "कार्यदिवस समाप्त हुआ। आपका सारांश तैयार है।",
   "Start your workday before taking a break.": "ब्रेक लेने से पहले अपना कार्यदिवस शुरू करें।",
   "You have not started a workday.": "आपने कोई कार्यदिवस शुरू नहीं किया है।",

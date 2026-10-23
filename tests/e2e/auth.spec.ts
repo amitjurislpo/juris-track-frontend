@@ -15,7 +15,7 @@ test.describe("sign-in by emailed code", () => {
 
   test("the only way in is the emailed code: no password field", async ({ page }) => {
     await page.goto("/login", { waitUntil: "networkidle" });
-    await expect(page.getByRole("button", { name: "Login", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sign in", exact: true })).toBeVisible();
     await expect(page.getByLabel("Password", { exact: true })).toHaveCount(0);
   });
 
@@ -84,7 +84,7 @@ test.describe("sign-in by emailed code", () => {
   test("an invalid email is refused before any code is sent", async ({ page }) => {
     await page.goto("/login", { waitUntil: "networkidle" });
     await page.getByLabel("Email").fill("not-an-email");
-    await page.getByRole("button", { name: "Login", exact: true }).click();
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await expect(page.locator(".err")).toHaveText("Enter a valid email.");
     await expect(page.getByRole("heading", { name: "Check your email" })).toHaveCount(0);
   });
@@ -118,7 +118,7 @@ test.describe("route protection and the session", () => {
     await expect(page).toHaveURL(/\/login\?next=%2Fteam%2Freports$/);
     await page.waitForLoadState("networkidle");
     await page.getByLabel("Email").fill(DEMO.manager);
-    await page.getByRole("button", { name: "Login", exact: true }).click();
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await page.getByLabel("Digit 1 of 6").fill(OTP);
     await expectLanded(page, "/team/reports");
   });

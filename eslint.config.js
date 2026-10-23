@@ -22,6 +22,9 @@ export default tseslint.config(
     files: ["src/track/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["error", {
+        paths: [
+          { name: "react-router", message: "src/track must not import a router: links, navigation and the address come from the TrackContext (the host's router)." },
+        ],
         patterns: [
           { group: ["@/*", "!@/track", "!@/track/**"], message: "src/track must not import from outside src/track (the standalone app depends on it, never the other way round)." },
           { group: ["**/standalone", "**/standalone/**"], message: "src/track must not import from src/standalone." },
@@ -29,6 +32,7 @@ export default tseslint.config(
         ],
       }],
       "no-restricted-syntax": ["error",
+        { selector: "MemberExpression[object.name='window'][property.name=/^(location|history)$/]", message: "No window.location / window.history in src/track: use the TrackContext (location, readCurrentSearch, canGoBack, navigate)." },
         { selector: "Literal[value=/^.api([^a-z]|$)/i]", message: "No hard-coded /api addresses in src/track: use paths relative to the TrackContext's apiBasePath." },
         { selector: "TemplateElement[value.raw=/^.api([^a-z]|$)/i]", message: "No hard-coded /api addresses in src/track: use paths relative to the TrackContext's apiBasePath." },
       ],

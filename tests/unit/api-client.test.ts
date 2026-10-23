@@ -1,6 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError, createApiClient } from "@/track/api";
+import { ApiError, createApiClient, isNetworkError, NETWORK_ERROR } from "@/track/api";
 
 /** Answers every request with `status` and `body` (as the API would). */
 function stubFetch(status: number, body: unknown) {
@@ -103,5 +103,68 @@ describe("API client: file downloads", () => {
   it("treats a JSON answer to a file request as a failure", async () => {
     stubFetch(200, { ok: true, data: { rows: [] } });
     expect(await clientWith().file("/reports/workdays", "text/csv")).toEqual({ ok: false, error: "hi:Something went wrong. Please try again." });
+  });
+});
+
+describe("API client: a request that gets no answer", () => {
+  const OFFLINE_MESSAGE = "Could not reach the server. Please check your connection and try again.";
+  const rejectFetch = () => vi.stubGlobal("fetch", vi.fn(async () => { throw new TypeError("Failed to fetch"); }));
+
+  it("a failed write comes back in the normal problem shape (status 0, NETWORK_ERROR), translated, never as a rejection", async () => {
+    rejectFetch();
+    const result = await clientWith().action("PATCH", "/employees/1", { firstName: "A" });
+    expect(result).toEqual({ ok: false, code: NETWORK_ERROR, error: `hi:${OFFLINE_MESSAGE}` });
+  });
+
+  it("call() answers with status 0 so hosts can tell it from an HTTP answer", async () => {
+    rejectFetch();
+    const response = await clientWith().call("POST", "/auth/otp-requests", { email: "a@b.c" });
+    expect(response.status).toBe(0);
+    expect(response.body).toMatchObject({ ok: false, code: "NETWORK_ERROR" });
+  });
+
+  it("a failed read throws an ApiError that isNetworkError() recognises", async () => {
+    rejectFetch();
+    const failure = await clientWith().data("/employees").catch((error: unknown) => error);
+    expect(failure).toBeInstanceOf(ApiError);
+    expect(failure).toMatchObject({ status: 0, code: "NETWORK_ERROR" });
+    expect(isNetworkError(failure)).toBe(true);
+    expect(isNetworkError(new ApiError("x", 500))).toBe(false);
+    expect(isNetworkError(new Error("x"))).toBe(false);
+  });
+
+  it("a failed file download comes back as a failure, not a rejection", async () => {
+    rejectFetch();
+    expect(await clientWith().file("/reports/workdays", "text/csv")).toEqual({ ok: false, code: NETWORK_ERROR, error: `hi:${OFFLINE_MESSAGE}` });
+  });
+
+  it("a network error is not a 401: the host is not asked to renew the session", async () => {
+    rejectFetch();
+    const onUnauthorized = vi.fn(async () => true);
+    await createApiClient({ basePath: "/base", getHeaders: () => ({}), onUnauthorized, queryClient: new QueryClient() }).call("GET", "/me");
+    expect(onUnauthorized).not.toHaveBeenCalled();
+  });
+
+  it("does not refetch pages after a write that never arrived", async () => {
+    rejectFetch();
+    const queryClient = new QueryClient();
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    await createApiClient({ basePath: "/base", getHeaders: () => ({}), queryClient }).action("POST", "/employees", {});
+    expect(invalidate).not.toHaveBeenCalled();
+  });
+
+  it("gives every request a timeout so a hung connection ends as a network error", async () => {
+    const fetchStub = stubFetch(200, { ok: true });
+    await clientWith().data("/me");
+    expect(fetchStub).toHaveBeenCalledWith("/base/me", expect.objectContaining({ signal: expect.any(AbortSignal) }));
+  });
+});
+
+describe("problem messages of the hardened API", () => {
+  it("has a clear message for each new problem code", async () => {
+    const { PROBLEM_MESSAGES } = await import("@/track/lib/problems");
+    for (const code of ["CORRECTION_OUT_OF_RANGE", "WORKDAY_OVERLAP", "PAYLOAD_TOO_LARGE", "BUSINESS_ALREADY_LINKED", "JURISONE_BUSINESS_IN_USE"]) {
+      expect(PROBLEM_MESSAGES[code], code).toBeTruthy();
+    }
   });
 });

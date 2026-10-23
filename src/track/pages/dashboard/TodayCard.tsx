@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { TrackLink } from "@/track/components/TrackLink";
 import { Icon } from "@/track/components/Icon";
 import { TimeActionButtons } from "@/track/components/time/TimeActionButtons";
 import { WorkdayStatusChip } from "@/track/components/time/WorkdayStatusChip";
@@ -46,9 +46,9 @@ export function TodayCard({ reading, runner, timeZone }: { reading: TimeStateRea
           <span><button type="button" className="btn btn-sm" onClick={runner.retry}>{t("Check again")}</button></span>
         </div>
       )}
-      <Link className="linklike" to="/my-time" style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: 4 }}>
+      <TrackLink className="linklike" to="/my-time" style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: 4 }}>
         {t("Open My time")}<Icon name="arrow" size={14} />
-      </Link>
+      </TrackLink>
     </section>
   );
 }

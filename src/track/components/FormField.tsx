@@ -20,7 +20,7 @@ export function FormField({ label, hint, error, children }: {
       <label htmlFor={controlId} style={hint ? { flexBasis: "auto" } : undefined}>{label}</label>
       {hint && <span id={hintId} className="hint">{hint}</span>}
       {cloneElement(children, { id: controlId, "aria-invalid": error ? true : undefined, "aria-describedby": describedBy })}
-      {error && <span id={errorId} className="err">{error}</span>}
+      {error && <span id={errorId} className="err" role="alert">{error}</span>}
     </div>
   );
 }

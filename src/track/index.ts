@@ -1,10 +1,10 @@
 // The public face of the embeddable JurisTrack layer: what a host (the standalone app, or JurisOne) imports.
 export { trackRoutes, type TrackRoute } from "./routes";
-export { TrackProvider, useTrack, type TrackContextValue, type TrackUser } from "./TrackContext";
+export { TrackProvider, useTrack, type TrackContextValue, type TrackUser, type TrackLinkProps, type TrackLocation } from "./TrackContext";
 export { RequireRole } from "./RequireRole";
 export { PageLoading } from "./PageLoading";
 export { usePage, useData } from "./usePage";
-export { apiAction, createApiClient, ApiError, type ApiClientOptions } from "./api";
+export { apiAction, createApiClient, ApiError, NETWORK_ERROR, isNetworkError, type ApiClientOptions } from "./api";
 export type { ActionResult } from "./action";
 export { ROLES, ROLE_LABELS, homeFor, type Role } from "./roles";
 export { trackHindiMessages } from "./messages/hi";
@@ -24,8 +24,10 @@ export {
   daysBetween,
   eachDay,
   parseZonedDateTime,
+  resolveZonedDateTime,
   toZonedInputValue,
   type DateKey,
+  type LocalTimeKind,
 } from "./lib/time/business-calendar";
 export { timeZoneOptions, zoneAbbreviation, zoneLabel, zoneLongName } from "./lib/time/zone-names";
 export { RANGE_PRESETS, RANGE_LABELS, MAX_RANGE_DAYS, resolveRange, type RangePreset, type DateRange } from "./lib/time/date-ranges";

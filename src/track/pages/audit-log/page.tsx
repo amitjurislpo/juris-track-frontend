@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Link } from "react-router";
+import { TrackLink } from "@/track/components/TrackLink";
 import { ApiError, apiData } from "@/track/api";
 import type { AuditLogRow, BusinessRow, Employee, ListPage } from "@/track/api-types";
 import { EmptyState } from "@/track/components/EmptyState";
@@ -90,7 +90,7 @@ export default function AuditLogPage() {
         <section className="card enter" style={{ ["--i" as string]: 1 }} role="alert">
           {status === 403
             ? <EmptyState title={t("You don't have access to the audit log")} text={error.message}>
-                <Link className="btn btn-sm" to={homeFor(user.role)}>{t("Go to my home page")}</Link>
+                <TrackLink className="btn btn-sm" to={homeFor(user.role)}>{t("Go to my home page")}</TrackLink>
               </EmptyState>
             : status === 400
               ? <EmptyState title={t("These filters cannot be used")} text={error.message}>

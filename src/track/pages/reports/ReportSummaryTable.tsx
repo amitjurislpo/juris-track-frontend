@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { TrackLink } from "@/track/components/TrackLink";
 import type { ReportSummaryRow } from "@/track/api-types";
 import { SortableHeader } from "@/track/components/list/SortableHeader";
 import { defaultSortOf, summaryRowLabel, type SummaryGroup } from "@/track/lib/report-query";
@@ -53,7 +53,7 @@ export function ReportSummaryTable({ rows, groupBy, timeZone, isSingleDay, emplo
                 <td style={{ whiteSpace: "nowrap" }}>
                   {groupBy === "employee" ? (
                     <div className="person"><div>
-                      <b><Link to={employeePath(row.key)} style={{ color: "inherit" }}>{label}</Link></b>
+                      <b><TrackLink to={employeePath(row.key)} style={{ color: "inherit" }}>{label}</TrackLink></b>
                       {row.employeeCode && <small className="muted num">{row.employeeCode}</small>}
                     </div></div>
                   ) : <b className={row.key === "none" ? "muted" : undefined}>{label}</b>}

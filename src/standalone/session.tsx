@@ -20,10 +20,10 @@ export const fullNameOf = (user: CurrentUser) => `${user.firstName} ${user.lastN
 
 /**
  * The signed-in user, or null when signed out. The API validates the session on every request, so this is re-fetched
- * whenever data is invalidated. `isLoading` is true until the first answer. `isBusinessSuspended`: signed in, but the
+ * whenever data is invalidated. `isLoading` is true until the first answer. `hasLoadFailed`: the answer could not be read (API down, network, server error) and there is no earlier one: not the same as signed out. `isBusinessSuspended`: signed in, but the
  * platform has suspended the user's business (then `user` is null and the app shows the "access is paused" screen).
  */
-export function useCurrentUser(): { user: CurrentUser | null; isLoading: boolean; isBusinessSuspended: boolean } {
+export function useCurrentUser(): { user: CurrentUser | null; isLoading: boolean; isBusinessSuspended: boolean; hasLoadFailed: boolean } {
   const query = useQuery({
     queryKey: CURRENT_USER_QUERY_KEY,
     queryFn: fetchCurrentUser,
@@ -31,5 +31,6 @@ export function useCurrentUser(): { user: CurrentUser | null; isLoading: boolean
     placeholderData: (previousUser) => previousUser,
   });
   const isBusinessSuspended = query.error instanceof ApiError && query.error.code === BUSINESS_SUSPENDED;
-  return { user: isBusinessSuspended ? null : (query.data ?? null), isLoading: query.isPending, isBusinessSuspended };
+  const hasLoadFailed = query.isError && !isBusinessSuspended && !query.data;
+  return { user: isBusinessSuspended ? null : (query.data ?? null), isLoading: query.isPending, isBusinessSuspended, hasLoadFailed };
 }

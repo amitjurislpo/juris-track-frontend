@@ -1,5 +1,5 @@
 import { Suspense, useState } from "react";
-import { Link } from "react-router";
+import { TrackLink } from "@/track/components/TrackLink";
 import { ApiError } from "@/track/api";
 import type { TeamMemberDetail } from "@/track/api-types";
 import { EmptyState } from "@/track/components/EmptyState";
@@ -42,7 +42,7 @@ function TeamMemberView({ employeeId }: { employeeId: string }) {
           <PageHeader back={boardPath} eyebrow={user.role === "ADMIN" ? t("Time Tracking") : t("Team")} title={t("Employee not found")} />
           <section className="card enter" style={{ ["--i" as string]: 1 }}>
             <EmptyState title={t("This person is not in your team")} text={t("They may not exist, or they do not report to you. Only the people in your reporting line can be opened here.")}>
-              <Link className="btn btn-sm" to={boardPath}>{user.role === "ADMIN" ? t("Back to Time Tracking") : t("Back to Team")}</Link>
+              <TrackLink className="btn btn-sm" to={boardPath}>{user.role === "ADMIN" ? t("Back to Time Tracking") : t("Back to Team")}</TrackLink>
             </EmptyState>
           </section>
         </div>
@@ -63,7 +63,7 @@ function TeamMemberView({ employeeId }: { employeeId: string }) {
           {employee.managerName ? t("Reports to {name}", { name: employee.managerName }) : t("No manager")}
           {!employee.isActive && <> <StatusChip isGood={false} label={t("Inactive")} /></>}
         </>}>
-        {user.role === "ADMIN" && <Link className="btn" to={`/admin/employees/${encodeURIComponent(employee.id)}`}>{t("Edit employee")}</Link>}
+        {user.role === "ADMIN" && <TrackLink className="btn" to={`/admin/employees/${encodeURIComponent(employee.id)}`}>{t("Edit employee")}</TrackLink>}
       </PageHeader>
       <MemberStatusCard member={reading.value} nowMilliseconds={now} timeZone={timeZone} onOpenWorkday={() => setOpenWorkday(reading.value.workday)} />
       <Suspense fallback={<PageLoading />}>

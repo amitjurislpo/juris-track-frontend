@@ -51,7 +51,7 @@ export function Timeline({ segments, nowMilliseconds, timeZone, hasList = true }
             const width = Math.max(0.6, ((endOf(segment) - Date.parse(segment.startedAt)) / total) * 100);
             const label = `${typeLabel(segment)} ${rangeOf(segment)} (${formatDuration(intervalSeconds(segment, nowMilliseconds))})`;
             return (
-              <i key={segment.id} role="img" tabIndex={0} aria-label={label} title={label}
+              <i key={segment.id} role="img" aria-label={label} title={label}
                 className={`${segment.type === "WORK" ? "work" : "break"}${segment.endedAt ? "" : " running"}`}
                 style={{ left: `${left}%`, width: `${Math.min(width, 100 - left)}%` }} />
             );

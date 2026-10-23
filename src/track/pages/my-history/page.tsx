@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { TrackLink } from "@/track/components/TrackLink";
 import type { WorkdayHistory, WorkdayHistoryRow } from "@/track/api-types";
 import { Icon } from "@/track/components/Icon";
 import { PageHeader } from "@/track/components/PageHeader";
@@ -25,7 +25,7 @@ export default function MyHistoryPage() {
   return (
     <div className="col">
       <PageHeader eyebrow={t("My workspace")} title={t("My History")} sub={historyRangeText(data)}>
-        <Link className="btn" to="/my-time"><Icon name="clock" size={15} />{t("My Time")}</Link>
+        <TrackLink className="btn" to="/my-time"><Icon name="clock" size={15} />{t("My Time")}</TrackLink>
       </PageHeader>
       <WorkdayHistoryView history={data} range={selectedRange(searchParams)} timeZone={timeZone} onOpen={openRow} />
       {openWorkday && <WorkdayDetailModal workdayId={openWorkday.id} dateKey={openWorkday.date} timeZone={timeZone} onClose={() => setOpenWorkday(null)} />}

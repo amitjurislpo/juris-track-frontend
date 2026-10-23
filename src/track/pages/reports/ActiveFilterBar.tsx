@@ -33,7 +33,7 @@ export function ActiveFilterBar({ searchParams, role, range, managerName }: {
   range: DateRange;
   managerName: string | undefined;
 }) {
-  const { t } = useTrack();
+  const { t, readCurrentSearch } = useTrack();
   const { update } = useListQuery();
   const employeeName = useEmployeeName(searchParams);
   if (!hasActiveFilters(searchParams, role)) return null;
@@ -53,7 +53,7 @@ export function ActiveFilterBar({ searchParams, role, range, managerName }: {
   }
   const statuses = selectedStatuses(searchParams);
   for (const status of statuses) {
-    chips.push({ key: `status-${status}`, text: t("Status: {status}", { status: t(REPORT_STATUS_LABELS[status]) }), removal: () => statusRemovalChange(status) });
+    chips.push({ key: `status-${status}`, text: t("Status: {status}", { status: t(REPORT_STATUS_LABELS[status]) }), removal: () => statusRemovalChange(status, readCurrentSearch()) });
   }
   if (searchParams.search?.trim()) chips.push({ key: "search", text: t("Search: {text}", { text: searchParams.search.trim() }), removal: () => ({ search: null }) });
 

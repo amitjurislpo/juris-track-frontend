@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, matchPath, useLocation } from "react-router";
 import { Avatar } from "@/standalone/components/Avatar";
 import { LanguageSwitcher } from "@/standalone/components/LanguageSwitcher";
 import { TimeZoneSwitcher } from "@/standalone/components/TimeZoneSwitcher";
+import { useIsNarrowScreen } from "@/standalone/components/useIsNarrowScreen";
 import { useT } from "@/standalone/i18n/client";
 import { signOut } from "@/standalone/login/actions";
 import { navFor } from "@/standalone/nav";
@@ -18,6 +19,9 @@ export function Shell({ user, children }: { user: CurrentUser; children: React.R
   const { pathname } = useLocation();
   const [isSideOpen, setIsSideOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const isNarrowScreen = useIsNarrowScreen();
+  const sideRef = useRef<HTMLElement>(null);
+  const burgerRef = useRef<HTMLButtonElement>(null);
   const [theme, setThemeState] = useState<Theme>(currentTheme);
   const fullName = fullNameOf(user);
   const navGroups = navFor(user.role);
@@ -37,6 +41,14 @@ export function Shell({ user, children }: { user: CurrentUser; children: React.R
     setTheme(nextTheme);
     setThemeState(nextTheme);
   }, []);
+
+  // the drawer: focus moves into it when it opens and back to the menu button when it closes
+  const wasSideOpen = useRef(false);
+  useEffect(() => {
+    if (isSideOpen) sideRef.current?.querySelector<HTMLElement>("a")?.focus();
+    else if (wasSideOpen.current && (document.activeElement === document.body || sideRef.current?.contains(document.activeElement))) burgerRef.current?.focus();
+    wasSideOpen.current = isSideOpen;
+  }, [isSideOpen]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -65,7 +77,8 @@ export function Shell({ user, children }: { user: CurrentUser; children: React.R
       <div className="shell">
         <a className="skip" href="#main">{t("Skip to content")}</a>
         <div className={`scrim${isSideOpen ? " open" : ""}`} onClick={() => setIsSideOpen(false)}></div>
-        <aside id="side" className={`side${isSideOpen ? " open" : ""}`} aria-label={t("Main menu")}>
+        {/* a closed drawer is inert: its links are out of the tab order and the accessibility tree */}
+        <aside id="side" ref={sideRef} className={`side${isSideOpen ? " open" : ""}`} aria-label={t("Main menu")} inert={isNarrowScreen && !isSideOpen}>
           <Link className="ws" to={homeFor(user.role)}>
             <span className="monogram">{(user.businessName || "J").charAt(0).toUpperCase()}</span>
             <span style={{ flex: 1, minWidth: 0 }}><b>{user.businessName || "JurisTrack"}</b><small>{t("JurisTrack workspace")}</small></span>
@@ -85,7 +98,7 @@ export function Shell({ user, children }: { user: CurrentUser; children: React.R
 
         <div className="main">
           <header className="top">
-            <button className="icon-btn burger" onClick={() => setIsSideOpen(true)} aria-label={t("Open menu")} aria-controls="side" aria-expanded={isSideOpen}><Icon name="menu" /></button>
+            <button ref={burgerRef} className="icon-btn burger" onClick={() => setIsSideOpen(true)} aria-label={t("Open menu")} aria-controls="side" aria-expanded={isSideOpen}><Icon name="menu" /></button>
             <div className="crumbs"><span>Juris</span><Icon name="chevR" size={14} /><b>{t(pageTitle ?? "JurisTrack")}</b></div>
             <div className="grow"></div>
             <button className="icon-btn" onClick={toggleTheme} aria-label={theme === "dark" ? t("Switch to light theme") : t("Switch to dark theme")}>

@@ -611,8 +611,8 @@ main.content:focus{outline:none}
 .back-btn svg{flex:none}
 
 
-/* narrow screens: the top bar keeps only the page title (ellipsised) so its buttons never overlap it */
-@media(max-width:560px){.top{gap:6px}.crumbs{flex:1 1 0;min-width:0;overflow:hidden}.crumbs>span,.crumbs>svg{display:none}.crumbs b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.top .grow{display:none}.top select{max-width:92px}}
+/* narrow screens: the top bar drops the breadcrumb (the page's own heading shows the title, and the squeezed breadcrumb read "O...") and gives its room to the switchers */
+@media(max-width:560px){.top{gap:6px}.crumbs{display:none}.top .grow{display:block;flex:1 1 0}.top .tz-switch{max-width:150px}.top .lang-switch{max-width:100px}}
 
 /* a wide column and a narrow side column (an employee's form and their account card); one column on narrow screens */
 .split{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;align-items:start}
@@ -657,9 +657,10 @@ main.content:focus{outline:none}
 .daychart .hit{fill:transparent}
 .daychart-x{display:flex;margin-top:6px;font-size:11px;color:var(--faint);line-height:1.3}
 .daychart-x span{flex:1 1 0;min-width:0;display:flex;justify-content:center;white-space:nowrap;overflow:visible}
+@media (max-width:480px){.daychart-x-few span{display:block;white-space:normal;text-align:center;overflow-wrap:anywhere}}
 .tz-switch{max-width:230px}
 .seg-scroll{max-width:100%;overflow-x:auto;scrollbar-width:none}.seg-scroll::-webkit-scrollbar{display:none}.seg-scroll button{white-space:nowrap}
-@media (max-width:400px){.tz-switch{max-width:92px}.top .lang-switch{max-width:84px}}
+@media (max-width:400px){.tz-switch{max-width:108px}.top .lang-switch{max-width:86px}}
 @media (max-width:360px){.tz-switch{max-width:76px}.top .lang-switch{max-width:68px}}
 /* the Team board's eight tiles: two per row on a phone, four on a laptop */
 .kpis.kpis-compact{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
@@ -750,3 +751,11 @@ pre.diff-value{padding:8px 10px;max-height:320px;overflow:auto}
 .diff-value.new{background:var(--okbg);color:var(--ok)}
 .diff-long summary{cursor:pointer;font-size:12.5px;color:var(--muted)}
 .diff-long summary .diff-value{text-decoration:none}
+
+/* white text on the accent gradient needs 4.5:1: the prototype's lighter start colours do not reach it, so filled controls use a darker gradient in both themes */
+:root,[data-theme="light"],[data-theme="dark"]{--fillgrad:linear-gradient(135deg,#7260D8 0%,#6E56CF 55%,#5B45C2 100%)}
+.btn-gold,.btn-primary,.btn-gold:hover,.avatar,.monogram,.kpi-accent{background:var(--fillgrad)}
+.kpi-accent{background:var(--fillgrad)!important}
+
+/* a single-column form grid must not grow with its widest control (a long time zone name pushed the fields out of the card on a phone) */
+@media(max-width:640px){.grid2,.grid3{grid-template-columns:minmax(0,1fr)}}

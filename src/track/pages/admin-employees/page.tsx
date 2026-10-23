@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { TrackLink } from "@/track/components/TrackLink";
 import type { Employee, ListPage } from "@/track/api-types";
 import { EmptyState } from "@/track/components/EmptyState";
 import { Icon } from "@/track/components/Icon";
@@ -37,7 +37,7 @@ export default function EmployeesPage() {
   return (
     <div className="col">
       <PageHeader eyebrow={t("Administration")} title={t("Employees")} sub={t("Everyone in your business, their role and who they report to.")}>
-        <Link className="btn btn-gold btn-lg" to="/admin/employees/new"><Icon name="plus" size={16} />{t("Add employee")}</Link>
+        <TrackLink className="btn btn-gold btn-lg" to="/admin/employees/new"><Icon name="plus" size={16} />{t("Add employee")}</TrackLink>
       </PageHeader>
       <div className="toolbar enter" style={{ ["--i" as string]: 1 }}>
         <SearchBox placeholder={t("Search name, email or code")} label={t("Search employees")} />
@@ -69,7 +69,7 @@ export default function EmployeesPage() {
                   onClick={() => openEmployee(employee.id)} onKeyDown={(e) => { if (e.key === "Enter") openEmployee(employee.id); }}>
                   <td>
                     <div className="person"><div>
-                      <b><Link to={`/admin/employees/${employee.id}`} style={{ color: "inherit", textDecoration: "none" }} onClick={(e) => e.stopPropagation()}>{fullName(employee)}</Link></b>
+                      <b><TrackLink to={`/admin/employees/${employee.id}`} style={{ color: "inherit", textDecoration: "none" }} onClick={(e) => e.stopPropagation()}>{fullName(employee)}</TrackLink></b>
                       <small className="show-sm">{employee.email}</small>
                     </div></div>
                   </td>

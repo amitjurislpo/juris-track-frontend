@@ -238,6 +238,7 @@ test.describe.serial("organization and employees", () => {
 
     await page.getByRole("columnheader", { name: "Email" }).getByRole("button").click();
     await expect(page).toHaveURL(/sort=email&sortDirection=asc/);
+    await expect(page.getByRole("columnheader", { name: "Email" })).toHaveAttribute("aria-sort", "ascending");
     await expect(tableRows(page).nth(0)).toContainText(EMPLOYEE.email);
     await page.getByRole("columnheader", { name: "Email" }).getByRole("button").click();
     await expect(page).toHaveURL(/sort=email&sortDirection=desc/);

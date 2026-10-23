@@ -5,5 +5,9 @@ export const currentTheme = (): Theme => (document.documentElement.dataset.theme
 /** Applies the theme and remembers it in a cookie so the next visit starts in it. */
 export function setTheme(theme: Theme) {
   document.documentElement.dataset.theme = theme;
-  document.cookie = `jt_theme=${theme}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+  try {
+    document.cookie = `jt_theme=${theme}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+  } catch {
+    // cookies are blocked (a sandboxed frame): the theme still changes for this visit
+  }
 }
