@@ -25,6 +25,8 @@ export const PROBLEM_MESSAGES: Record<string, string> = {
   NOT_ON_BREAK: "You are not on a break any more. Your timer has been refreshed.",
   BREAK_IN_PROGRESS: "You are on a break. Select Back to work before ending your workday.",
   TIME_RECORD_INCONSISTENT: "Your time record is in an unexpected state. Please contact an administrator to review it.",
+  // reports (GET /reports/workdays as CSV): more rows than one file may hold
+  EXPORT_TOO_LARGE: "This export has too many rows for one file. Narrow the date range or choose fewer people, then export again.",
 };
 
 /** The problem code of an open workday whose intervals do not match its status (an administrator has to correct it). */

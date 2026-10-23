@@ -30,6 +30,8 @@ const ICONS: Record<string, string> = {
   play: '<path d="M7 4.5v15l12-7.5z"/>',
   pause: '<path d="M8.5 5v14M15.5 5v14"/>',
   stop: '<rect x="6" y="6" width="12" height="12" rx="2.5"/>',
+  // reports
+  download: '<path d="M12 4v11M7 10.5l5 5 5-5M4 20h16"/>',
 };
 
 export function Icon({ name: iconName, size = 18 }: { name: string; size?: number }) {

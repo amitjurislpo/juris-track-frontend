@@ -6,6 +6,7 @@ import { Icon } from "@/track/components/Icon";
 import { Pagination } from "@/track/components/list/Pagination";
 import { PageHeader } from "@/track/components/PageHeader";
 import { DailyChart } from "@/track/components/time/DailyChart";
+import { RangeFilter } from "@/track/components/time/RangeFilter";
 import { WorkdayDetailModal } from "@/track/components/time/WorkdayDetailModal";
 import { WorkdayHistoryTable } from "@/track/components/time/WorkdayHistoryTable";
 import { PageLoading } from "@/track/PageLoading";
@@ -13,7 +14,6 @@ import { formatDateKey, formatDuration } from "@/track/lib/time/format";
 import { selectedRange, workdayHistoryPath } from "@/track/lib/workday-history-query";
 import { useDisplayTimeZone } from "@/track/time/useDisplayTimeZone";
 import { useData, usePage } from "@/track/usePage";
-import { RangeFilter } from "./RangeFilter";
 
 /**
  * My history (`GET /workdays/mine`): a date range kept in the URL, the range's totals, productive and break time per day, and the

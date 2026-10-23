@@ -33,13 +33,26 @@ export class ApiError extends Error {
   status: number;
   /** The problem details' stable `code` (`NOT_FOUND`, `BUSINESS_SUSPENDED`, …), when the API sent one. */
   code: string | undefined;
-  constructor(message: string, status: number, code?: string) {
+  /** The field errors of a 400 (translated), so a page can say which parameter was wrong. */
+  fieldErrors: FieldError[];
+  constructor(message: string, status: number, code?: string, fieldErrors: FieldError[] = []) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.code = code;
+    this.fieldErrors = fieldErrors;
   }
 }
+
+/** A file the API sent (`file()`): the content and the raw `Content-Disposition` header (it names the file). */
+interface ApiFile {
+  ok: true;
+  blob: Blob;
+  contentDisposition: string | null;
+}
+
+/** What `file()` gives: the file, or the failure as problem details (code, translated message, field errors). */
+export type ApiFileResult = ApiFile | Extract<ActionResult<never>, { ok: false }>;
 
 const isFieldError = (value: unknown): value is FieldError =>
   typeof value === "object" && value !== null && typeof (value as FieldError).field === "string" && typeof (value as FieldError).message === "string";
@@ -51,6 +64,31 @@ const FALLBACK_ERROR = "Something went wrong. Please try again.";
 export function createApiClient(options: ApiClientOptions) {
   const translateMessage = options.translateMessage ?? ((text: string) => text);
 
+  /** Reads an answer's JSON: the success envelope, or RFC 7807 problem details ({ status, code, detail, errors?: [{ field, message }] }). */
+  async function readJson<T>(response: Response): Promise<ActionResult<T>> {
+    try {
+      const json = await response.json();
+      if (typeof json?.ok === "boolean") return json as ActionResult<T>;
+      const failure: ActionResult<T> = { ok: false, error: String(json?.detail ?? FALLBACK_ERROR) };
+      if (typeof json?.code === "string") failure.code = json.code;
+      if (Array.isArray(json?.errors)) failure.errors = json.errors.filter(isFieldError);
+      return failure;
+    } catch {
+      return { ok: false, error: FALLBACK_ERROR };
+    }
+  }
+
+  /** Translates a result's messages and tells the host about a suspended business. */
+  function translateResult<T>(status: number, result: ActionResult<T>): ActionResult<T> {
+    if (result.ok) return result.message ? { ...result, message: translateMessage(result.message) } : result;
+    if (status === 403 && result.code === BUSINESS_SUSPENDED) options.onBusinessSuspended?.();
+    return {
+      ...result,
+      error: translateMessage(result.error),
+      ...(result.errors ? { errors: result.errors.map((fieldError) => ({ field: fieldError.field, message: translateMessage(fieldError.message) })) } : {}),
+    };
+  }
+
   async function send<T>(method: Method, path: string, body: unknown): Promise<ApiResponse<T>> {
     const isWrite = method !== "GET";
     const response = await fetch(`${options.basePath}${path}`, {
@@ -60,37 +98,44 @@ export function createApiClient(options: ApiClientOptions) {
       credentials: "same-origin",
       cache: "no-store",
     });
-    let parsed: ActionResult<T>;
-    try {
-      const json = await response.json();
-      // errors arrive as RFC 7807 problem details: { status, code, detail, errors?: [{ field, message }], ... }
-      if (typeof json?.ok === "boolean") parsed = json as ActionResult<T>;
-      else {
-        parsed = { ok: false, error: String(json?.detail ?? FALLBACK_ERROR) };
-        if (typeof json?.code === "string") parsed.code = json.code;
-        if (Array.isArray(json?.errors)) parsed.errors = json.errors.filter(isFieldError);
-      }
-    } catch {
-      parsed = { ok: false, error: FALLBACK_ERROR };
+    return { status: response.status, body: translateResult(response.status, await readJson<T>(response)) };
+  }
+
+  /** Repeats `request` once when it answered 401 and the host renewed the session. */
+  async function withSessionRenewal<Answer extends { status: number }>(path: string, isQuiet: boolean, request: () => Promise<Answer>): Promise<Answer> {
+    const answer = await request();
+    if (answer.status === 401 && options.onUnauthorized && !path.startsWith("/auth/")) {
+      if (await options.onUnauthorized({ isQuiet })) return request();
     }
-    if (!parsed.ok) {
-      parsed = {
-        ...parsed,
-        error: translateMessage(parsed.error),
-        ...(parsed.errors ? { errors: parsed.errors.map((fieldError) => ({ field: fieldError.field, message: translateMessage(fieldError.message) })) } : {}),
-      };
-      if (response.status === 403 && parsed.code === BUSINESS_SUSPENDED) options.onBusinessSuspended?.();
-    } else if (parsed.message) parsed = { ...parsed, message: translateMessage(parsed.message) };
-    return { status: response.status, body: parsed };
+    return answer;
   }
 
   /** One API call; a 401 gives the host one chance to renew the session, then the request is repeated once. */
   async function call<T>(method: Method, path: string, body?: unknown, callOptions: { isQuiet?: boolean } = {}): Promise<ApiResponse<T>> {
-    let response = await send<T>(method, path, body);
-    if (response.status === 401 && options.onUnauthorized && !path.startsWith("/auth/")) {
-      if (await options.onUnauthorized({ isQuiet: !!callOptions.isQuiet })) response = await send<T>(method, path, body);
+    return withSessionRenewal(path, !!callOptions.isQuiet, () => send<T>(method, path, body));
+  }
+
+  /**
+   * A GET for a file in another representation than JSON (`accept`, e.g. `text/csv`): a plain link cannot set the Accept header,
+   * so the file is fetched and handed over as a blob. Errors still arrive as problem details (JSON) and come back as a failure.
+   */
+  async function file(path: string, accept: string): Promise<ApiFileResult> {
+    const answer = await withSessionRenewal(path, false, async () => {
+      const response = await fetch(`${options.basePath}${path}`, {
+        method: "GET",
+        headers: { accept, ...(await options.getHeaders()) },
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+      return { status: response.status, response };
+    });
+    const { response } = answer;
+    const contentType = response.headers.get("content-type") ?? "";
+    if (response.ok && !contentType.includes("json")) {
+      return { ok: true, blob: await response.blob(), contentDisposition: response.headers.get("content-disposition") };
     }
-    return response;
+    const result = translateResult<never>(response.status, response.ok ? { ok: false, error: FALLBACK_ERROR } : await readJson<never>(response));
+    return result.ok ? { ok: false, error: translateMessage(FALLBACK_ERROR) } : result;
   }
 
   /** GET returning `data`, or null on 401 (signed out). Other errors throw. */
@@ -104,7 +149,7 @@ export function createApiClient(options: ApiClientOptions) {
   /** GET returning `data`; throws an ApiError on any error. */
   async function data<T>(path: string): Promise<T> {
     const response = await call<T>("GET", path);
-    if (!response.body.ok) throw new ApiError(response.body.error, response.status, response.body.code);
+    if (!response.body.ok) throw new ApiError(response.body.error, response.status, response.body.code, response.body.errors);
     return response.body.data as T;
   }
 
@@ -116,7 +161,7 @@ export function createApiClient(options: ApiClientOptions) {
     return response.body;
   }
 
-  return { call, get, data, action };
+  return { call, get, data, action, file };
 }
 
 export type ApiClient = ReturnType<typeof createApiClient>;
@@ -133,3 +178,5 @@ const currentClient = (): ApiClient => {
 export const apiData = <T>(path: string) => currentClient().data<T>(path);
 /** Write for the JurisTrack pages (used by each page folder's `actions.ts`). */
 export const apiAction = <T = undefined>(method: Exclude<Method, "GET">, path: string, body?: unknown) => currentClient().action<T>(method, path, body);
+/** A file download for the JurisTrack pages (`Accept: accept`), e.g. a CSV export (used by `actions.ts`). */
+export const apiFile = (path: string, accept: string) => currentClient().file(path, accept);

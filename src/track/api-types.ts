@@ -89,5 +89,70 @@ export interface WorkdayHistory extends ListPage<WorkdayHistoryRow> {
   from: string;
   to: string;
   totals: { workdays: number; productiveSeconds: number; breakSeconds: number; spanSeconds: number; breakCount: number };
-  dailySeries: { date: string; productiveSeconds: number; breakSeconds: number; workdays: number }[];
+  dailySeries: DailySeriesPoint[];
+}
+
+/** One date of a range's chart: what every workday of that date adds up to (zero when nothing was recorded). */
+interface DailySeriesPoint {
+  date: string;
+  productiveSeconds: number;
+  breakSeconds: number;
+  workdays: number;
+}
+
+/** What every workday of a report's range adds up to (all pages); `employees` = different people. */
+export interface ReportTotals {
+  workdays: number;
+  employees: number;
+  productiveSeconds: number;
+  breakSeconds: number;
+  spanSeconds: number;
+  breakCount: number;
+  /** Productive seconds per workday, rounded (0 without workdays). */
+  averageProductiveSeconds: number;
+}
+
+/** A row of `GET /reports/workdays` (backend references/API-reports.md). */
+export interface ReportWorkdayRow extends WorkdayHistoryRow {
+  employee: { id: string; employeeCode: string | null; name: string };
+  /** The employee's manager when the workday started (with today's name); null when they had none that day. */
+  manager: { id: string; name: string } | null;
+}
+
+/** What both report endpoints answer besides their rows. */
+interface ReportEnvelope<Row> extends ListPage<Row> {
+  range: WorkdayHistory["range"];
+  from: string;
+  to: string;
+  scope: "direct" | "indirect" | "all";
+  totals: ReportTotals;
+  dailySeries: DailySeriesPoint[];
+}
+
+/** `GET /reports/workdays`: one page of workdays plus the whole range's totals and one chart point per date. */
+export type WorkdayReport = ReportEnvelope<ReportWorkdayRow>;
+
+/** A group of `GET /reports/summaries`. */
+export interface ReportSummaryRow {
+  /** The employee's id, the manager's id ("none" for the workdays without a manager) or the date. */
+  key: string;
+  /** The name or the date; null for the "none" manager group (shown as "No manager"). */
+  label: string | null;
+  /** Only with `groupBy=employee`. */
+  employeeCode: string | null;
+  workdays: number;
+  employees: number;
+  productiveSeconds: number;
+  breakSeconds: number;
+  spanSeconds: number;
+  breakCount: number;
+  averageProductiveSeconds: number;
+  firstStartedAt: string;
+  /** Null when every workday of the group is still open. */
+  lastEndedAt: string | null;
+}
+
+/** `GET /reports/summaries`: one page of groups plus the totals and the daily series of the whole range. */
+export interface SummaryReport extends ReportEnvelope<ReportSummaryRow> {
+  groupBy: "employee" | "manager" | "date";
 }

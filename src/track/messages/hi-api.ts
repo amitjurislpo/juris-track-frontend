@@ -75,4 +75,16 @@ export const trackHindiApiMessages: Record<string, string> = {
   "The range is today, yesterday, week, month or custom.": "अवधि today, yesterday, week, month या custom होनी चाहिए।",
   "The start date is a date (YYYY-MM-DD).": "शुरुआती तारीख़ YYYY-MM-DD रूप में होनी चाहिए।",
   "The end date is a date (YYYY-MM-DD).": "अंतिम तारीख़ YYYY-MM-DD रूप में होनी चाहिए।",
+  // reports (ReportService, ListQuery); the row cap's message (EXPORT_TOO_LARGE) has numbers in it and is shown by its code instead
+  "You can see only the people who report to you.": "आप केवल उन्हीं लोगों को देख सकते हैं जो आपको रिपोर्ट करते हैं।",
+  "Manager not found.": "मैनेजर नहीं मिला।",
+  "The scope is direct, indirect or all.": "दायरा direct, indirect या all होना चाहिए।",
+  "The employee is an id.": "कर्मचारी एक आईडी होना चाहिए।",
+  "The manager is an id.": "मैनेजर एक आईडी होना चाहिए।",
+  "The status is one or more of WORKING, ON_BREAK, DAY_ENDED, NOT_ENDED.": "स्थिति WORKING, ON_BREAK, DAY_ENDED, NOT_ENDED में से एक या अधिक होनी चाहिए।",
+  "Group by employee, manager or date.": "कर्मचारी, मैनेजर या तारीख़ के अनुसार समूह बनाएँ।",
+  "Choose the business time zone or one of its display time zones.": "व्यवसाय का समय क्षेत्र या उसके दिखाए जाने वाले समय क्षेत्रों में से कोई एक चुनें।",
+  "The sort direction is asc or desc.": "क्रम की दिशा asc या desc होनी चाहिए।",
+  "Sort by one of: date, employee, startedAt, productiveSeconds, breakSeconds, spanSeconds, breakCount.": "इनमें से किसी एक के अनुसार क्रम दें: date, employee, startedAt, productiveSeconds, breakSeconds, spanSeconds, breakCount।",
+  "Sort by one of: label, workdays, employees, productiveSeconds, breakSeconds, spanSeconds, breakCount, averageProductiveSeconds.": "इनमें से किसी एक के अनुसार क्रम दें: label, workdays, employees, productiveSeconds, breakSeconds, spanSeconds, breakCount, averageProductiveSeconds।",
 };

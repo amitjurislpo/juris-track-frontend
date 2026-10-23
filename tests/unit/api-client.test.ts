@@ -41,6 +41,12 @@ describe("API client: problem details", () => {
     expect(failure).toMatchObject({ status: 404, code: "NOT_FOUND", message: "hi:Employee not found." });
   });
 
+  it("a failed read carries the translated field errors of a 400", async () => {
+    stubFetch(400, { status: 400, code: "VALIDATION_FAILED", detail: "Some details are invalid.", errors: [{ field: "scope", message: "The scope is direct, indirect or all." }] });
+    const failure = await clientWith().data("/reports/workdays?scope=x").catch((error: unknown) => error);
+    expect(failure).toMatchObject({ status: 400, fieldErrors: [{ field: "scope", message: "hi:The scope is direct, indirect or all." }] });
+  });
+
   it("tells the host when the business is suspended (403 BUSINESS_SUSPENDED), and only then", async () => {
     const onBusinessSuspended = vi.fn();
     stubFetch(403, { status: 403, code: "BUSINESS_SUSPENDED", detail: "suspended" });
@@ -49,5 +55,53 @@ describe("API client: problem details", () => {
     stubFetch(403, { status: 403, code: "FORBIDDEN", detail: "no" });
     await clientWith({ onBusinessSuspended }).data("/employees").catch(() => undefined);
     expect(onBusinessSuspended).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("API client: file downloads", () => {
+  const CSV = "﻿Date,Employee\r\n2026-10-20,Asha Rao\r\n";
+
+  it("asks for the representation with the Accept header and hands back the blob and its Content-Disposition", async () => {
+    const fetchStub = vi.fn(async () => new Response(CSV, {
+      status: 200,
+      headers: { "content-type": "text/csv;charset=UTF-8", "content-disposition": 'attachment; filename="juristrack-2026-10-19-to-2026-10-23.csv"' },
+    }));
+    vi.stubGlobal("fetch", fetchStub);
+    const result = await clientWith().file("/reports/workdays?timeZone=Asia%2FKolkata", "text/csv");
+    expect(fetchStub).toHaveBeenCalledWith("/base/reports/workdays?timeZone=Asia%2FKolkata", expect.objectContaining({ method: "GET", headers: { accept: "text/csv" } }));
+    if (!result.ok) throw new Error("expected the file");
+    expect(result.contentDisposition).toBe('attachment; filename="juristrack-2026-10-19-to-2026-10-23.csv"');
+    expect(new Uint8Array(await result.blob.arrayBuffer()).slice(0, 3)).toEqual(new Uint8Array([0xef, 0xbb, 0xbf]));
+  });
+
+  it("turns a problem+json refusal (422 EXPORT_TOO_LARGE) into a failure with its code", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ status: 422, code: "EXPORT_TOO_LARGE", detail: "This export has 9 rows; at most 5 fit in one file." }), {
+      status: 422, headers: { "content-type": "application/problem+json" },
+    })));
+    const result = await clientWith().file("/reports/workdays", "text/csv");
+    expect(result).toEqual({ ok: false, code: "EXPORT_TOO_LARGE", error: "hi:This export has 9 rows; at most 5 fit in one file." });
+  });
+
+  it("keeps the field errors of a 400 (a time zone the business does not offer)", async () => {
+    stubFetch(400, { status: 400, code: "VALIDATION_FAILED", detail: "Some details are invalid.", errors: [{ field: "timeZone", message: "Choose the business time zone or one of its display time zones." }] });
+    const result = await clientWith().file("/reports/workdays?timeZone=Mars%2FBase", "text/csv");
+    expect(result).toMatchObject({ ok: false, errors: [{ field: "timeZone", message: "hi:Choose the business time zone or one of its display time zones." }] });
+  });
+
+  it("renews the session once on a 401 and asks again", async () => {
+    const fetchStub = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ status: 401, detail: "expired" }), { status: 401, headers: { "content-type": "application/problem+json" } }))
+      .mockResolvedValueOnce(new Response(CSV, { status: 200, headers: { "content-type": "text/csv" } }));
+    vi.stubGlobal("fetch", fetchStub);
+    const onUnauthorized = vi.fn(async () => true);
+    const result = await createApiClient({ basePath: "/base", getHeaders: () => ({}), onUnauthorized, queryClient: new QueryClient() }).file("/reports/workdays", "text/csv");
+    expect(onUnauthorized).toHaveBeenCalledWith({ isQuiet: false });
+    expect(fetchStub).toHaveBeenCalledTimes(2);
+    expect(result).toMatchObject({ ok: true, contentDisposition: null });
+  });
+
+  it("treats a JSON answer to a file request as a failure", async () => {
+    stubFetch(200, { ok: true, data: { rows: [] } });
+    expect(await clientWith().file("/reports/workdays", "text/csv")).toEqual({ ok: false, error: "hi:Something went wrong. Please try again." });
   });
 });
