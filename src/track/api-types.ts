@@ -85,6 +85,39 @@ export interface WorkdayHistoryRow {
   breakCount: number;
 }
 
+/** A row of `GET /audit-logs` (owner: their business; super admin: every entry). Names are the current ones, resolved when read. */
+export interface AuditLogRow {
+  id: string;
+  createdAt: string;
+  /** null for a platform event (outside any business). */
+  businessId: string | null;
+  businessName: string | null;
+  /** Who did it; null when nobody was signed in. `name` is null for a person outside the viewer's business (the platform admin in an owner's log). */
+  actor: { id: string; name: string | null; role: string | null } | null;
+  /** Whom it is about; null when it is about nobody in particular. */
+  subject: { id: string; name: string | null } | null;
+  action: string;
+  category: string;
+  outcome: string;
+  entityType: string | null;
+  entityId: string | null;
+  source: string;
+  ipAddress: string | null;
+  requestId: string | null;
+  reason: string | null;
+  /** Machine-made: the changed fields of an update ("changed: role, managerId"), else the reason of a refusal or failure, else null. */
+  summary: string | null;
+}
+
+/** `GET /audit-logs/{auditLogId}`: the row plus the record before and after and the request it came from. */
+export interface AuditLogDetail extends AuditLogRow {
+  before: unknown;
+  after: unknown;
+  userAgent: string | null;
+  httpMethod: string | null;
+  requestPath: string | null;
+}
+
 /** `GET /workdays/mine`: one page of workdays plus the whole range's totals and one chart point per date. */
 export interface WorkdayHistory extends ListPage<WorkdayHistoryRow> {
   range: "today" | "yesterday" | "week" | "month" | "custom";
