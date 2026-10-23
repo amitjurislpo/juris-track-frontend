@@ -345,6 +345,54 @@ test.describe.serial("organization and employees", () => {
     await expect(tableRows(page).first()).toContainText("Inactive");
   });
 
+  test("switching an employee's login off signs them out and refuses their sign-in, they stay in the list, and switching it on lets them back in", async ({ page, browser }) => {
+    const managerPage = await signInElsewhere(browser, MANAGER.email, "/team");
+    await login(page, OWNER.email);
+    await expectLanded(page, "/admin");
+    await openEmployee(page, MANAGER.email);
+    const card = page.getByRole("region", { name: "Login access" });
+    await expect(card).toContainText("Login on");
+    await card.getByRole("button", { name: "Disable login" }).click();
+    const dialog = page.getByRole("dialog", { name: "Disable login" });
+    await dialog.getByLabel("Reason").fill("On leave, no access");
+    await dialog.getByRole("button", { name: "Disable login" }).click();
+    await expect(toastWith(page, "Login disabled.")).toBeVisible();
+    await expect(card).toContainText("Login off");
+    await expect(card.getByRole("button", { name: "Enable login" })).toBeVisible();
+    const managerId = await userIdOf(MANAGER.email);
+    const [audit] = await sql<{ reason: string }>("SELECT reason FROM audit_logs WHERE action = 'employee.login_disabled' AND subject_id = $1", [managerId]);
+    expect(audit.reason).toBe("On leave, no access");
+
+    // signed out at once, no new code, and the same "wrong code" answer as for an unknown account
+    await managerPage.goto("/profile");
+    await expect(managerPage).toHaveURL(/\/login\?next=%2Fprofile$/);
+    const codesBefore = await storedCodeCount(MANAGER.email);
+    await loginWithCode(managerPage, MANAGER.email, OTP);
+    await expect(managerPage.locator(".err")).toHaveText(WRONG_CODE);
+    expect(await storedCodeCount(MANAGER.email)).toBe(codesBefore);
+
+    // still in the (active) list, marked "Login off"; the owner's own page offers no switch
+    await page.goto("/admin/employees");
+    await page.getByRole("searchbox").fill(MANAGER.email);
+    await expect(tableRows(page)).toHaveCount(1);
+    await expect(tableRows(page).first()).toContainText("Active");
+    await expect(tableRows(page).first()).toContainText("Login off");
+    await page.goto(`/admin/employees/${await userIdOf(OWNER.email)}`);
+    await expect(page.getByRole("region", { name: "Login access" })).toContainText("Login on");
+    await expect(page.getByRole("button", { name: "Disable login" })).toHaveCount(0);
+
+    // switched on again: the person signs in with a new code
+    await openEmployee(page, MANAGER.email);
+    await card.getByRole("button", { name: "Enable login" }).click();
+    await page.getByRole("dialog", { name: "Enable login" }).getByRole("button", { name: "Enable login" }).click();
+    await expect(toastWith(page, "Login enabled.")).toBeVisible();
+    await expect(card).toContainText("Login on");
+    await login(managerPage, MANAGER.email);
+    await expectLanded(managerPage, "/team");
+    await managerPage.context().close();
+    expect(await sql("SELECT 1 FROM audit_logs WHERE action = 'employee.login_enabled' AND subject_id = $1", [managerId])).toHaveLength(1);
+  });
+
   test("a manager and an employee cannot open the employees page (sent to their landing page) and the API refuses them", async ({ page }) => {
     await login(page, DEMO.manager);
     await expectLanded(page, "/team");
