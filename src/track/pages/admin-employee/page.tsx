@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import type { Employee } from "@/track/api-types";
+import { Icon } from "@/track/components/Icon";
 import { PageHeader } from "@/track/components/PageHeader";
 import { StatusChip } from "@/track/components/StatusChip";
 import { PageLoading } from "@/track/PageLoading";
@@ -31,6 +32,7 @@ export default function EmployeePage() {
     <div className="col">
       <PageHeader back="/admin/employees" eyebrow={`${t(ROLE_LABELS[employee.role])}${employee.employeeCode ? ` · ${employee.employeeCode}` : ""}`} title={fullName(employee)}
         sub={<StatusChip isGood={employee.isActive} label={employee.isActive ? t("Active") : t("Inactive")} />}>
+        {!isSelf && <Link className="btn" to={`/admin/time-tracking/${encodeURIComponent(employee.id)}`}><Icon name="clock" size={15} />{t("Time and history")}</Link>}
         {!isSelf && <EmployeeStatusButton employee={employee} />}
       </PageHeader>
       <div className="split enter" style={{ ["--i" as string]: 1 }}>

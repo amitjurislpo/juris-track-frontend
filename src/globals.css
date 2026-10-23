@@ -661,3 +661,8 @@ main.content:focus{outline:none}
 .seg-scroll{max-width:100%;overflow-x:auto;scrollbar-width:none}.seg-scroll::-webkit-scrollbar{display:none}.seg-scroll button{white-space:nowrap}
 @media (max-width:400px){.tz-switch{max-width:92px}.top .lang-switch{max-width:84px}}
 @media (max-width:360px){.tz-switch{max-width:76px}.top .lang-switch{max-width:68px}}
+/* the Team board's eight tiles: two per row on a phone, four on a laptop */
+.kpis.kpis-compact{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.kpis-compact .kpi{padding:12px 14px;gap:4px;min-width:0}
+.kpis-compact .kpi .v{font-size:28px}
+@media (max-width:420px){.kpis.kpis-compact{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kpis-compact .kpi .v{font-size:22px}}

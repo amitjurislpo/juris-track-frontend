@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Modal } from "@/track/components/Modal";
 import { PageLoading } from "@/track/PageLoading";
 import { formatDateKey } from "@/track/lib/time/format";
@@ -12,8 +12,11 @@ import { Timeline } from "./Timeline";
 import { WorkdayStatusChip } from "./WorkdayStatusChip";
 import { WorkdaySummary } from "./WorkdaySummary";
 
+/** What a page may add under the workday (the Team tab's corrections), given the workday and the server's "now". */
+type WorkdayExtras = (workday: WorkdaySnapshot, nowMilliseconds: number) => ReactNode;
+
 /** The body of the dialog: `GET /workdays/{workdayId}`, its figures and every interval. An open day keeps running. */
-function WorkdayDetail({ workdayId, timeZone }: { workdayId: string; timeZone: string }) {
+function WorkdayDetail({ workdayId, timeZone, renderExtras }: { workdayId: string; timeZone: string; renderExtras?: WorkdayExtras }) {
   const { t } = useTrack();
   const workday = useData<WorkdaySnapshot>(`/workdays/${encodeURIComponent(workdayId)}`);
   const { data: reading } = useTimeState();
@@ -26,17 +29,27 @@ function WorkdayDetail({ workdayId, timeZone }: { workdayId: string; timeZone: s
       <div><WorkdayStatusChip status={workday.status} isStale={workday.isStale} /></div>
       <WorkdaySummary figures={{ ...live, startedAt: workday.startedAt, endedAt: workday.endedAt }} timeZone={timeZone} label={t("Workday summary")} />
       <Timeline segments={workday.segments} nowMilliseconds={now} timeZone={timeZone} />
+      {renderExtras?.(workday, now)}
     </div>
   );
 }
 
-/** One of my workdays in a dialog (from the history and the dashboard). `dateKey` titles it while it loads. */
-export function WorkdayDetailModal({ workdayId, dateKey, timeZone, onClose }: { workdayId: string; dateKey: string; timeZone: string; onClose: () => void }) {
+/**
+ * A workday in a dialog (from a history and the dashboard). `dateKey` titles it while it loads. `renderExtras` adds a section under
+ * the intervals (the corrections of the Team tab).
+ */
+export function WorkdayDetailModal({ workdayId, dateKey, timeZone, onClose, renderExtras }: {
+  workdayId: string;
+  dateKey: string;
+  timeZone: string;
+  onClose: () => void;
+  renderExtras?: WorkdayExtras;
+}) {
   const { t } = useTrack();
   return (
     <Modal title={formatDateKey(dateKey)} eyebrow={t("Workday")} onClose={onClose}>
       <Suspense fallback={<PageLoading />}>
-        <WorkdayDetail workdayId={workdayId} timeZone={timeZone} />
+        <WorkdayDetail workdayId={workdayId} timeZone={timeZone} renderExtras={renderExtras} />
       </Suspense>
     </Modal>
   );

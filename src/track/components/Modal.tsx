@@ -5,6 +5,9 @@ import { Icon } from "./Icon";
 
 const FOCUSABLE = "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
 
+/** The open dialogs, the top one last: only the top one answers Escape and keeps the focus (a dialog opened from another). */
+const openDialogs: object[] = [];
+
 /**
  * A dialog (design `.overlay` / `.modal`), rendered at <body> level so animated cards cannot clip it. Escape and a click on the
  * backdrop close it; focus moves into it, stays inside while tabbing and returns to the trigger afterwards.
@@ -28,9 +31,12 @@ export function Modal({ title, eyebrow, onClose, footer, children, isSmall, isSt
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const dialog = dialogRef.current;
+    const stackEntry = {};
+    openDialogs.push(stackEntry);
     const firstField = dialog?.querySelector<HTMLElement>("[autofocus], input, select, textarea, button:not(.icon-btn)");
     (firstField ?? dialog)?.focus();
     const onKeyDown = (e: KeyboardEvent) => {
+      if (openDialogs[openDialogs.length - 1] !== stackEntry) return;
       if (e.key === "Escape") {
         e.stopPropagation();
         latestOnClose.current();
@@ -46,6 +52,7 @@ export function Modal({ title, eyebrow, onClose, footer, children, isSmall, isSt
     };
     document.addEventListener("keydown", onKeyDown);
     return () => {
+      openDialogs.splice(openDialogs.indexOf(stackEntry), 1);
       document.removeEventListener("keydown", onKeyDown);
       previouslyFocused?.focus?.();
     };

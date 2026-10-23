@@ -5,8 +5,9 @@ The JurisTrack web app: a React single-page app (Vite + TypeScript + React Route
 from the Spring Boot API in the backend repo (`juris-track-backend`).
 
 > **Status:** Sign-in, the shell, the role-based navigation, module 1 (organization and employees: the super admin's
-> businesses, the owner's employees and settings, everybody's profile) and module 2 (personal time tracking: dashboard, My time,
-> My history, the display time zone switcher) are built. The other pages are "Coming soon" placeholders that follow the backend
+> businesses, the owner's employees and settings, everybody's profile), module 2 (personal time tracking: dashboard, My time,
+> My history, the display time zone switcher) and module 4 (the Team tab: the managers' and the owner's live board, one person's
+> page with their history, time corrections) are built. The other pages are "Coming soon" placeholders that follow the backend
 > modules (see `references/MIGRATION_PLAN.md` in the backend repo).
 
 ## Stack
@@ -53,7 +54,7 @@ To show the fixed sign-in code on the login page in development, set `VITE_DEV_O
 | `npm run build` | Typecheck, then build static files into `dist/` |
 | `npm run preview` | Serve `dist/` locally (with the `/api` proxy) |
 | `npm run typecheck` / `npm run lint` | `tsc --noEmit` / ESLint |
-| `npm test` | Unit tests (time engine, live totals and clock offset, time buttons per state, history query and chart data, display time zone, roles and navigation, safe redirect, i18n, list query strings, PATCH bodies, problem codes, API client) |
+| `npm test` | Unit tests (time engine, live totals and clock offset, time buttons per state, history query and chart data, display time zone, roles and navigation, safe redirect, i18n, list query strings, PATCH bodies, problem codes, API client, Team board query and live figures, time corrections) |
 | `npm run test:e2e` | Playwright end-to-end tests (see below) |
 
 ## Roles and pages
@@ -65,12 +66,12 @@ business has the same personal section; roles only add pages for looking at othe
 |---|---|
 | `EMPLOYEE` | Personal section only: `dashboard`, `my-time`, `my-history`, `profile`. Lands on `/dashboard`. |
 | `MANAGER` | Personal section, plus the **Team** group: `team` (live board of my reports), `team/employees/:id` (one report's history), `team/reports` (reports and CSV). Lands on `/team`; the personal section stays one click away. |
-| `ADMIN` (shown as "Owner") | Personal section, plus **Administration**: `admin` (overview), `admin/employees` (list, `new`, `:id`, including assigning each employee's manager), `admin/time-tracking` (live board of everyone), `admin/reports`, `admin/audit-log`, `admin/settings`. Lands on `/admin`. |
+| `ADMIN` (shown as "Owner") | Personal section, plus **Administration**: `admin` (overview), `admin/employees` (list, `new`, `:id`, including assigning each employee's manager), `admin/time-tracking` (live board of everyone) and `admin/time-tracking/:id` (one person's time, history and corrections), `admin/reports`, `admin/audit-log`, `admin/settings`. Lands on `/admin`. |
 | `SUPER_ADMIN` | Platform pages only (no business): `platform` (businesses), `platform/businesses/:id`, `platform/audit`. Creates each business together with its owner. Lands on `/platform`. |
 
 The sidebar groups (`src/standalone/nav.ts`) are "My workspace", "Team", "Administration" and "Platform".
 
-Built pages (modules 1 and 2, in `src/track/pages/`):
+Built pages (modules 1, 2 and 4, in `src/track/pages/`):
 
 | Route | Folder | What it does |
 |---|---|---|
@@ -84,6 +85,8 @@ Built pages (modules 1 and 2, in `src/track/pages/`):
 | `dashboard` | `dashboard` | Today at a glance (state, live productive and break time, the same time buttons as My time), this week's productive and break time per day, the last five workdays (a row opens the workday). |
 | `my-time` | `my-time` | The timer: state chip, big productive timer, Start work / Take a break / Back to work / End workday (confirmation) / Start again, today's totals and timeline, the "Not ended" warning, the summary of a day ended after midnight. |
 | `my-history` | `my-history` | History of a date range (`range` = today, yesterday, week, month (default), custom with `from` / `to`), the range's totals and average per day, productive and break time per day (SVG chart), the workdays (sortable, paged); a row opens the workday with its intervals. |
+| `team`, `admin/time-tracking` | `team-board` | The live board (one page for both): tiles over everybody of the scope (people, working, on break, not started, day ended, not ended, productive time today in total and on average, running live), the scope (`scope`: a manager's "Include indirect reports" switch = `direct` / `indirect`; the owner's Everybody (`all`, default) / My direct reports / My reporting line), a status filter, search, sortable columns (name, status, productive, last activity), pages. Each row: name and code, manager, state with "Not ended" and the running break's length, live productive time, break, start and last activity in the display time zone. Read again every 15 seconds while the tab is visible, on focus and when the network returns. A row opens the person. |
+| `team/employees/:id`, `admin/time-tracking/:id` | `team-member` | One person of the scope: name, code, manager, state with a live timer, today's totals; their history (the My history view on `GET /team/members/{employeeId}/workdays`); a workday (from the history or "Open this workday") shows its intervals and the **corrections**: edit an interval's start and end (a running one only its start) with a mandatory reason, a preview of the new totals and the API's refusals next to the field, or close an open workday (optional end time, reason, confirmation). Out of scope (the API's 404) shows "Employee not found". The owner reaches it from the board and from the employee's page ("Time and history"). |
 
 List pages keep their search, filters, sorting and paging in the URL under the API's own query parameter names (`search`, `status`, `role`,
 `managerId`, `sort`, `sortDirection`, `page`, `pageSize`), so a list can be bookmarked and the values go to the API unchanged. The shared UI
@@ -97,6 +100,16 @@ so a wrong browser clock or a sleeping tab never changes a figure. The display t
 is read again every 30 seconds while a timer is visible, when the tab comes back and when the network returns. A time button is disabled while
 a request runs (a double click sends one event); a repeat the API reports as `alreadyApplied` just refreshes; the 409 codes get clear messages;
 `TIME_RECORD_INCONSISTENT` shows an error with a "Check again" button. The button rules per state are in `src/track/lib/time/timer-actions.ts`.
+
+**Team tab and corrections** (`GET /team/members`, `GET /team/members/{employeeId}`, `GET /team/members/{employeeId}/workdays`,
+`GET /workdays/{workdayId}`, `PATCH /workdays/{workdayId}/work-sessions/{sessionId}`, `PATCH /workdays/{workdayId}/break-sessions/{sessionId}`,
+`PUT /workdays/{workdayId}/status`; contract in the backend's `references/API-team-and-corrections.md`). The board's timers use the same
+helpers as the personal timer (each row's closed seconds plus the running interval, on the server's clock measured on each answer). The
+correction forms take date and time in the display time zone and send UTC ISO instants; a time is sent only when it changed (the form shows
+minutes, so an untouched field keeps the stored seconds). The rules (reason 5 to 500 characters, end after start, nothing in the future, the
+close time not before the last activity), the request bodies, the preview of the totals and where each refusal is shown are in
+`src/track/lib/time-correction.ts` (unit tested); the API checks everything again. The corrections are offered only on somebody else's
+workday (the person pages never show one's own record; the API refuses one's own time with `CANNOT_CORRECT_OWN_TIME`).
 
 **Display time zone.** The top bar's "Show times in" switcher (every user of a business) offers the business time zone and the business's
 display time zones (from `GET /api/me/time`), each with its current time. The choice is per browser, kept in `localStorage`
@@ -184,7 +197,12 @@ resume and end (confirmation) with the summary matching the history row, a reloa
 reopening the day, a double click and parallel requests creating one workday, an inconsistent time record, the manager and the owner tracking
 their own time, the super admin kept out (pages and API), history ranges, custom range, totals, sorting, pages and the workday dialog, the time
 zone switcher, a night shift flagged "Not ended" and ended after midnight, deactivation closing a running workday and ending the session, and a
-suspended business pausing the timer. `tests/e2e/helpers.ts` has the shared helpers (including `apiSession` for set-up through the real API).
+suspended business pausing the timer. `tests/e2e/team.spec.ts` covers module 4 on a three-level reporting line: the manager's board
+(direct reports, the indirect ones after the switch, a manager without reports), live changes from the employee's browser (start, break with the
+timer standing still, end), the tiles, filter, search, sorting and pages in the URL, the owner's board of everybody and their own reporting line,
+phone widths (390 and 320 px) without sideways scrolling, an employee kept out (pages and API 403), a manager of another line (not-found page,
+API 404), a person's page and history, a correction (reason required, overlap refused, totals and audit entry), no corrections of one's own time
+(no controls, API 403 `CANNOT_CORRECT_OWN_TIME`), closing a forgotten workday, and a deactivated employee leaving the board. `tests/e2e/helpers.ts` has the shared helpers (including `apiSession` for set-up through the real API).
 
 ## Working rules
 

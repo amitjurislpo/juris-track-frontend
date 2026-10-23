@@ -5,7 +5,13 @@
  */
 import { isDateKey } from "./time/business-calendar";
 import { RANGE_PRESETS, type RangePreset } from "./time/date-ranges";
+import { formatDateKey } from "./time/format";
 import { listPath } from "./list-query";
+
+/** "Thu, 1 Oct 2026 – Sat, 31 Oct 2026" (or one date) of a history range the API resolved. */
+export function historyRangeText(range: { from: string; to: string }): string {
+  return range.from === range.to ? formatDateKey(range.from) : `${formatDateKey(range.from)} – ${formatDateKey(range.to)}`;
+}
 
 /** The API's default range when `range` is left out. */
 const DEFAULT_HISTORY_RANGE: RangePreset = "month";
@@ -22,9 +28,11 @@ export function selectedRange(searchParams: Record<string, string>): RangePreset
 
 /**
  * The API path of the history the URL shows. `from` / `to` are sent only with the custom range (the API ignores them otherwise)
- * and only when they are dates; an unknown range is left out (the API would answer 400), so the default applies.
+ * and only when they are dates; an unknown range is left out (the API would answer 400), so the default applies. `basePath` is
+ * the signed-in user's history (`/workdays/mine`) or one person's of the Team tab (`/team/members/{employeeId}/workdays`), which
+ * take the same parameters.
  */
-export function workdayHistoryPath(searchParams: Record<string, string>): string {
+export function workdayHistoryPath(searchParams: Record<string, string>, basePath = "/workdays/mine"): string {
   const range = selectedRange(searchParams);
   const isCustom = range === "custom";
   const rangeParameters: Record<string, string> = {
@@ -32,7 +40,7 @@ export function workdayHistoryPath(searchParams: Record<string, string>): string
     from: isCustom && isDateKey(searchParams.from) ? searchParams.from : "",
     to: isCustom && isDateKey(searchParams.to) ? searchParams.to : "",
   };
-  return listPath("/workdays/mine", { ...searchParams, ...rangeParameters }, ["range", "from", "to"]);
+  return listPath(basePath, { ...searchParams, ...rangeParameters }, ["range", "from", "to"]);
 }
 
 /**

@@ -25,6 +25,11 @@ export const PROBLEM_MESSAGES: Record<string, string> = {
   NOT_ON_BREAK: "You are not on a break any more. Your timer has been refreshed.",
   BREAK_IN_PROGRESS: "You are on a break. Select Back to work before ending your workday.",
   TIME_RECORD_INCONSISTENT: "Your time record is in an unexpected state. Please contact an administrator to review it.",
+  // time corrections by a manager or the owner (PATCH /workdays/{workdayId}/work-sessions|break-sessions/{sessionId}, PUT /workdays/{workdayId}/status)
+  CANNOT_CORRECT_OWN_TIME: "You cannot correct your own time. Ask your manager or the owner to do it.",
+  TIME_INTERVAL_OVERLAP: "The corrected interval overlaps another work or break interval. Choose times that do not overlap.",
+  WORKDAY_MUST_START_WITH_WORK: "A workday must begin with a work interval: a break cannot come first.",
+  INTERVAL_STILL_RUNNING: "This interval is still running. Close the workday instead of setting an end time.",
 };
 
 /** The problem code of an open workday whose intervals do not match its status (an administrator has to correct it). */

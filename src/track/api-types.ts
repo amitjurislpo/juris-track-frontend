@@ -1,4 +1,6 @@
 /** The JSON of the API's answers (`data`), with the API's field names exactly (see the backend's references/API.md). */
+import type { TeamScope } from "./lib/team-board-query";
+import type { ActivityType, LiveStatus, WorkdaySnapshot } from "./lib/time/types";
 import type { Role } from "./roles";
 
 /** One page of a list endpoint. */
@@ -90,4 +92,78 @@ export interface WorkdayHistory extends ListPage<WorkdayHistoryRow> {
   to: string;
   totals: { workdays: number; productiveSeconds: number; breakSeconds: number; spanSeconds: number; breakCount: number };
   dailySeries: { date: string; productiveSeconds: number; breakSeconds: number; workdays: number }[];
+}
+
+/** A person of the Team tab (`GET /team/members`, `GET /team/members/{employeeId}`). */
+interface TeamMemberEmployee {
+  id: string;
+  employeeCode: string | null;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: Exclude<Role, "SUPER_ADMIN">;
+  isActive: boolean;
+  managerId: string | null;
+  /** "First Last" of the person's manager; null without one. */
+  managerName: string | null;
+}
+
+/**
+ * A row of the live board: the person and today's state as `GET /me/time` decides it for oneself. The time fields mean what they
+ * mean in a workday snapshot (live values up to the board's `serverTime`); a NOT_STARTED row has every number 0 and every time null.
+ */
+export interface TeamMemberRow {
+  employee: TeamMemberEmployee;
+  status: LiveStatus;
+  workdayId: string | null;
+  date: string | null;
+  startedAt: string | null;
+  endedAt: string | null;
+  isStale: boolean;
+  closedProductiveSeconds: number;
+  closedBreakSeconds: number;
+  activeWorkStartedAt: string | null;
+  activeBreakStartedAt: string | null;
+  productiveSeconds: number;
+  breakSeconds: number;
+  spanSeconds: number;
+  breakCount: number;
+  lastActivity: { type: ActivityType; at: string } | null;
+}
+
+/** The board's tiles: everybody of the scope (the status filter, search and paging do not change them). */
+export interface TeamMetrics {
+  total: number;
+  working: number;
+  onBreak: number;
+  notStarted: number;
+  dayEnded: number;
+  /** Open and running longer than the business's stale workday hours ("Not ended"). */
+  stale: number;
+  totalProductiveSeconds: number;
+  totalBreakSeconds: number;
+  /** Total productive time divided by the people who started today, rounded down; 0 when nobody started. */
+  averageProductiveSeconds: number;
+}
+
+/** `GET /team/members`: one page of the board plus what the client needs to run the live timers. */
+export interface TeamBoard extends ListPage<TeamMemberRow> {
+  scope: TeamScope;
+  serverTime: string;
+  today: string;
+  businessTimeZone: string;
+  staleWorkdayHours: number;
+  metrics: TeamMetrics;
+}
+
+/** `GET /team/members/{employeeId}`: one person of the scope with their current time state. */
+export interface TeamMemberDetail {
+  employee: TeamMemberEmployee;
+  serverTime: string;
+  today: string;
+  businessTimeZone: string;
+  staleWorkdayHours: number;
+  status: LiveStatus;
+  /** The open workday (whatever its date), else today's ended workday, else null. */
+  workday: WorkdaySnapshot | null;
 }
