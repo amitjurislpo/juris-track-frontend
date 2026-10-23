@@ -759,3 +759,7 @@ pre.diff-value{padding:8px 10px;max-height:320px;overflow:auto}
 
 /* a single-column form grid must not grow with its widest control (a long time zone name pushed the fields out of the card on a phone) */
 @media(max-width:640px){.grid2,.grid3{grid-template-columns:minmax(0,1fr)}}
+
+/* in a page column the timer card takes the height of its content (the prototype's min-height:100% stretched it over the whole screen and squeezed the cards below it to their headings) */
+.col>.card{flex:none}
+.col>.timecard{min-height:0}

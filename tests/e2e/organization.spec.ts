@@ -33,7 +33,7 @@ async function openEmployee(page: Page, email: string) {
   await expect(page.getByRole("button", { name: "Save changes" })).toBeVisible();
 }
 
-/** The owner adds an employee through the form and lands on their page. */
+/** The owner adds an employee through the form and lands on the list of employees, where the new person is listed. */
 async function addEmployee(page: Page, person: typeof MANAGER, role: "EMPLOYEE" | "MANAGER", managerName: string) {
   await page.goto("/admin/employees/new");
   await page.getByLabel("First name", { exact: true }).fill(person.firstName);
@@ -44,8 +44,10 @@ async function addEmployee(page: Page, person: typeof MANAGER, role: "EMPLOYEE" 
   await page.getByLabel("Reporting manager", { exact: true }).selectOption({ label: managerName });
   await page.getByRole("button", { name: "Add employee" }).click();
   await expect(toastWith(page, "Employee added.")).toBeVisible();
-  await expect(page).toHaveURL(/\/admin\/employees\/[0-9a-f-]{36}$/);
-  await expect(pageHeading(page)).toHaveText(`${person.firstName} ${person.lastName}`);
+  await expect(page).toHaveURL(/\/admin\/employees$/);
+  await expect(pageHeading(page)).toHaveText("Employees");
+  await page.getByRole("searchbox").fill(person.email);
+  await expect(page.getByRole("link", { name: `${person.firstName} ${person.lastName}` })).toBeVisible();
 }
 
 test.describe.serial("organization and employees", () => {

@@ -30,6 +30,7 @@ describe("live totals: golden cases from the old live.ts", () => {
       breakSeconds: 1800,
       spanSeconds: 9000,
       breakCount: 2,
+      lastBreak: { startedAt: "2026-10-22T09:50:00.000Z", endedAt: null },
       lastActivity: { type: "STARTED_BREAK", at: "2026-10-22T09:50:00.000Z" },
       segments: [],
     };
@@ -38,6 +39,13 @@ describe("live totals: golden cases from the old live.ts", () => {
     it("matches the API's own totals at the time of the answer", () => {
       const totals = liveTotals(snapshotOnBreak, serverTimeOfAnswer);
       expect([totals.productiveSeconds, totals.breakSeconds, totals.spanSeconds, totals.breakCount]).toEqual([7200, 1800, 9000, 2]);
+    });
+
+    it("hands on the last break (running while it has no end) and nothing for a day without a break", () => {
+      expect(liveTotals(snapshotOnBreak, serverTimeOfAnswer).lastBreak).toEqual({ startedAt: "2026-10-22T09:50:00.000Z", endedAt: null });
+      expect(workdayFigures({ ...snapshotOnBreak, lastBreak: null, breakCount: 0 }, serverTimeOfAnswer).lastBreak).toBeNull();
+      const ended = { ...snapshotOnBreak, status: "DAY_ENDED" as const, endedAt: "2026-10-22T10:30:00.000Z", lastBreak: { startedAt: "2026-10-22T09:50:00.000Z", endedAt: "2026-10-22T09:59:00.000Z" } };
+      expect(workdayFigures(ended, serverTimeOfAnswer).lastBreak).toEqual(ended.lastBreak);
     });
 
     it("keeps productive time still and lets the break grow during a break, from the server clock (not the browser's)", () => {
@@ -60,7 +68,7 @@ describe("live totals: golden cases from the old live.ts", () => {
     it("shows an ended day's own totals as the API computed them, and advances an open day", () => {
       const ended: WorkdaySnapshot = { ...snapshotOnBreak, status: "DAY_ENDED", activeBreakStartedAt: null, endedAt: "2026-10-22T10:00:00.000999Z", spanSeconds: 8999 };
       expect(workdayFigures(ended, serverTimeOfAnswer + 60_000)).toEqual({
-        productiveSeconds: 7200, breakSeconds: 1800, currentWorkSeconds: 0, currentBreakSeconds: 0, spanSeconds: 8999, breakCount: 2,
+        productiveSeconds: 7200, breakSeconds: 1800, currentWorkSeconds: 0, currentBreakSeconds: 0, spanSeconds: 8999, breakCount: 2, lastBreak: snapshotOnBreak.lastBreak,
       });
       expect(workdayFigures(snapshotOnBreak, serverTimeOfAnswer + 60_000)).toEqual(liveTotals(snapshotOnBreak, serverTimeOfAnswer + 60_000));
     });

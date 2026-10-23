@@ -1,9 +1,9 @@
 /** Live timers (ported from the old app's lib/time/live.ts; checked against tests/fixtures/time-engine.json). */
-import type { WorkdaySnapshot } from "./types";
+import type { LastBreak, WorkdaySnapshot } from "./types";
 
 export type LiveTotalsSnapshot = Pick<
   WorkdaySnapshot,
-  "closedProductiveSeconds" | "closedBreakSeconds" | "activeWorkStartedAt" | "activeBreakStartedAt" | "startedAt" | "endedAt" | "breakCount"
+  "closedProductiveSeconds" | "closedBreakSeconds" | "activeWorkStartedAt" | "activeBreakStartedAt" | "startedAt" | "endedAt" | "breakCount" | "lastBreak"
 >;
 
 export interface LiveTotals {
@@ -13,6 +13,7 @@ export interface LiveTotals {
   currentBreakSeconds: number;
   spanSeconds: number;
   breakCount: number;
+  lastBreak: LastBreak | null;
 }
 
 /**
@@ -32,6 +33,7 @@ export function liveTotals(workday: LiveTotalsSnapshot, nowMilliseconds: number)
     currentBreakSeconds,
     spanSeconds: Math.max(0, Math.floor((end - Date.parse(workday.startedAt)) / 1000)),
     breakCount: workday.breakCount,
+    lastBreak: workday.lastBreak,
   };
 }
 
@@ -48,5 +50,6 @@ export function workdayFigures(workday: WorkdaySnapshot, nowMilliseconds: number
     currentBreakSeconds: 0,
     spanSeconds: workday.spanSeconds,
     breakCount: workday.breakCount,
+    lastBreak: workday.lastBreak,
   };
 }
