@@ -52,8 +52,8 @@ function endCellIn(timeZone: string, date: string, startWallClock: string, endWa
   return dayOf(endWallClock) === dayOf(startWallClock) ? time : `${dayOf(endWallClock)} ${time}`;
 }
 
-/** The last CSV columns of a day on the default shift (General day, the whole calendar day): extra hours, shift, scheduled start and end, outside shift, week off. */
-const DEFAULT_SHIFT_CELLS = ",0.00,General day,00:00,00:00,,";
+/** The last CSV columns of a day recorded without a shift (the e2e days are written by time corrections): extra hours, shift, scheduled start and end, outside shift, week off. */
+const DEFAULT_SHIFT_CELLS = ",0.00,,,,,";
 
 /** The zone's abbreviation now, as the API writes it into the CSV header (EDT in summer, EST in winter for New York). */
 const newYorkAbbreviation = () =>
