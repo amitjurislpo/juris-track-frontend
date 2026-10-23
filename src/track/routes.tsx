@@ -15,6 +15,8 @@ const BusinessesPage = lazy(() => import("./pages/platform/page"));
 const BusinessPage = lazy(() => import("./pages/platform-business/page"));
 const TeamBoardPage = lazy(() => import("./pages/team-board/page"));
 const TeamMemberPage = lazy(() => import("./pages/team-member/page"));
+// one reports page for both roles (the role decides the scopes and filters it offers)
+const ReportsPage = lazy(() => import("./pages/reports/page"));
 
 /**
  * Every JurisTrack page. `roles` are the roles that may open it (see RequireRole). The host mounts these under its own
@@ -47,7 +49,7 @@ export const trackRoutes: TrackRoute[] = [
   // manager: the Team tab (the people who report to them)
   { path: "team", title: "Team", roles: MANAGER_ONLY, Page: TeamBoardPage },
   { path: "team/employees/:id", title: "Employee", roles: MANAGER_ONLY, Page: TeamMemberPage },
-  { path: "team/reports", title: "Reports", roles: MANAGER_ONLY, Page: placeholder("Reports") },
+  { path: "team/reports", title: "Reports", roles: MANAGER_ONLY, Page: ReportsPage },
   // admin (the business owner)
   { path: "admin", title: "Overview", roles: ADMIN_ONLY, Page: placeholder("Overview") },
   { path: "admin/employees", title: "Employees", roles: ADMIN_ONLY, Page: EmployeesPage },
@@ -55,7 +57,7 @@ export const trackRoutes: TrackRoute[] = [
   { path: "admin/employees/:id", title: "Employee", roles: ADMIN_ONLY, Page: EmployeePage },
   { path: "admin/time-tracking", title: "Time Tracking", roles: ADMIN_ONLY, Page: TeamBoardPage },
   { path: "admin/time-tracking/:id", title: "Employee", roles: ADMIN_ONLY, Page: TeamMemberPage },
-  { path: "admin/reports", title: "Reports", roles: ADMIN_ONLY, Page: placeholder("Reports") },
+  { path: "admin/reports", title: "Reports", roles: ADMIN_ONLY, Page: ReportsPage },
   { path: "admin/audit-log", title: "Audit Log", roles: ADMIN_ONLY, Page: placeholder("Audit Log") },
   { path: "admin/settings", title: "Settings", roles: ADMIN_ONLY, Page: SettingsPage },
   // platform (super admin: creates businesses and their owners)

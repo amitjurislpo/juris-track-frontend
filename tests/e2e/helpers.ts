@@ -30,6 +30,9 @@ export const OTP = "000000";
 /** The e2e API's access-token lifetime (JURISTRACK_SECURITY_ACCESSTOKENTTLSECONDS in scripts/e2e-env.mjs; 5 minutes elsewhere). */
 export const ACCESS_TOKEN_TTL_SECONDS = 15;
 
+/** The e2e API's cap on the rows of one CSV export (JURISTRACK_REPORTS_MAXIMUMEXPORTROWS in scripts/e2e-env.mjs; 50000 elsewhere). */
+export const MAXIMUM_EXPORT_ROWS = 40;
+
 /** The API's answer to a wrong, expired or burnt code, and to any code for an unknown or inactive account. */
 export const WRONG_CODE = "That code is wrong or has expired. Request a new one.";
 

@@ -18,6 +18,8 @@ const isWindows = process.platform === "win32";
 const E2E_PORTS = e2ePorts;
 /** The access token's lifetime in the e2e API (normally 5 minutes): short, so the tests see the silent session refresh. Same value in tests/e2e/helpers.ts. */
 const ACCESS_TOKEN_TTL_SECONDS = 15;
+/** The most rows one CSV export may have in the e2e API (normally 50000): low, so the tests see the "too large" refusal. Same value in tests/e2e/helpers.ts. */
+const MAXIMUM_EXPORT_ROWS = 40;
 
 function run(command, commandArguments, options) {
   const result = spawnSync(command, commandArguments, { stdio: "inherit", shell: isWindows, ...options });
@@ -92,6 +94,7 @@ async function backend() {
     JURISTRACK_OTP_REQUESTSPEREMAIL: "100000",
     JURISTRACK_OTP_FAILEDSIGNINSPERIP: "100000",
     JURISTRACK_SECURITY_ACCESSTOKENTTLSECONDS: String(ACCESS_TOKEN_TTL_SECONDS),
+    JURISTRACK_REPORTS_MAXIMUMEXPORTROWS: String(MAXIMUM_EXPORT_ROWS),
   };
   // the dev-only reset command empties the e2e database, migrates it and seeds the super admin and the demo business
   run("java", ["-jar", jarCopy, "reset"], { cwd: workFolder, env: environment });

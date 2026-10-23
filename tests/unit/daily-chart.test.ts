@@ -30,6 +30,21 @@ describe("daily chart data", () => {
     expect(month.bars.filter((bar) => bar.hasLabel).map((bar) => bar.date)).toEqual([1, 6, 11, 16, 21, 26, 31].map(october));
   });
 
+  it("draws a report's daily series (several people per day add up; the workday count is not drawn)", () => {
+    const reportSeries = [
+      { date: "2026-10-19", productiveSeconds: 3 * 8 * 3600, breakSeconds: 3600, workdays: 3 },
+      { date: "2026-10-20", productiveSeconds: 0, breakSeconds: 0, workdays: 0 },
+      { date: "2026-10-21", productiveSeconds: 9 * 3600, breakSeconds: 1800, workdays: 1 },
+    ];
+    const chart = buildDailyChart(reportSeries);
+    expect(chart.topHours).toBe(25);
+    expect(chart.tickHours).toEqual([0, 5, 10, 15, 20, 25]);
+    expect(chart.bars.map((bar) => bar.date)).toEqual(["2026-10-19", "2026-10-20", "2026-10-21"]);
+    expect(chart.bars[0].productiveFraction + chart.bars[0].breakFraction).toBeCloseTo(1, 10);
+    expect(chart.bars[1]).toMatchObject({ productiveFraction: 0, breakFraction: 0, hasLabel: true });
+    expect(chart.bars[2].productiveFraction).toBeCloseTo(9 / 25, 10);
+  });
+
   it("never gives a negative height", () => {
     const [bar] = buildDailyChart([{ date: "2026-10-19", productiveSeconds: -5, breakSeconds: -1 }]).bars;
     expect(bar.productiveFraction).toBe(0);

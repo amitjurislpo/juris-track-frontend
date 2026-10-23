@@ -30,6 +30,8 @@ export const PROBLEM_MESSAGES: Record<string, string> = {
   TIME_INTERVAL_OVERLAP: "The corrected interval overlaps another work or break interval. Choose times that do not overlap.",
   WORKDAY_MUST_START_WITH_WORK: "A workday must begin with a work interval: a break cannot come first.",
   INTERVAL_STILL_RUNNING: "This interval is still running. Close the workday instead of setting an end time.",
+  // reports (GET /reports/workdays as CSV): more rows than one file may hold
+  EXPORT_TOO_LARGE: "This export has too many rows for one file. Narrow the date range or choose fewer people, then export again.",
 };
 
 /** The problem code of an open workday whose intervals do not match its status (an administrator has to correct it). */

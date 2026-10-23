@@ -2,7 +2,7 @@
  * Date ranges of the history and report screens (ported from the old app's lib/time/ranges.ts; the backend has the same rules in
  * DateRanges.java, both checked against tests/fixtures/time-engine.json). The labels are English text = translation keys.
  */
-import { addDays, isDateKey, startOfMonth, startOfWeek, type DateKey } from "./business-calendar";
+import { addDays, daysBetween, isDateKey, startOfMonth, startOfWeek, type DateKey } from "./business-calendar";
 
 export const RANGE_PRESETS = ["today", "yesterday", "week", "month", "custom"] as const;
 export type RangePreset = (typeof RANGE_PRESETS)[number];
@@ -61,4 +61,16 @@ export function resolveRange(
       return { preset, from, to };
     }
   }
+}
+
+/**
+ * Checks a custom range typed into the date fields before it goes to the URL: both ends are dates, the start is not after the end,
+ * and the range covers at most MAX_RANGE_DAYS days (the API would quietly cut a longer one; here the user is told). Returns the
+ * message (an English translation key with `{days}`) or null when the range is fine.
+ */
+export function customRangeProblem(from: string, to: string): string | null {
+  if (!isDateKey(from) || !isDateKey(to)) return "Choose a start date and an end date.";
+  if (from > to) return "The start date must be on or before the end date.";
+  if (daysBetween(from, to) + 1 > MAX_RANGE_DAYS) return "Choose at most {days} days.";
+  return null;
 }

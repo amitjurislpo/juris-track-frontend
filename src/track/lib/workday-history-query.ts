@@ -44,10 +44,10 @@ export function workdayHistoryPath(searchParams: Record<string, string>, basePat
 }
 
 /**
- * The URL changes for choosing a range: the default preset removes `range`; `from` / `to` are kept only for the custom range.
- * (The list query resets `page` on any change but a page change.)
+ * The URL changes for choosing a range: the default preset (`defaultRange`: the history's "month", the reports' "week") removes
+ * `range`; `from` / `to` are kept only for the custom range. (The list query resets `page` on any change but a page change.)
  */
-export function rangeSearchChanges(range: RangePreset, from?: string, to?: string): Record<string, string | null> {
-  if (range !== "custom") return { range: range === DEFAULT_HISTORY_RANGE ? null : range, from: null, to: null };
+export function rangeSearchChanges(range: RangePreset, from?: string, to?: string, defaultRange: RangePreset = DEFAULT_HISTORY_RANGE): Record<string, string | null> {
+  if (range !== "custom") return { range: range === defaultRange ? null : range, from: null, to: null };
   return { range, from: from && isDateKey(from) ? from : null, to: to && isDateKey(to) ? to : null };
 }

@@ -666,3 +666,33 @@ main.content:focus{outline:none}
 .kpis-compact .kpi{padding:12px 14px;gap:4px;min-width:0}
 .kpis-compact .kpi .v{font-size:28px}
 @media (max-width:420px){.kpis.kpis-compact{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kpis-compact .kpi .v{font-size:22px}}
+
+/* reports: filters, the active-filter chips, the employee picker, the CSV export note, the view tabs and the refused-report message */
+.report-filters{display:flex;flex-direction:column;gap:10px;min-width:0}
+.report-filters .seg{max-width:100%;overflow-x:auto;scrollbar-width:none}.report-filters .seg::-webkit-scrollbar{display:none}
+.report-statuses{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.report-filter-label{font-size:12.5px;color:var(--faint);margin-right:4px}
+.range-problem{flex-basis:100%;font-size:12.5px;color:var(--bad)}
+.filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
+.filter-chips{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none;min-width:0;max-width:100%}
+.filter-chip{display:inline-flex;align-items:center;gap:2px;max-width:100%;height:28px;padding:0 3px 0 11px;border-radius:999px;background:var(--accentsoft);color:var(--accenttext);font-size:12.5px;font-weight:500}
+.filter-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.filter-chip button{display:inline-grid;place-items:center;width:22px;height:22px;border:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer;flex:none}
+.filter-chip button:hover{background:var(--hover)}
+.picker{position:relative;display:flex;align-items:center;gap:4px;flex:0 1 280px;min-width:0;max-width:100%}
+.picker-field{flex:1;min-width:0}
+.picker-field input{flex:1;min-width:0;width:100%;border:0;outline:0;background:transparent;color:var(--text);font:inherit;font-size:13.5px;font-weight:500;height:100%;text-overflow:ellipsis}
+.picker-clear{display:inline-grid;place-items:center;width:32px;height:40px;border:1px solid var(--line2);border-radius:10px;background:var(--input);color:var(--muted);cursor:pointer;flex:none}
+.picker-menu{left:0;right:auto;width:max(100%,260px);min-width:0;max-width:calc(100vw - 32px);max-height:320px;overflow-y:auto;list-style:none;margin:0;transform-origin:top left}
+.picker-menu li[role=option]{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:36px;padding:0 10px;border-radius:8px;cursor:pointer;font-size:13.5px}
+.picker-menu li.active{background:var(--hover)}
+.picker-menu li[aria-selected=true]{font-weight:600}
+.picker-note{padding:8px 10px;font-size:12.5px;color:var(--faint)}
+.export-csv{display:flex;flex-direction:column;align-items:flex-end;gap:4px;max-width:100%}
+.export-note{font-size:12px;color:var(--faint);text-align:right;overflow-wrap:anywhere}
+.report-range{margin:0;font-size:13.5px}
+.report-card{padding:0;overflow:hidden}
+.report-card-h{padding:12px 16px;margin-bottom:0;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--line)}
+.report-card-h .tcount{margin-left:auto}
+.report-error-list{margin:0;padding:0;list-style:none;color:var(--bad);font-size:13.5px}
+@media(max-width:560px){.export-csv{align-items:flex-start}.export-note{text-align:left}.picker{flex-basis:100%}.report-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.report-kpis .kpi .v{font-size:28px}}
