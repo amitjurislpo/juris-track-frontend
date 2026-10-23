@@ -490,6 +490,12 @@ test.describe.serial("personal time tracking", () => {
     expect((await superAdmin.put(`/api/businesses/${businessId}/status`, { data: { isSuspended: false } })).status()).toBe(200);
     await superAdmin.dispose();
     await page.getByRole("button", { name: "Try again" }).click();
+    // suspending closed the open workday (reactivating does not reopen it): the timer is back, the day is ended, and the person can start again
+    await expect(button(page, "Start again")).toBeVisible();
+    await expect(timeStatus(page)).not.toHaveText("Working");
+    const [closedDay] = await sql<{ status: string }>("SELECT status FROM workdays WHERE employee_id = $1 ORDER BY started_at DESC LIMIT 1", [await userIdOf(WORKER.email)]);
+    expect(closedDay.status).toBe("COMPLETED");
+    await button(page, "Start again").click();
     await expect(timeStatus(page)).toHaveText("Working");
     await endWorkday(page);
   });

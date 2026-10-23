@@ -6,8 +6,8 @@ from the Spring Boot API in the backend repo (`juris-track-backend`).
 
 > **Status:** Sign-in, the shell, the role-based navigation, module 1 (organization and employees: the super admin's
 > businesses, the owner's employees and settings, everybody's profile) and module 2 (personal time tracking: dashboard, My time,
-> My history, the display time zone switcher) are built. The other pages are "Coming soon" placeholders that follow the backend
-> modules (see `references/MIGRATION_PLAN.md` in the backend repo).
+> My history, the display time zone switcher) and the audit log (the owner's and the super admin's) are built. The other pages are
+> "Coming soon" placeholders that follow the backend modules (see `references/MIGRATION_PLAN.md` in the backend repo).
 
 ## Stack
 
@@ -53,7 +53,7 @@ To show the fixed sign-in code on the login page in development, set `VITE_DEV_O
 | `npm run build` | Typecheck, then build static files into `dist/` |
 | `npm run preview` | Serve `dist/` locally (with the `/api` proxy) |
 | `npm run typecheck` / `npm run lint` | `tsc --noEmit` / ESLint |
-| `npm test` | Unit tests (time engine, live totals and clock offset, time buttons per state, history query and chart data, display time zone, roles and navigation, safe redirect, i18n, list query strings, PATCH bodies, problem codes, API client) |
+| `npm test` | Unit tests (time engine, live totals and clock offset, time buttons per state, history query and chart data, display time zone, roles and navigation, safe redirect, i18n, list query strings, PATCH bodies, problem codes, API client, audit log labels (every catalogue action has a label and Hindi), before/after diff, filters and request ids) |
 | `npm run test:e2e` | Playwright end-to-end tests (see below) |
 
 ## Roles and pages
@@ -70,7 +70,7 @@ business has the same personal section; roles only add pages for looking at othe
 
 The sidebar groups (`src/standalone/nav.ts`) are "My workspace", "Team", "Administration" and "Platform".
 
-Built pages (modules 1 and 2, in `src/track/pages/`):
+Built pages (modules 1 and 2 and the audit log, in `src/track/pages/`):
 
 | Route | Folder | What it does |
 |---|---|---|
@@ -84,6 +84,7 @@ Built pages (modules 1 and 2, in `src/track/pages/`):
 | `dashboard` | `dashboard` | Today at a glance (state, live productive and break time, the same time buttons as My time), this week's productive and break time per day, the last five workdays (a row opens the workday). |
 | `my-time` | `my-time` | The timer: state chip, big productive timer, Start work / Take a break / Back to work / End workday (confirmation) / Start again, today's totals and timeline, the "Not ended" warning, the summary of a day ended after midnight. |
 | `my-history` | `my-history` | History of a date range (`range` = today, yesterday, week, month (default), custom with `from` / `to`), the range's totals and average per day, productive and break time per day (SVG chart), the workdays (sortable, paged); a row opens the workday with its intervals. |
+| `admin/audit-log`, `platform/audit` | `audit-log` | The audit log, read only (one page for both: the owner sees their business, the super admin every business plus a business filter with "No business" = `businessId=none`). Columns: when (display time zone), business (super admin), actor and role, subject, action as a readable label, category and outcome chips, record, source and IP address, request id (copy button); sortable by time, actor, subject, action, category and outcome; pages. Filters in the URL under the API's names: `search`, `from` / `to` (All time, Today, Last 7 days, Last 30 days, Custom; business time zone for the owner, UTC for the super admin), `actorId` / `subjectId` (search pickers over `GET /employees`, owner only), `businessId` (search picker over `GET /businesses`, super admin), `action` (a group = the API's prefix such as `time.`, or one action), `category`, `outcome`, `source`, `entityType`, `entityId`; an active-filters bar with Clear all. A row (click or Enter) opens a side panel (`GET /audit-logs/{auditLogId}`) with every field, the request (method, path, user agent), the reason, the record before and after as a field-by-field diff, "Copy request id" and links that filter by the same request, person or record. "Export CSV" is a plain link to `?format=csv` with the same filters. There are no edit or delete controls: entries are permanent. |
 
 List pages keep their search, filters, sorting and paging in the URL under the API's own query parameter names (`search`, `status`, `role`,
 `managerId`, `sort`, `sortDirection`, `page`, `pageSize`), so a list can be bookmarked and the values go to the API unchanged. The shared UI
@@ -104,6 +105,13 @@ display time zones (from `GET /api/me/time`), each with its current time. The ch
 reload). It changes the clock times on the time pages (start, end, intervals); workday dates and date ranges stay in the business time zone
 as the API returns them, and durations do not change. The switcher (`src/standalone/components/TimeZoneSwitcher.tsx`) is built on the
 `useDisplayTimeZone` hook of `src/track`, so an embedding host can offer its own.
+
+**Audit log export.** "Export CSV" is a plain link (`<apiBasePath>/audit-logs?…&format=csv`), so the browser downloads the file with the
+session cookie and the backend's file name. The API refuses more than 10,000 rows (422 `EXPORT_TOO_LARGE`); the list on screen has the same
+filter, so its `total` is the export's row count: above the cap the link is not followed and the page explains it instead (no probe request,
+because a probe would itself run and audit the export). Only if the log grows past the cap between loading the list and the click does the browser
+report a failed download. Embedded with a Bearer token instead of cookies, the host has to make such a link work (or the button needs a fetch).
+Pure helpers: `src/track/lib/audit` (labels of every catalogue action with a humanized fallback, the before/after diff, filters and request ids).
 
 When the platform suspends a business, its signed-in users get 403 `BUSINESS_SUSPENDED` from the API; the standalone app then shows a
 "Your company's access is paused" screen with a sign-out button instead of the pages (`src/standalone/components/BusinessSuspendedScreen.tsx`).
@@ -184,7 +192,13 @@ resume and end (confirmation) with the summary matching the history row, a reloa
 reopening the day, a double click and parallel requests creating one workday, an inconsistent time record, the manager and the owner tracking
 their own time, the super admin kept out (pages and API), history ranges, custom range, totals, sorting, pages and the workday dialog, the time
 zone switcher, a night shift flagged "Not ended" and ended after midnight, deactivation closing a running workday and ending the session, and a
-suspended business pausing the timer. `tests/e2e/helpers.ts` has the shared helpers (including `apiSession` for set-up through the real API).
+suspended business pausing the timer. `tests/e2e/audit.spec.ts` covers the audit log: the owner adds, edits and
+deactivates an employee and finds each entry (actor, subject, action, before/after in the panel), sign-in events (code requested, a wrong code
+as DENIED, signed in), the manager and the employee kept out (pages and API 403) and the employee's refusals in the owner's log as
+`security.access_denied`, the date / actor / action / category / outcome / search filters, sorting and paging as sent to the API, the request id
+(copy, filter by it) and the panel's keyboard and focus handling, the CSV export (byte order mark, CRLF, the filtered rows, itself audited), no edit
+or delete anywhere (UI and API), no sideways scrolling at 1280, 390 and 320 px, the super admin's platform log with the business and "no business"
+filters, and an export over 10,000 entries explained instead of downloaded (422 `EXPORT_TOO_LARGE` from the API). `tests/e2e/helpers.ts` has the shared helpers (including `apiSession` for set-up through the real API).
 
 ## Working rules
 

@@ -13,6 +13,8 @@ const EmployeePage = lazy(() => import("./pages/admin-employee/page"));
 const SettingsPage = lazy(() => import("./pages/admin-settings/page"));
 const BusinessesPage = lazy(() => import("./pages/platform/page"));
 const BusinessPage = lazy(() => import("./pages/platform-business/page"));
+// one page for both audit logs: the owner's (their business) and the super admin's (every business)
+const AuditLogPage = lazy(() => import("./pages/audit-log/page"));
 
 /**
  * Every JurisTrack page. `roles` are the roles that may open it (see RequireRole). The host mounts these under its own
@@ -53,10 +55,10 @@ export const trackRoutes: TrackRoute[] = [
   { path: "admin/employees/:id", title: "Employee", roles: ADMIN_ONLY, Page: EmployeePage },
   { path: "admin/time-tracking", title: "Time Tracking", roles: ADMIN_ONLY, Page: placeholder("Time Tracking") },
   { path: "admin/reports", title: "Reports", roles: ADMIN_ONLY, Page: placeholder("Reports") },
-  { path: "admin/audit-log", title: "Audit Log", roles: ADMIN_ONLY, Page: placeholder("Audit Log") },
+  { path: "admin/audit-log", title: "Audit Log", roles: ADMIN_ONLY, Page: AuditLogPage },
   { path: "admin/settings", title: "Settings", roles: ADMIN_ONLY, Page: SettingsPage },
   // platform (super admin: creates businesses and their owners)
   { path: "platform", title: "Businesses", roles: SUPER_ADMIN_ONLY, Page: BusinessesPage },
   { path: "platform/businesses/:id", title: "Business", roles: SUPER_ADMIN_ONLY, Page: BusinessPage },
-  { path: "platform/audit", title: "Audit Log", roles: SUPER_ADMIN_ONLY, Page: placeholder("Audit Log") },
+  { path: "platform/audit", title: "Audit Log", roles: SUPER_ADMIN_ONLY, Page: AuditLogPage },
 ];
