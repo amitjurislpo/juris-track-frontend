@@ -38,6 +38,7 @@ export function ReportSummaryTable({ rows, groupBy, timeZone, isSingleDay, emplo
             {groupBy !== "employee" && header("employees", t("People"), "r")}
             {header("productiveSeconds", t("Productive"), "r")}
             {header("averageProductiveSeconds", t("Average per workday"), "r")}
+            <th className="r">{t("Extra")}</th>
             {header("breakSeconds", t("Break"), "r")}
             {header("spanSeconds", t("Span"), "r")}
             {header("breakCount", t("Breaks"), "r")}
@@ -62,6 +63,7 @@ export function ReportSummaryTable({ rows, groupBy, timeZone, isSingleDay, emplo
                 {groupBy !== "employee" && <td className="r num">{row.employees}</td>}
                 <td className="r num" style={{ fontWeight: 600 }}>{formatDuration(row.productiveSeconds)}</td>
                 <td className="r num">{formatDuration(row.averageProductiveSeconds)}</td>
+                <td className="r num">{row.extraSeconds ? formatDuration(row.extraSeconds) : "—"}</td>
                 <td className="r num">{formatDuration(row.breakSeconds)}</td>
                 <td className="r num">{formatDuration(row.spanSeconds)}</td>
                 <td className="r num">{row.breakCount}</td>

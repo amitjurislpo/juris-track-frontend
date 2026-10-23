@@ -12,6 +12,7 @@ import { useData, usePage } from "@/track/usePage";
 import { useManagerOptions } from "../admin-employees/useManagerOptions";
 import { EmployeeEditForm } from "./EmployeeEditForm";
 import { EmployeeLoginAccessCard } from "./EmployeeLoginAccessCard";
+import { EmployeeShiftCard } from "./EmployeeShiftCard";
 import { EmployeeStatusButton } from "./EmployeeStatusButton";
 
 const KeyValue = ({ label, children }: { label: string; children: ReactNode }) => (
@@ -50,6 +51,7 @@ export default function EmployeePage() {
           <KeyValue label={t("Last sign-in")}>{employee.lastLoginAt ? formatDateTime(employee.lastLoginAt, timeZone) : t("Never")}</KeyValue>
           <KeyValue label={t("Added")}>{formatDateTime(employee.createdAt, timeZone)}</KeyValue>
         </section>
+        <EmployeeShiftCard key={employee.shift.id} employee={employee} />
         <EmployeeLoginAccessCard employee={employee} isSelf={isSelf} />
         </div>
       </div>

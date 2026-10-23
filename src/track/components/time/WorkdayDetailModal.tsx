@@ -2,13 +2,15 @@ import { useQueryErrorResetBoundary } from "@tanstack/react-query";
 import { Suspense, type ReactNode } from "react";
 import { Modal } from "@/track/components/Modal";
 import { PageLoading } from "@/track/PageLoading";
-import { formatDateKey } from "@/track/lib/time/format";
+import { formatDateKey, formatTime } from "@/track/lib/time/format";
 import { workdayFigures } from "@/track/lib/time/live-totals";
+import { formatScheduledSeconds, formatVariance } from "@/track/lib/time/shift";
 import type { WorkdaySnapshot } from "@/track/lib/time/types";
 import { useServerClock } from "@/track/time/useServerClock";
 import { useTimeState } from "@/track/time/useTimeState";
 import { useTrack } from "@/track/TrackContext";
 import { useData } from "@/track/usePage";
+import { ShiftLine } from "./ShiftLine";
 import { Timeline } from "./Timeline";
 import { WorkdayDetailErrorBoundary } from "./WorkdayDetailErrorBoundary";
 import { WorkdayStatusChip } from "./WorkdayStatusChip";
@@ -28,8 +30,21 @@ function WorkdayDetail({ workdayId, timeZone, renderExtras }: { workdayId: strin
   const live = workdayFigures(workday, now);
   return (
     <div className="col" style={{ gap: 16 }}>
-      <div><WorkdayStatusChip status={workday.status} isStale={workday.isStale} /></div>
-      <WorkdaySummary figures={{ ...live, startedAt: workday.startedAt, endedAt: workday.endedAt }} timeZone={timeZone} label={t("Workday summary")} />
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+        <WorkdayStatusChip status={workday.status} isStale={workday.isStale} isOffDay={workday.isOffDay} />
+        <ShiftLine shift={workday.shift} isOutsideShift={workday.isOutsideShift} />
+      </div>
+      {workday.shift && (
+        <p className="muted" style={{ margin: 0, fontSize: 13.5 }} data-testid="shift-schedule">
+          {t("Scheduled {start} – {end} ({duration}).", {
+            start: formatTime(workday.shift.scheduledStartAt, timeZone),
+            end: formatTime(workday.shift.scheduledEndAt, timeZone),
+            duration: formatScheduledSeconds(workday.shift.scheduledSeconds),
+          })}
+          {workday.varianceSeconds !== null && <> <b data-testid="shift-variance">{t("Productive time against the schedule: {variance}.", { variance: formatVariance(workday.varianceSeconds) })}</b></>}
+        </p>
+      )}
+      <WorkdaySummary figures={{ ...live, startedAt: workday.startedAt, endedAt: workday.endedAt, scheduledSeconds: workday.shift?.scheduledSeconds, extraSeconds: workday.extraSeconds }} timeZone={timeZone} label={t("Workday summary")} />
       <Timeline segments={workday.segments} nowMilliseconds={now} timeZone={timeZone} />
       {renderExtras?.(workday, now)}
     </div>

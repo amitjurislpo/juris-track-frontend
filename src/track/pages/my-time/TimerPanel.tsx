@@ -1,10 +1,12 @@
 import { Suspense } from "react";
+import { ShiftLine } from "@/track/components/time/ShiftLine";
 import { TimeActionButtons } from "@/track/components/time/TimeActionButtons";
 import { Timeline } from "@/track/components/time/Timeline";
 import { WorkdayStatusChip } from "@/track/components/time/WorkdayStatusChip";
 import { WorkdaySummary } from "@/track/components/time/WorkdaySummary";
 import { formatClock, formatDateKey, formatDuration, formatTime, formatTimeOnDay } from "@/track/lib/time/format";
 import { workdayFigures } from "@/track/lib/time/live-totals";
+import { dayHeading, shiftOf } from "@/track/lib/time/shift";
 import { ACTIVITY_LABELS } from "@/track/lib/time/types";
 import { zoneAbbreviation } from "@/track/lib/time/zone-names";
 import type { TimeEventRunner } from "@/track/time/useTimeEvent";
@@ -37,6 +39,8 @@ export function TimerPanel({ reading, runner, timeZone, isOffline }: {
   const now = useServerClock(clockOffsetMilliseconds, isRunning);
   const live = workday ? workdayFigures(workday, now) : null;
   const productiveSeconds = live?.productiveSeconds ?? 0;
+  const isOtherDay = Boolean(workday && workday.date !== state.shiftDate);
+  const shift = shiftOf(workday, state.shift);
   const zone = zoneAbbreviation(timeZone, new Date(workday?.startedAt ?? now));
 
   return (
@@ -63,6 +67,12 @@ export function TimerPanel({ reading, runner, timeZone, isOffline }: {
           <span>{t("Your time is recorded on the server. The timer keeps counting from your last known state.")}</span>
         </section>
       )}
+      {state.isOffDay && !workday && status === "NOT_STARTED" && (
+        <section className="notice info" role="status" data-testid="week-off-notice">
+          <b>{t("Today is your week off.")}</b>
+          <span>{t("You can still work: the time counts as extra time.")}</span>
+        </section>
+      )}
       {runner.endedWorkdayId && !workday && (
         <Suspense fallback={null}><EndedWorkdayNotice workdayId={runner.endedWorkdayId} timeZone={timeZone} /></Suspense>
       )}
@@ -71,17 +81,18 @@ export function TimerPanel({ reading, runner, timeZone, isOffline }: {
         <div className="aur" aria-hidden="true"></div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap", position: "relative" }}>
           <div>
-            <span className="eyebrow">{workday && workday.date !== state.today ? t("Workday of {date}", { date: formatDateKey(workday.date) }) : t("Today")}</span>
+            <span className="eyebrow">{dayHeading(workday?.date, state.shiftDate, t)}</span>
             <div style={{ fontWeight: 600, marginTop: 2 }}>
               {workday
                 ? <>{t("Work started {time}", { time: formatTimeOnDay(workday.startedAt, timeZone, new Date()) })}{workday.endedAt && <> · {t("Work ended {time}", { time: formatTimeOnDay(workday.endedAt, timeZone, workday.startedAt) })}</>} <span className="faint">{zone}</span></>
                 : formatDateKey(state.today)}
             </div>
+            <div style={{ marginTop: 4 }}><ShiftLine shift={shift} isOutsideShift={workday?.isOutsideShift} /></div>
           </div>
-          <span data-testid="time-status"><WorkdayStatusChip status={status} isStale={workday?.isStale} /></span>
+          <span data-testid="time-status"><WorkdayStatusChip status={status} isStale={workday?.isStale} isOffDay={workday ? workday.isOffDay : state.isOffDay} /></span>
         </div>
         <div style={{ position: "relative" }}>
-          <div className="eyebrow">{status === "DAY_ENDED" ? t("Today's productive time") : t("Productive time today")}</div>
+          <div className="eyebrow">{isOtherDay ? t("Productive time of this workday") : status === "DAY_ENDED" ? t("Today's productive time") : t("Productive time today")}</div>
           <div className="bigtime" role="timer" aria-label={t("Productive time")} aria-live="off" data-status={status} data-seconds={productiveSeconds}>
             <ClockDigits seconds={productiveSeconds} />
           </div>
@@ -101,7 +112,7 @@ export function TimerPanel({ reading, runner, timeZone, isOffline }: {
           <div className="card-h"><h3 id="totals-heading">{status === "DAY_ENDED" ? t("Today's summary") : t("Today's totals")}</h3>
             <span className="faint" style={{ fontSize: 12.5 }}>{t(ACTIVITY_LABELS[workday.lastActivity.type])} · {formatTime(workday.lastActivity.at, timeZone)}</span>
           </div>
-          <WorkdaySummary figures={{ ...live, startedAt: workday.startedAt, endedAt: workday.endedAt }} timeZone={timeZone} label={t("Today's totals")} />
+          <WorkdaySummary figures={{ ...live, startedAt: workday.startedAt, endedAt: workday.endedAt, scheduledSeconds: workday.shift?.scheduledSeconds, varianceSeconds: workday.varianceSeconds, extraSeconds: workday.extraSeconds }} timeZone={timeZone} label={t("Today's totals")} />
         </section>
       )}
 

@@ -1,15 +1,18 @@
 import type { ReactNode } from "react";
 import { formatDuration, formatTimeOnDay } from "@/track/lib/time/format";
+import { formatScheduledSeconds, formatVariance } from "@/track/lib/time/shift";
 import type { LastBreak } from "@/track/lib/time/types";
 import { useTrack } from "@/track/TrackContext";
 import { LastBreakNote } from "./LastBreakNote";
 
 /**
  * The figures of one workday (design `.summary`): when work started (with the date when it is not today), when it ended (with its date
- * after midnight), the span, productive and break time, breaks and the start of the last break, all in `timeZone`.
+ * after midnight), the span, productive and break time, breaks and the start of the last break, all in `timeZone`; with a shift also the
+ * scheduled length and, once the day has ended, how far the productive time is over or short of it.
  */
 export function WorkdaySummary({ figures, timeZone, label }: {
-  figures: { startedAt: string; endedAt: string | null; productiveSeconds: number; breakSeconds: number; spanSeconds: number; breakCount: number; lastBreak: LastBreak | null };
+  figures: { startedAt: string; endedAt: string | null; productiveSeconds: number; breakSeconds: number; spanSeconds: number; breakCount: number; lastBreak: LastBreak | null;
+    scheduledSeconds?: number | null; varianceSeconds?: number | null; extraSeconds?: number };
   timeZone: string;
   label: string;
 }) {
@@ -23,6 +26,9 @@ export function WorkdaySummary({ figures, timeZone, label }: {
     [t("Breaks"), String(figures.breakCount)],
     [t("Last break"), figures.lastBreak ? <LastBreakNote lastBreak={figures.lastBreak} timeZone={timeZone} isLabelled={false} /> : "—"],
   ];
+  if (figures.scheduledSeconds != null) items.push([t("Scheduled"), formatScheduledSeconds(figures.scheduledSeconds)]);
+  if (figures.varianceSeconds != null) items.push([t("Against shift"), formatVariance(figures.varianceSeconds)]);
+  if (figures.extraSeconds) items.push([t("Extra time"), formatDuration(figures.extraSeconds)]);
   return (
     <dl className="summary" aria-label={label} style={{ margin: 0 }}>
       {items.map(([name, value]) => (

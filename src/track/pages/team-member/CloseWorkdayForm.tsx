@@ -3,10 +3,11 @@ import { ConfirmDialog } from "@/track/components/ConfirmDialog";
 import { FormField } from "@/track/components/FormField";
 import { toZonedInputValue } from "@/track/lib/time/business-calendar";
 import { serverNow } from "@/track/lib/time/clock-offset";
-import { formatDateTime } from "@/track/lib/time/format";
+import { addDays } from "@/track/lib/time/business-calendar";
+import { formatDateKey, formatDateTime } from "@/track/lib/time/format";
 import type { WorkdaySnapshot } from "@/track/lib/time/types";
 import { zoneLabel } from "@/track/lib/time/zone-names";
-import { checkCloseWorkday, lastRecordedActivity, type CloseWorkdayBody } from "@/track/lib/time-correction";
+import { checkCloseWorkday, isNowOutsideCorrectionWindow, lastRecordedActivity, type CloseWorkdayBody } from "@/track/lib/time-correction";
 import { formErrorsOf, type FormErrors } from "@/track/lib/problems";
 import { useTrack } from "@/track/TrackContext";
 import { closeWorkday } from "./actions";
@@ -18,14 +19,17 @@ const NO_ERRORS: FormErrors = { fields: {}, general: null };
  * Ends an open (typically forgotten) workday: an optional end time in the display time zone (empty = now), a mandatory reason and
  * a confirmation. The running work or break interval ends then and the day becomes "Day ended".
  */
-export function CloseWorkdayForm({ workday, timeZone, clockOffsetMilliseconds, onDone }: {
+export function CloseWorkdayForm({ workday, timeZone, businessTimeZone, clockOffsetMilliseconds, onDone }: {
   workday: WorkdaySnapshot;
   timeZone: string;
+  businessTimeZone: string;
   clockOffsetMilliseconds: number;
   onDone: () => void;
 }) {
   const { t, toast } = useTrack();
-  const [endInput, setEndInput] = useState("");
+  // when "now" is past the days a correction may name, an empty end would be refused: start from the last recorded activity
+  const isOutsideWindow = isNowOutsideCorrectionWindow(workday.date, businessTimeZone, serverNow(clockOffsetMilliseconds), workday.shift?.scheduledEndAt);
+  const [endInput, setEndInput] = useState(() => (isOutsideWindow ? toZonedInputValue(new Date(lastRecordedActivity(workday)), timeZone) : ""));
   const [reason, setReason] = useState("");
   const [errors, setErrors] = useState<FormErrors>(NO_ERRORS);
   const [pendingBody, setPendingBody] = useState<CloseWorkdayBody | null>(null);
@@ -64,6 +68,13 @@ export function CloseWorkdayForm({ workday, timeZone, clockOffsetMilliseconds, o
         <input type="datetime-local" step={60} min={earliestInput} max={nowInput} value={endInput}
           onChange={(e) => { setEndInput(e.target.value); setErrors(NO_ERRORS); }} />
       </FormField>
+      {isOutsideWindow && (
+        <p className="notice warn" style={{ margin: 0 }} role="status">
+          <span>{t("This workday is too old to end at the current time. Choose the time it really ended, on {date} or {nextDate}; the last recorded activity is filled in.", {
+            date: formatDateKey(workday.date), nextDate: formatDateKey(addDays(workday.date, 1)),
+          })}</span>
+        </p>
+      )}
       <p className="faint" style={{ margin: 0, fontSize: 12.5 }}>
         {t("Times are in {zone}. The end cannot be before the last recorded activity ({time}).", {
           zone: zoneLabel(timeZone, new Date(workday.startedAt)),

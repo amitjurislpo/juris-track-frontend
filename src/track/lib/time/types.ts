@@ -31,6 +31,33 @@ export const ACTIVITY_LABELS: Record<ActivityType, string> = {
   ENDED_DAY: "Ended workday",
 };
 
+/** The shift a workday (or the current occurrence) is counted against; the times are "HH:mm" in the business time zone. */
+export interface WorkdayShift {
+  /** Null for a record written before shifts existed. */
+  id: string | null;
+  name: string;
+  startTime: string;
+  endTime: string;
+  /** The window of this occurrence as instants. */
+  scheduledStartAt: string;
+  scheduledEndAt: string;
+  scheduledSeconds: number;
+}
+
+/** What every workday figure carries about its shift (snapshots, history, board and report rows). */
+export interface ShiftFigures {
+  /** Null for a workday without a shift on record. */
+  shift: WorkdayShift | null;
+  /** Work was recorded outside the shift's window (plus its grace). */
+  isOutsideShift: boolean;
+  /** Productive minus scheduled seconds; only once the day has ended, else null. */
+  varianceSeconds: number | null;
+  /** Productive seconds outside the scheduled window (all of them on a week-off day): counted as extra time. */
+  extraSeconds: number;
+  /** The workday's date is a week off for the person. */
+  isOffDay: boolean;
+}
+
 /** The break that started last; `endedAt` is null while it runs. */
 export interface LastBreak {
   startedAt: string;
@@ -42,9 +69,9 @@ export interface LastBreak {
  *   productive = closedProductiveSeconds + (now - activeWorkStartedAt)
  *   break      = closedBreakSeconds      + (now - activeBreakStartedAt)
  */
-export interface WorkdaySnapshot {
+export interface WorkdaySnapshot extends ShiftFigures {
   id: string;
-  /** The calendar date (business time zone) the day started on; kept when it runs past midnight. */
+  /** The SHIFT date: the calendar date (business time zone) the day's shift started on; kept when it runs past midnight. */
   date: string;
   status: Exclude<LiveStatus, "NOT_STARTED">;
   startedAt: string;
@@ -70,8 +97,14 @@ export interface TimeState {
   employeeId: string;
   /** The server's "now" of this answer (the client measures its clock offset from it). */
   serverTime: string;
-  /** Today's date in the business time zone. */
+  /** Today's calendar date in the business time zone. */
   today: string;
+  /** The date of the shift occurrence "now" belongs to (what a workday's `date` is compared with); the calendar date for the default shift. */
+  shiftDate: string;
+  /** The current shift occurrence, also while there is no workday yet; null without one. */
+  shift: WorkdayShift | null;
+  /** Today is a week off for the person (they may still work: the time counts as extra). */
+  isOffDay: boolean;
   businessTimeZone: string;
   staleWorkdayHours: number;
   /** The business's configured display time zones; the business time zone is offered as well (the client adds it). */

@@ -7,13 +7,15 @@ import { DailyChart } from "@/track/components/time/DailyChart";
 import { WorkdayDetailModal } from "@/track/components/time/WorkdayDetailModal";
 import { WorkdayHistoryTable } from "@/track/components/time/WorkdayHistoryTable";
 import { PageLoading } from "@/track/PageLoading";
-import { addDays, toDateKey } from "@/track/lib/time/business-calendar";
+import { addDays } from "@/track/lib/time/business-calendar";
 import { formatDateKey, formatDuration } from "@/track/lib/time/format";
 import { viewerTimeZone } from "@/track/lib/viewer-time-zone";
+import { useServerToday } from "@/track/time/useServerToday";
 import { useDisplayTimeZone } from "@/track/time/useDisplayTimeZone";
 import { useTimeEvent } from "@/track/time/useTimeEvent";
 import { useTimeState } from "@/track/time/useTimeState";
 import { useData, usePage } from "@/track/usePage";
+import { NextShiftCard } from "./NextShiftCard";
 import { TodayCard } from "./TodayCard";
 
 /** "Good morning" by the hour in the display time zone (translation keys). */
@@ -36,7 +38,7 @@ export default function DashboardPage() {
   const runner = useTimeEvent();
   const { timeZone } = useDisplayTimeZone();
   // the last year is enough to find the last five workdays (the API caps a range at 366 days)
-  const businessToday = toDateKey(new Date(), viewerTimeZone(user));
+  const businessToday = useServerToday(viewerTimeZone(user));
   const week = useData<WorkdayHistory>("/workdays/mine?range=week");
   const recent = useData<WorkdayHistory>(`/workdays/mine?range=custom&from=${addDays(businessToday, -365)}&pageSize=${RECENT_WORKDAYS}`);
   const [openWorkday, setOpenWorkday] = useState<WorkdayHistoryRow | null>(null);
@@ -59,6 +61,7 @@ export default function DashboardPage() {
           </div>
           <DailyChart points={week.dailySeries} height={120} label={t("Productive and break time per day, this week")} />
         </section>
+        <NextShiftCard today={reading.state.today} />
         <section className="card span-12 enter" style={{ ["--i" as string]: 3, padding: 0, overflow: "hidden" }} aria-labelledby="recent-heading">
           <div className="card-h" style={{ padding: "16px 16px 0" }}>
             <h3 id="recent-heading">{t("Last workdays")}</h3>

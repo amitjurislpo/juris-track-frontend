@@ -183,7 +183,7 @@ test.describe.serial("personal time tracking", () => {
     for (const value of [productive, breakTime, span, "Day ended", dateText(businessDate(0))]) await expect(row).toContainText(value);
     // the columns say when work started and ended and when the last break started
     for (const heading of ["Work started", "Work ended", "Last break"]) await expect(page.locator("table.t thead")).toContainText(heading);
-    await expect(row.locator("td").nth(7)).toHaveText(/^\d\d:\d\d$/);
+    await expect(row.locator("td").nth(9)).toHaveText(/^\d\d:\d\d$/);
     expect(await countsOf(WORKER.email)).toEqual({ workdays: 1, workSessions: 2, breakSessions: 1 });
   });
 

@@ -52,6 +52,9 @@ function endCellIn(timeZone: string, date: string, startWallClock: string, endWa
   return dayOf(endWallClock) === dayOf(startWallClock) ? time : `${dayOf(endWallClock)} ${time}`;
 }
 
+/** The last CSV columns of a day recorded without a shift (the e2e days are written by time corrections): extra hours, shift, scheduled start and end, outside shift, week off. */
+const DEFAULT_SHIFT_CELLS = ",0.00,,,,,";
+
 /** The zone's abbreviation now, as the API writes it into the CSV header (EDT in summer, EST in winter for New York). */
 const newYorkAbbreviation = () =>
   new Intl.DateTimeFormat("en-US", { timeZone: DISPLAY_TIME_ZONE, timeZoneName: "short" }).formatToParts(new Date()).find((part) => part.type === "timeZoneName")?.value;
@@ -371,10 +374,10 @@ test.describe.serial("reports", () => {
     expect(csv.text.endsWith("\r\n")).toBe(true);
     const lines = csv.text.slice(0, -2).split("\r\n");
     expect(lines.every((line) => !line.includes("\n"))).toBe(true);
-    expect(lines[0]).toBe("Date,Employee,Employee ID,Manager,Status,Work started (IST),End (IST),Productive hours,Break hours,Span hours,Breaks,Last break (IST)");
+    expect(lines[0]).toBe("Date,Employee,Employee ID,Manager,Status,Work started (IST),End (IST),Productive hours,Break hours,Span hours,Breaks,Last break (IST),Extra hours,Shift,Scheduled start (IST),Scheduled end (IST),Outside shift,Week off");
     expect(lines).toHaveLength(1 + 8);
-    expect(lines.find((line) => line.includes("'=cmd"))).toBe(`${businessDate(2)},"'=cmd |calc, ""x""",,${name(MAYA)},Day Ended,09:00,12:00,3.00,0.00,3.00,0,`);
-    expect(lines).toContain(`${businessDate(1)},${name(ASHA)},${ASHA.employeeCode},${name(MAYA)},Day Ended,09:00,17:30,8.00,0.50,8.50,1,13:00`);
+    expect(lines.find((line) => line.includes("'=cmd"))).toBe(`${businessDate(2)},"'=cmd |calc, ""x""",,${name(MAYA)},Day Ended,09:00,12:00,3.00,0.00,3.00,0,${DEFAULT_SHIFT_CELLS}`);
+    expect(lines).toContain(`${businessDate(1)},${name(ASHA)},${ASHA.employeeCode},${name(MAYA)},Day Ended,09:00,17:30,8.00,0.50,8.50,1,13:00${DEFAULT_SHIFT_CELLS}`);
     expect(lines.filter((line) => line.includes(name(CHEN)))).toHaveLength(0);
     await expect(toastWith(page, "The CSV file is downloading.")).toBeVisible();
 
@@ -395,8 +398,8 @@ test.describe.serial("reports", () => {
     await expect(page.getByText(`The file is in English, with times in ${abbreviation} (${DISPLAY_TIME_ZONE}).`)).toBeVisible();
     const newYork = await downloadCsv(page);
     const newYorkLines = newYork.text.slice(0, -2).split("\r\n");
-    expect(newYorkLines[0]).toBe(`Date,Employee,Employee ID,Manager,Status,Work started (${abbreviation}),End (${abbreviation}),Productive hours,Break hours,Span hours,Breaks,Last break (${abbreviation})`);
-    expect(newYorkLines).toContain(`${businessDate(1)},${name(ASHA)},${ASHA.employeeCode},${name(MAYA)},Day Ended,${clockIn(DISPLAY_TIME_ZONE, businessDate(1), "09:00")},${endCellIn(DISPLAY_TIME_ZONE, businessDate(1), "09:00", "17:30")},8.00,0.50,8.50,1,${endCellIn(DISPLAY_TIME_ZONE, businessDate(1), "09:00", "13:00")}`);
+    expect(newYorkLines[0]).toBe(`Date,Employee,Employee ID,Manager,Status,Work started (${abbreviation}),End (${abbreviation}),Productive hours,Break hours,Span hours,Breaks,Last break (${abbreviation}),Extra hours,Shift,Scheduled start (${abbreviation}),Scheduled end (${abbreviation}),Outside shift,Week off`);
+    expect(newYorkLines).toContain(`${businessDate(1)},${name(ASHA)},${ASHA.employeeCode},${name(MAYA)},Day Ended,${clockIn(DISPLAY_TIME_ZONE, businessDate(1), "09:00")},${endCellIn(DISPLAY_TIME_ZONE, businessDate(1), "09:00", "17:30")},8.00,0.50,8.50,1,${endCellIn(DISPLAY_TIME_ZONE, businessDate(1), "09:00", "13:00")}${DEFAULT_SHIFT_CELLS}`);
     await page.getByLabel("Show times in").selectOption(BUSINESS_TIME_ZONE);
   });
 

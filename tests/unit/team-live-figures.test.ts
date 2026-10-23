@@ -11,6 +11,7 @@ function row(fields: Partial<TeamMemberRow>): TeamMemberRow {
     status: "NOT_STARTED", workdayId: null, date: null, startedAt: null, endedAt: null, isStale: false,
     closedProductiveSeconds: 0, closedBreakSeconds: 0, activeWorkStartedAt: null, activeBreakStartedAt: null,
     productiveSeconds: 0, breakSeconds: 0, spanSeconds: 0, breakCount: 0, lastBreak: null, lastActivity: null,
+    shift: null, isOutsideShift: false, varianceSeconds: null, extraSeconds: 0, isOffDay: false,
     ...fields,
   };
 }
@@ -52,7 +53,7 @@ describe("teamRowFigures", () => {
 });
 
 describe("liveTeamTotals", () => {
-  const metrics: TeamMetrics = { total: 5, working: 2, onBreak: 1, notStarted: 1, dayEnded: 1, stale: 0, totalProductiveSeconds: 9000, totalBreakSeconds: 900, averageProductiveSeconds: 3000 };
+  const metrics: TeamMetrics = { total: 5, working: 2, onBreak: 1, notStarted: 1, weekOff: 0, dayEnded: 1, stale: 0, totalProductiveSeconds: 9000, totalBreakSeconds: 900, averageProductiveSeconds: 3000 };
 
   it("adds the time each working person worked since the answer", () => {
     // two working people, ten seconds: 20 seconds more; the average over the four who started (working, on break, day ended)

@@ -6,7 +6,7 @@
  */
 import type { ActionResult } from "../action";
 import { formErrorsOf, type FormErrors } from "./problems";
-import { resolveZonedDateTime, toZonedInputValue } from "./time/business-calendar";
+import { addDays, resolveZonedDateTime, startOfDayUtc, toZonedInputValue } from "./time/business-calendar";
 import { computeTotals, type WorkdayTotals } from "./time/interval-math";
 import type { TimelineSegment, WorkdaySnapshot } from "./time/types";
 
@@ -124,6 +124,16 @@ export function previewCorrectedTotals(workday: WorkdaySnapshot, corrected: Time
 }
 
 /** The body of `PUT /workdays/{workdayId}/status`. */
+/**
+ * True when "now" is past the days a correction may name: the workday's (shift) date and the day after, in the business time zone.
+ * Then an empty end time ("now") would be refused (CORRECTION_OUT_OF_RANGE), so the close form starts from the last activity.
+ */
+export function isNowOutsideCorrectionWindow(workdayDate: string, businessTimeZone: string, nowMilliseconds: number, scheduledEndAt?: string): boolean {
+  // the API widens the window to 12 hours after the scheduled end of a long shift
+  const widenedEnd = scheduledEndAt ? Date.parse(scheduledEndAt) + 12 * 3_600_000 : 0;
+  return nowMilliseconds >= Math.max(startOfDayUtc(addDays(workdayDate, 2), businessTimeZone).getTime(), widenedEnd);
+}
+
 export interface CloseWorkdayBody {
   status: "DAY_ENDED";
   endedAt?: string;

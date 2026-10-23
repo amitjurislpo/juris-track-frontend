@@ -35,6 +35,7 @@ export function ReportResults({ path, view, timeZone, hasFilters, employeePath }
   return (
     <>
       <p className="report-range muted" data-testid="report-range">{rangeText}</p>
+      <p className="muted" style={{ margin: 0, fontSize: 12.5 }}>{t("Workdays are counted on the date their shift started.")}</p>
       <ReportTotalsCards totals={data.totals} rangeText={rangeText} />
       {data.from !== data.to && (
         <section className="card pad enter" style={{ ["--i" as string]: 3 }} aria-labelledby="report-chart-heading">

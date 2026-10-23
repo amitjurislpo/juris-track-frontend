@@ -81,6 +81,11 @@ export function formatDateKey(key: DateKey, options: { weekday?: boolean; year?:
   }).format(new Date(`${key}T00:00:00Z`));
 }
 
+/** Mon — the short weekday name of a calendar date key, in the display language. */
+export function formatWeekdayShort(key: DateKey): string {
+  return new Intl.DateTimeFormat(displayLocale(), { timeZone: "UTC", weekday: "short" }).format(new Date(`${key}T00:00:00Z`));
+}
+
 interface PersonName {
   firstName: string;
   lastName: string;

@@ -12,6 +12,7 @@ import { PageHeader } from "@/track/components/PageHeader";
 import { StatusChip } from "@/track/components/StatusChip";
 import { PageLoading } from "@/track/PageLoading";
 import { listPath } from "@/track/lib/list-query";
+import { formatShiftWindow } from "@/track/lib/time/shift";
 import { formatDateTime, fullName } from "@/track/lib/time/format";
 import { viewerTimeZone } from "@/track/lib/viewer-time-zone";
 import { ROLE_LABELS } from "@/track/roles";
@@ -59,6 +60,7 @@ export default function EmployeesPage() {
                 <SortableHeader sortKey="email" defaultSort="name" className="hide-sm">{t("Email")}</SortableHeader>
                 <SortableHeader sortKey="role" defaultSort="name">{t("Role")}</SortableHeader>
                 <th className="hide-sm">{t("Manager")}</th>
+                <th className="hide-sm">{t("Shift")}</th>
                 <SortableHeader sortKey="status" defaultSort="name">{t("Status")}</SortableHeader>
                 <SortableHeader sortKey="lastLoginAt" defaultSort="name" className="hide-sm">{t("Last sign-in")}</SortableHeader>
               </tr>
@@ -77,6 +79,7 @@ export default function EmployeesPage() {
                   <td className="muted hide-sm">{employee.email}</td>
                   <td>{t(ROLE_LABELS[employee.role])}</td>
                   <td className="muted hide-sm">{employee.managerName ?? "—"}</td>
+                  <td className="muted hide-sm" title={employee.shift ? formatShiftWindow(employee.shift) : undefined}>{employee.shift?.name ?? "—"}</td>
                   <td>
                     <StatusChip isGood={employee.isActive} label={employee.isActive ? t("Active") : t("Inactive")} />
                     {!employee.isLoginEnabled && <> <span className="chip warn">{t("Login off")}</span></>}

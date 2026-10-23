@@ -67,7 +67,7 @@ export function WorkdayCorrections({ workday, timeZone, nowMilliseconds }: { wor
         </div>
       )}
       {isOpen && isClosing && (
-        <CloseWorkdayForm workday={workday} timeZone={timeZone} clockOffsetMilliseconds={clockOffsetMilliseconds} onDone={() => setIsClosing(false)} />
+        <CloseWorkdayForm workday={workday} timeZone={timeZone} businessTimeZone={reading?.state.businessTimeZone ?? timeZone} clockOffsetMilliseconds={clockOffsetMilliseconds} onDone={() => setIsClosing(false)} />
       )}
     </section>
   );

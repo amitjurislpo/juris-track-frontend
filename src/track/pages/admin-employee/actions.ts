@@ -22,3 +22,11 @@ export function setEmployeeLoginAccess(employeeId: string, loginAccess: { isEnab
 export function setEmployeeStatus(employeeId: string, status: { isActive: boolean; reason?: string }) {
   return apiAction<Employee>("PUT", `${employeePath(employeeId)}/status`, status);
 }
+
+/**
+ * Gives an employee a shift (`PUT /employees/{employeeId}/shift`) from `effectiveFrom` (a "yyyy-MM-dd" date, today or later; without it
+ * from now). Days already recorded keep the shift they were counted against. 422 SHIFT_EFFECTIVE_DATE_IN_PAST for a past date.
+ */
+export function setEmployeeShift(employeeId: string, shift: { shiftId: string; effectiveFrom?: string }) {
+  return apiAction<Employee>("PUT", `${employeePath(employeeId)}/shift`, shift);
+}

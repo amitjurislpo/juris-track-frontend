@@ -26,6 +26,7 @@ export function WorkdayHistoryView({ history, range, timeZone, onOpen }: {
   const rangeText = historyRangeText(history);
   const kpis: [string, string, string?][] = [
     [t("Productive"), formatDuration(totals.productiveSeconds)],
+    ...(totals.extraSeconds === undefined ? [] : [[t("Extra time"), formatDuration(totals.extraSeconds), t("outside the shift or on a week off")] as [string, string, string]]),
     [t("Break"), formatDuration(totals.breakSeconds), t(totals.breakCount === 1 ? "{count} break" : "{count} breaks", { count: totals.breakCount })],
     [t("Span"), formatDuration(totals.spanSeconds)],
     [t("Workdays"), String(totals.workdays)],
@@ -35,6 +36,7 @@ export function WorkdayHistoryView({ history, range, timeZone, onOpen }: {
   return (
     <>
       <RangeFilter range={range} from={history.from} to={history.to} />
+      <p className="muted" style={{ margin: 0, fontSize: 12.5 }}>{t("Workdays are counted on the date their shift started.")}</p>
       <div className="kpis enter" style={{ ["--i" as string]: 2 }} role="list" aria-label={t("Totals of the range")}>
         {kpis.map(([label, value, note]) => (
           <div key={label} className="card kpi" role="listitem">
