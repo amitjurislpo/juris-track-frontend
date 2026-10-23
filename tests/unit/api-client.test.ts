@@ -27,6 +27,13 @@ describe("API client: problem details", () => {
     expect(result).toMatchObject({ ok: false, code: "MANAGER_CYCLE", error: "hi:loop" });
   });
 
+  it("sends the login-access switch as a PUT and keeps the refusal of the owner's own account", async () => {
+    const fetchStub = stubFetch(422, { status: 422, code: "CANNOT_DISABLE_OWN_LOGIN", detail: "You cannot switch off your own sign-in." });
+    const result = await clientWith().action("PUT", "/employees/1/login-access", { isEnabled: false, reason: "Leave" });
+    expect(result).toMatchObject({ ok: false, code: "CANNOT_DISABLE_OWN_LOGIN", error: "hi:You cannot switch off your own sign-in." });
+    expect(fetchStub).toHaveBeenCalledWith("/base/employees/1/login-access", expect.objectContaining({ method: "PUT", body: JSON.stringify({ isEnabled: false, reason: "Leave" }) }));
+  });
+
   it("sends writes to the base path with the method and JSON body", async () => {
     const fetchStub = stubFetch(200, { ok: true, message: "Employee saved." });
     const result = await clientWith().action("PATCH", "/employees/1", { managerId: null });

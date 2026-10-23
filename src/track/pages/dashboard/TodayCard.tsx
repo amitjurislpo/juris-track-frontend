@@ -1,8 +1,9 @@
 import { TrackLink } from "@/track/components/TrackLink";
 import { Icon } from "@/track/components/Icon";
 import { TimeActionButtons } from "@/track/components/time/TimeActionButtons";
+import { LastBreakNote } from "@/track/components/time/LastBreakNote";
 import { WorkdayStatusChip } from "@/track/components/time/WorkdayStatusChip";
-import { formatClock, formatDuration, formatTime } from "@/track/lib/time/format";
+import { formatClock, formatDuration, formatTimeOnDay } from "@/track/lib/time/format";
 import { workdayFigures } from "@/track/lib/time/live-totals";
 import type { TimeEventRunner } from "@/track/time/useTimeEvent";
 import type { TimeStateReading } from "@/track/time/useTimeState";
@@ -21,7 +22,7 @@ export function TodayCard({ reading, runner, timeZone }: { reading: TimeStateRea
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap", position: "relative" }}>
         <div>
           <span className="eyebrow">{t("Today")}</span>
-          <div style={{ fontWeight: 600, marginTop: 2 }}>{workday ? t("Started {time}", { time: formatTime(workday.startedAt, timeZone) }) : t("Not started yet")}</div>
+          <div style={{ fontWeight: 600, marginTop: 2 }}>{workday ? t("Work started {time}", { time: formatTimeOnDay(workday.startedAt, timeZone, new Date()) }) : t("Not started yet")}</div>
         </div>
         <span data-testid="time-status"><WorkdayStatusChip status={status} isStale={workday?.isStale} /></span>
       </div>
@@ -36,6 +37,7 @@ export function TodayCard({ reading, runner, timeZone }: { reading: TimeStateRea
           <div className="eyebrow">{t("Break")}</div>
           <div className="num" style={{ fontSize: 22, marginTop: 10 }}>{formatDuration(live?.breakSeconds ?? 0)}</div>
           <div className="faint" style={{ fontSize: 12.5 }}>{t((live?.breakCount ?? 0) === 1 ? "{count} break" : "{count} breaks", { count: live?.breakCount ?? 0 })}</div>
+          <LastBreakNote lastBreak={live?.lastBreak ?? null} timeZone={timeZone} className="faint" style={{ display: "block", fontSize: 12.5 }} />
         </div>
       </div>
       <TimeActionButtons status={status} runner={runner} isLarge={false}

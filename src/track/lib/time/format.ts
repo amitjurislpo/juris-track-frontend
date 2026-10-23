@@ -41,6 +41,20 @@ export function formatTime(value: Date | string | null | undefined, timeZone: st
   return new Intl.DateTimeFormat(displayLocale(), { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(toDate(value));
 }
 
+const dateKeyIn = (value: Date | string, timeZone: string) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(toDate(value));
+
+/**
+ * 06:30 when `value` falls on the same calendar day (in `timeZone`) as `reference`, else with its date: "25 Oct, 06:30". Used for an
+ * end after midnight of a night shift (reference = the start) and for a start or last break that is not today (reference = now).
+ */
+export function formatTimeOnDay(value: Date | string | null | undefined, timeZone: string, reference: Date | string): string {
+  if (!value) return NO_VALUE;
+  if (dateKeyIn(value, timeZone) === dateKeyIn(reference, timeZone)) return formatTime(value, timeZone);
+  const day = new Intl.DateTimeFormat(displayLocale(), { timeZone, day: "numeric", month: "short" }).format(toDate(value));
+  return `${day}, ${formatTime(value, timeZone)}`;
+}
+
 /** 1 Oct 2026, 09:05 in the given time zone (month names in the display language). */
 export function formatDateTime(value: Date | string | null | undefined, timeZone: string): string {
   if (!value) return NO_VALUE;

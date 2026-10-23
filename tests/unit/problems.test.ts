@@ -18,7 +18,7 @@ describe("problemMessage", () => {
 
   it("has a message for every code the employee and business pages show", () => {
     for (const code of ["MANAGER_CYCLE", "MANAGER_HAS_REPORTS", "MANAGER_NOT_FOUND", "MANAGER_INACTIVE", "MANAGER_ROLE_REQUIRED", "MANAGER_IS_SELF",
-      "EMPLOYEE_CODE_IN_USE", "EMAIL_IN_USE", "CANNOT_DEACTIVATE_SELF", "ROLE_NOT_ASSIGNABLE", "LAST_ACTIVE_OWNER", "BUSINESS_SUSPENDED"]) {
+      "EMPLOYEE_CODE_IN_USE", "EMAIL_IN_USE", "CANNOT_DEACTIVATE_SELF", "CANNOT_DISABLE_OWN_LOGIN", "ROLE_NOT_ASSIGNABLE", "LAST_ACTIVE_OWNER", "BUSINESS_SUSPENDED"]) {
       expect(PROBLEM_MESSAGES[code], code).toBeTruthy();
     }
   });

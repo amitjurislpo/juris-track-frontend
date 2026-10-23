@@ -45,6 +45,8 @@ export const trackHindiApiMessages: Record<string, string> = {
   "Employee saved.": "कर्मचारी सहेजा गया।",
   "Employee deactivated.": "कर्मचारी निष्क्रिय किया गया।",
   "Employee is active.": "कर्मचारी सक्रिय है।",
+  "Login disabled.": "लॉगिन बंद किया गया।",
+  "Login enabled.": "लॉगिन चालू किया गया।",
   "Employee not found.": "कर्मचारी नहीं मिला।",
   "First name is required.": "पहला नाम ज़रूरी है।",
   "Last name is required.": "उपनाम ज़रूरी है।",
@@ -65,6 +67,7 @@ export const trackHindiApiMessages: Record<string, string> = {
   "The chosen manager needs the MANAGER role.": "चुने गए व्यक्ति के पास मैनेजर की भूमिका होनी चाहिए।",
   "The chosen manager reports to this employee, so the reporting line would go round in a circle.": "चुना गया मैनेजर इसी कर्मचारी को रिपोर्ट करता है, इसलिए रिपोर्टिंग का क्रम एक घेरे में घूम जाएगा।",
   "You cannot deactivate your own account.": "आप अपना ही खाता निष्क्रिय नहीं कर सकते।",
+  "You cannot switch off your own sign-in.": "आप अपना ही साइन-इन बंद नहीं कर सकते।",
   "The business must keep at least one active owner.": "व्यवसाय में कम से कम एक सक्रिय मालिक रहना चाहिए।",
   // time tracking (TimeTrackingController, TimeTrackingService, WorkdayHistoryService)
   "Workday started. Have a productive day.": "कार्यदिवस शुरू हुआ। आपका दिन उत्पादक हो।",

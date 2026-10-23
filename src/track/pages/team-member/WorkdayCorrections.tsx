@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Icon } from "@/track/components/Icon";
-import { formatDuration, formatTime } from "@/track/lib/time/format";
+import { formatDuration, formatTime, formatTimeOnDay } from "@/track/lib/time/format";
 import { intervalSeconds } from "@/track/lib/time/interval-math";
 import type { TimelineSegment, WorkdaySnapshot } from "@/track/lib/time/types";
 import { useTimeState } from "@/track/time/useTimeState";
@@ -22,7 +22,7 @@ export function WorkdayCorrections({ workday, timeZone, nowMilliseconds }: { wor
   const [isClosing, setIsClosing] = useState(false);
   const isOpen = workday.endedAt === null;
   const rangeOf = (segment: TimelineSegment) =>
-    `${formatTime(segment.startedAt, timeZone)} – ${segment.endedAt ? formatTime(segment.endedAt, timeZone) : t("now")}`;
+    `${formatTime(segment.startedAt, timeZone)} – ${segment.endedAt ? formatTimeOnDay(segment.endedAt, timeZone, segment.startedAt) : t("now")}`;
 
   return (
     <section className="col" style={{ gap: 12, borderTop: "1px solid var(--line)", paddingTop: 16 }} aria-labelledby="corrections-heading">

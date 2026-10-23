@@ -77,7 +77,10 @@ export default function EmployeesPage() {
                   <td className="muted hide-sm">{employee.email}</td>
                   <td>{t(ROLE_LABELS[employee.role])}</td>
                   <td className="muted hide-sm">{employee.managerName ?? "—"}</td>
-                  <td><StatusChip isGood={employee.isActive} label={employee.isActive ? t("Active") : t("Inactive")} /></td>
+                  <td>
+                    <StatusChip isGood={employee.isActive} label={employee.isActive ? t("Active") : t("Inactive")} />
+                    {!employee.isLoginEnabled && <> <span className="chip warn">{t("Login off")}</span></>}
+                  </td>
                   <td className="muted hide-sm">{employee.lastLoginAt ? formatDateTime(employee.lastLoginAt, timeZone) : t("Never")}</td>
                 </tr>
               ))}

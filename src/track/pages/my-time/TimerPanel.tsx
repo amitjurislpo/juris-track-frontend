@@ -3,7 +3,7 @@ import { TimeActionButtons } from "@/track/components/time/TimeActionButtons";
 import { Timeline } from "@/track/components/time/Timeline";
 import { WorkdayStatusChip } from "@/track/components/time/WorkdayStatusChip";
 import { WorkdaySummary } from "@/track/components/time/WorkdaySummary";
-import { formatClock, formatDateKey, formatDuration, formatTime } from "@/track/lib/time/format";
+import { formatClock, formatDateKey, formatDuration, formatTime, formatTimeOnDay } from "@/track/lib/time/format";
 import { workdayFigures } from "@/track/lib/time/live-totals";
 import { ACTIVITY_LABELS } from "@/track/lib/time/types";
 import { zoneAbbreviation } from "@/track/lib/time/zone-names";
@@ -74,7 +74,7 @@ export function TimerPanel({ reading, runner, timeZone, isOffline }: {
             <span className="eyebrow">{workday && workday.date !== state.today ? t("Workday of {date}", { date: formatDateKey(workday.date) }) : t("Today")}</span>
             <div style={{ fontWeight: 600, marginTop: 2 }}>
               {workday
-                ? <>{t("Started {time}", { time: formatTime(workday.startedAt, timeZone) })}{workday.endedAt && <> · {t("Ended {time}", { time: formatTime(workday.endedAt, timeZone) })}</>} <span className="faint">{zone}</span></>
+                ? <>{t("Work started {time}", { time: formatTimeOnDay(workday.startedAt, timeZone, new Date()) })}{workday.endedAt && <> · {t("Work ended {time}", { time: formatTimeOnDay(workday.endedAt, timeZone, workday.startedAt) })}</>} <span className="faint">{zone}</span></>
                 : formatDateKey(state.today)}
             </div>
           </div>

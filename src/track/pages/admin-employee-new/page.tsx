@@ -27,7 +27,7 @@ export default function NewEmployeePage() {
     setIsSaving(false);
     if (!result.ok) { setErrors(formErrorsOf(result, EMPLOYEE_FORM_FIELDS, t)); return; }
     toast(result.message ?? t("Employee added."));
-    navigate(result.data ? `/admin/employees/${result.data.id}` : "/admin/employees");
+    navigate("/admin/employees");
   };
 
   return (

@@ -1,5 +1,5 @@
 import { timeZoneOffsetMilliseconds } from "@/track/lib/time/business-calendar";
-import { formatDuration, formatTime } from "@/track/lib/time/format";
+import { formatDuration, formatTime, formatTimeOnDay } from "@/track/lib/time/format";
 import { intervalSeconds } from "@/track/lib/time/interval-math";
 import type { TimelineSegment } from "@/track/lib/time/types";
 import { useTrack } from "@/track/TrackContext";
@@ -40,7 +40,7 @@ export function Timeline({ segments, nowMilliseconds, timeZone, hasList = true }
   const isRunning = segments.some((segment) => !segment.endedAt);
   const typeLabel = (segment: TimelineSegment) => (segment.type === "WORK" ? t("Work") : t("Break"));
   const rangeOf = (segment: TimelineSegment) =>
-    `${formatTime(segment.startedAt, timeZone)} – ${segment.endedAt ? formatTime(segment.endedAt, timeZone) : t("now")}`;
+    `${formatTime(segment.startedAt, timeZone)} – ${segment.endedAt ? formatTimeOnDay(segment.endedAt, timeZone, segment.startedAt) : t("now")}`;
 
   return (
     <div className="col" style={{ gap: 12 }}>
