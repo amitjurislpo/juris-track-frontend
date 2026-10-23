@@ -1,10 +1,12 @@
 import { TrackLink } from "@/track/components/TrackLink";
 import { Icon } from "@/track/components/Icon";
+import { ShiftLine } from "@/track/components/time/ShiftLine";
 import { TimeActionButtons } from "@/track/components/time/TimeActionButtons";
 import { LastBreakNote } from "@/track/components/time/LastBreakNote";
 import { WorkdayStatusChip } from "@/track/components/time/WorkdayStatusChip";
 import { formatClock, formatDuration, formatTimeOnDay } from "@/track/lib/time/format";
 import { workdayFigures } from "@/track/lib/time/live-totals";
+import { dayHeading, shiftOf } from "@/track/lib/time/shift";
 import type { TimeEventRunner } from "@/track/time/useTimeEvent";
 import type { TimeStateReading } from "@/track/time/useTimeState";
 import { useServerClock } from "@/track/time/useServerClock";
@@ -21,10 +23,11 @@ export function TodayCard({ reading, runner, timeZone }: { reading: TimeStateRea
       <div className="aur" aria-hidden="true"></div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap", position: "relative" }}>
         <div>
-          <span className="eyebrow">{t("Today")}</span>
+          <span className="eyebrow">{dayHeading(workday?.date, reading.state.shiftDate, t)}</span>
           <div style={{ fontWeight: 600, marginTop: 2 }}>{workday ? t("Work started {time}", { time: formatTimeOnDay(workday.startedAt, timeZone, new Date()) }) : t("Not started yet")}</div>
+          <div style={{ marginTop: 4 }}><ShiftLine shift={shiftOf(workday, reading.state.shift)} isOutsideShift={workday?.isOutsideShift} /></div>
         </div>
-        <span data-testid="time-status"><WorkdayStatusChip status={status} isStale={workday?.isStale} /></span>
+        <span data-testid="time-status"><WorkdayStatusChip status={status} isStale={workday?.isStale} isOffDay={workday ? workday.isOffDay : reading.state.isOffDay} /></span>
       </div>
       <div style={{ display: "flex", gap: 28, flexWrap: "wrap", position: "relative" }}>
         <div>

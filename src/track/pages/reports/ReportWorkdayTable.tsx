@@ -2,6 +2,7 @@ import { TrackLink } from "@/track/components/TrackLink";
 import type { ReportWorkdayRow } from "@/track/api-types";
 import { SortableHeader } from "@/track/components/list/SortableHeader";
 import { LastBreakNote } from "@/track/components/time/LastBreakNote";
+import { ShiftCell } from "@/track/components/time/ShiftCell";
 import { WorkdayStatusChip } from "@/track/components/time/WorkdayStatusChip";
 import { defaultSortOf } from "@/track/lib/report-query";
 import { formatDateKey, formatDuration, formatTimeOnDay } from "@/track/lib/time/format";
@@ -11,8 +12,8 @@ import { useTrack } from "@/track/TrackContext";
 const { sort: DEFAULT_SORT, direction: DEFAULT_DIRECTION } = defaultSortOf("workdays");
 
 /**
- * The report's workdays: date, employee (with code), manager of the day, status ("Not ended" for a day left open too long), when work
- * started and ended in the display time zone (an end after midnight shows its date), productive, break, span, breaks and the last break. Sortable by the API's keys (manager, status and end are
+ * The report's workdays: date, employee (with code), manager of the day, shift, status ("Not ended" for a day left open too long), when work
+ * started and ended in the display time zone (an end after midnight shows its date), productive, extra, break, span, breaks and the last break. Sortable by the API's keys (manager, status and end are
  * not sortable there). The table scrolls sideways inside its own container on narrow screens. `employeePath` links a name.
  */
 export function ReportWorkdayTable({ rows, timeZone, employeePath }: { rows: ReportWorkdayRow[]; timeZone: string; employeePath: (employeeId: string) => string }) {
@@ -29,10 +30,12 @@ export function ReportWorkdayTable({ rows, timeZone, employeePath }: { rows: Rep
             {header("date", t("Date"))}
             {header("employee", t("Employee"))}
             <th>{t("Manager")}</th>
+            <th>{t("Shift")}</th>
             <th>{t("Status")}</th>
             {header("startedAt", t("Work started ({zone})", { zone }))}
             <th>{t("Work ended ({zone})", { zone })}</th>
             {header("productiveSeconds", t("Productive"), "r")}
+            <th className="r">{t("Extra")}</th>
             {header("breakSeconds", t("Break"), "r")}
             {header("spanSeconds", t("Span"), "r")}
             {header("breakCount", t("Breaks"), "r")}
@@ -50,10 +53,12 @@ export function ReportWorkdayTable({ rows, timeZone, employeePath }: { rows: Rep
                 </div></div>
               </td>
               <td className="muted">{row.manager?.name ?? t("No manager")}</td>
-              <td><WorkdayStatusChip status={row.status} isStale={row.isStale} /></td>
+              <td><ShiftCell shift={row.shift} isOutsideShift={row.isOutsideShift} /></td>
+              <td><WorkdayStatusChip status={row.status} isStale={row.isStale} isOffDay={row.isOffDay} /></td>
               <td className="num">{formatTimeOnDay(row.startedAt, timeZone, new Date())}</td>
               <td className="num">{row.endedAt ? formatTimeOnDay(row.endedAt, timeZone, row.startedAt) : "—"}</td>
               <td className="r num" style={{ fontWeight: 600 }}>{formatDuration(row.productiveSeconds)}</td>
+              <td className="r num">{row.extraSeconds > 0 ? formatDuration(row.extraSeconds) : "—"}</td>
               <td className="r num">{formatDuration(row.breakSeconds)}</td>
               <td className="r num">{formatDuration(row.spanSeconds)}</td>
               <td className="r num">{row.breakCount}</td>

@@ -9,6 +9,7 @@ export function ReportTotalsCards({ totals, rangeText }: { totals: ReportTotals;
     { label: t("Workdays"), value: String(totals.workdays) },
     { label: t("People"), value: String(totals.employees), note: t("with recorded time") },
     { label: t("Productive"), value: formatDuration(totals.productiveSeconds) },
+    ...(totals.extraSeconds === undefined ? [] : [{ label: t("Extra time"), value: formatDuration(totals.extraSeconds), note: t("outside the shift or on a week off") }]),
     { label: t("Break"), value: formatDuration(totals.breakSeconds) },
     { label: t("Span"), value: formatDuration(totals.spanSeconds), note: t("start to end of each workday") },
     { label: t("Breaks"), value: String(totals.breakCount) },

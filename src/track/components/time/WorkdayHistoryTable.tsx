@@ -6,6 +6,7 @@ import { formatDateKey, formatDuration, formatTimeOnDay } from "@/track/lib/time
 import { zoneAbbreviation } from "@/track/lib/time/zone-names";
 import { useTrack } from "@/track/TrackContext";
 import { LastBreakNote } from "./LastBreakNote";
+import { ShiftCell } from "./ShiftCell";
 import { WorkdayStatusChip } from "./WorkdayStatusChip";
 
 /**
@@ -30,9 +31,11 @@ export function WorkdayHistoryTable({ rows, timeZone, isSortable = false, onOpen
         <thead>
           <tr>
             {header("date", t("Date"))}
+            <th className="hide-sm">{t("Shift")}</th>
             {header("startedAt", t("Work started ({zone})", { zone: zoneAbbreviation(timeZone) }))}
             {header("endedAt", t("Work ended"))}
             {header("productiveSeconds", t("Productive"), "r")}
+            <th className="r hide-sm">{t("Extra")}</th>
             {header("breakSeconds", t("Break"), "r")}
             {header("spanSeconds", t("Span"), "r hide-sm")}
             {header("breakCount", t("Breaks"), "r hide-sm")}
@@ -45,9 +48,11 @@ export function WorkdayHistoryTable({ rows, timeZone, isSortable = false, onOpen
             <tr key={row.id} tabIndex={0} style={{ cursor: "pointer" }} title={t("Open the workday of {date}", { date: formatDateKey(row.date) })}
               onClick={() => onOpen(row.id)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(row.id); } }}>
               <td style={{ whiteSpace: "nowrap" }}>{formatDateKey(row.date)}</td>
+              <td className="hide-sm"><ShiftCell shift={row.shift} isOutsideShift={row.isOutsideShift} /></td>
               <td className="num">{formatTimeOnDay(row.startedAt, timeZone, new Date())}</td>
               <td className="num">{row.endedAt ? formatTimeOnDay(row.endedAt, timeZone, row.startedAt) : "—"}</td>
-              <td className="r num" style={{ fontWeight: 600 }}>{formatDuration(row.productiveSeconds)}</td>
+              <td className="r num" style={{ fontWeight: 600 }}>{formatDuration(row.productiveSeconds)}{row.extraSeconds > 0 && <small className="sub-sm" style={{ fontWeight: 400 }}>{t("Extra {duration}", { duration: formatDuration(row.extraSeconds) })}</small>}</td>
+              <td className="r num hide-sm">{row.extraSeconds > 0 ? formatDuration(row.extraSeconds) : "—"}</td>
               <td className="r num">{formatDuration(row.breakSeconds)}</td>
               <td className="r num hide-sm">{formatDuration(row.spanSeconds)}</td>
               <td className="r num hide-sm">{row.breakCount}</td>

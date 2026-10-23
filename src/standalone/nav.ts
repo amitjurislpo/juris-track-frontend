@@ -20,6 +20,7 @@ const PERSONAL: NavGroup = {
   items: [
     { href: "/dashboard", label: "Dashboard", icon: "home" },
     { href: "/my-time", label: "My Time", icon: "clock" },
+    { href: "/my-schedule", label: "My Schedule", icon: "cal" },
     { href: "/my-history", label: "My History", icon: "cal" },
     { href: "/profile", label: "Profile", icon: "user" },
   ],
@@ -48,6 +49,8 @@ export function navFor(role: Role): NavGroup[] {
           items: [
             { href: "/admin", label: "Overview", icon: "home" },
             { href: "/admin/employees", label: "Employees", icon: "users" },
+            { href: "/admin/shifts", label: "Shifts", icon: "moon" },
+            { href: "/admin/roster", label: "Roster", icon: "cal" },
             { href: "/admin/time-tracking", label: "Time Tracking", icon: "grid" },
             { href: "/admin/reports", label: "Reports", icon: "chart" },
             { href: "/admin/audit-log", label: "Audit Log", icon: "shield" },
@@ -62,6 +65,7 @@ export function navFor(role: Role): NavGroup[] {
           title: "Team",
           items: [
             { href: "/team", label: "Team", icon: "team" },
+            { href: "/admin/roster", label: "Roster", icon: "cal" },
             { href: "/team/reports", label: "Reports", icon: "chart" },
           ],
         },

@@ -20,9 +20,10 @@ import {
   AUDIT_SOURCE_LABELS,
   AUDIT_SOURCES,
 } from "@/track/lib/audit/audit-labels";
-import { activeFilters, clearAllChanges, filterTimeZone, NO_BUSINESS, todayIn } from "@/track/lib/audit/audit-query";
+import { activeFilters, clearAllChanges, filterTimeZone, NO_BUSINESS } from "@/track/lib/audit/audit-query";
 import { fullName } from "@/track/lib/time/format";
 import { homeFor } from "@/track/roles";
+import { useServerToday } from "@/track/time/useServerToday";
 import { useDisplayTimeZone } from "@/track/time/useDisplayTimeZone";
 import { usePage } from "@/track/usePage";
 import { ActionFilter } from "./ActionFilter";
@@ -54,6 +55,7 @@ export default function AuditLogPage() {
   const canExport = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
   const { timeZone } = useDisplayTimeZone();
   const datesTimeZone = filterTimeZone(user);
+  const serverToday = useServerToday(datesTimeZone, !isPlatform);
   const path = auditLogsPath(searchParams, isPlatform);
   const query = useQuery({ queryKey: ["track", path], queryFn: () => apiData<ListPage<AuditLogRow>>(path), placeholderData: keepPreviousData });
   const [openRow, setOpenRow] = useState<AuditLogRow | null>(null);
@@ -119,7 +121,7 @@ export default function AuditLogPage() {
       </p>
       <div className="toolbar enter" style={{ ["--i" as string]: 1 }}>
         <SearchBox placeholder={t("Search action, name, request id, record or IP")} label={t("Search the audit log")} />
-        <DateRangeFilter searchParams={searchParams} today={todayIn(datesTimeZone)} />
+        <DateRangeFilter searchParams={searchParams} today={serverToday} />
       </div>
       <div className="toolbar audit-filters enter" style={{ ["--i" as string]: 2 }}>
         {isPlatform

@@ -1,9 +1,17 @@
 /** Hindi for the fixed messages the API sends back (errors and success notices). The English text is the key. */
 export const trackHindiApiMessages: Record<string, string> = {
   "Could not reach the server. Please check your connection and try again.": "सर्वर से संपर्क नहीं हो सका। कृपया अपना कनेक्शन जाँचें और दोबारा कोशिश करें।",
-  "A time must be on the workday's date or the day after, in the business time zone.": "समय कार्यदिवस की तारीख़ या उसके अगले दिन का होना चाहिए (व्यवसाय के समय क्षेत्र में)।",
+  "Choose a time on the workday's date or the day after, in the business time zone. To close a forgotten shift, give the time it really ended.": "समय कार्यदिवस की तारीख़ या उसके अगले दिन का चुनें (व्यवसाय के समय क्षेत्र में)। भूले हुए शिफ़्ट को बंद करने के लिए उसका असली समाप्ति समय दें।",
   "The corrected time overlaps another workday of this person. Their hours would count twice.": "सुधारा हुआ समय इस व्यक्ति के किसी दूसरे कार्यदिवस से टकराता है। उनके घंटे दो बार गिने जाएँगे।",
   "The request is too large.": "अनुरोध बहुत बड़ा है।",
+  "This shift does not exist in your business.": "यह शिफ़्ट आपके व्यवसाय में मौजूद नहीं है।",
+  "This shift is deactivated. Reactivate it first or choose another shift.": "यह शिफ़्ट निष्क्रिय है। पहले इसे फिर सक्रिय करें या कोई दूसरी शिफ़्ट चुनें।",
+  "A shift with this name already exists.": "इस नाम की शिफ़्ट पहले से मौजूद है।",
+  "This date is too far ahead. Choose a nearer date.": "यह तारीख़ बहुत आगे की है। नज़दीक की तारीख़ चुनें।",
+  "This date already has a recorded workday, so its roster entry cannot be changed. Correct the workday instead.": "इस तारीख़ पर कार्यदिवस पहले से दर्ज है, इसलिए इसकी रोस्टर प्रविष्टि नहीं बदली जा सकती। इसके बजाय कार्यदिवस को सुधारें।",
+  "Employees still work this shift. Move them to another shift first, then deactivate it.": "कर्मचारी अभी भी इस शिफ़्ट में काम करते हैं। पहले उन्हें दूसरी शिफ़्ट में भेजें, फिर इसे निष्क्रिय करें।",
+  "The default shift cannot be deactivated: every new employee starts on it.": "डिफ़ॉल्ट शिफ़्ट को निष्क्रिय नहीं किया जा सकता: हर नया कर्मचारी इसी से शुरू होता है।",
+  "Choose today or a later date: a shift change cannot rewrite past days.": "आज या उसके बाद की तारीख़ चुनें: शिफ़्ट बदलने से बीते दिन दोबारा नहीं लिखे जा सकते।",
   "This business is already linked to another JurisOne business. Unlink it first.": "यह व्यवसाय पहले से किसी दूसरे JurisOne व्यवसाय से जुड़ा है। पहले उसका लिंक हटाएँ।",
   "Another business is already linked to that JurisOne business.": "उस JurisOne व्यवसाय से पहले ही कोई दूसरा व्यवसाय जुड़ा है।",
   "Something went wrong. Please try again.": "कुछ गड़बड़ हो गई। कृपया दोबारा कोशिश करें।",

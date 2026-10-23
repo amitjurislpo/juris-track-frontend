@@ -25,7 +25,7 @@ export function BusinessSettingsFields({ form, onChange, errors }: { form: Busin
             {zones.map((zone) => <option key={zone} value={zone}>{zone}</option>)}
           </select>
         </FormField>
-        <FormField label={t("Stale workday hours")} hint={t("1 to 48")} error={errors.staleWorkdayHours}>
+        <FormField label={t("Stale workday hours")} hint={t("1 to 48; at least your longest shift plus 2 hours")} error={errors.staleWorkdayHours}>
           <input type="number" inputMode="numeric" min={1} max={48} step={1} value={form.staleWorkdayHours} onChange={(e) => onChange({ ...form, staleWorkdayHours: e.target.value })} />
         </FormField>
       </div>
