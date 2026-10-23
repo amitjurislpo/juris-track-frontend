@@ -25,12 +25,12 @@ describe("roles and navigation", () => {
   });
 
   it("gives every user of a business the personal time-tracking pages, but not the super admin", () => {
-    for (const path of ["dashboard", "my-time", "my-history", "profile"]) {
+    for (const path of ["dashboard", "my-time", "my-schedule", "my-history", "profile"]) {
       const route = trackRoutes.find((candidate) => candidate.path === path)!;
       expect([...route.roles].sort(), path).toEqual(["ADMIN", "EMPLOYEE", "MANAGER"]);
     }
     for (const role of ["ADMIN", "MANAGER", "EMPLOYEE"] as const) {
-      expect(linksOf(role), role).toEqual(expect.arrayContaining(["/dashboard", "/my-time", "/my-history", "/profile"]));
+      expect(linksOf(role), role).toEqual(expect.arrayContaining(["/dashboard", "/my-time", "/my-schedule", "/my-history", "/profile"]));
     }
   });
 
@@ -40,12 +40,21 @@ describe("roles and navigation", () => {
   });
 
   it("gives an employee only the personal section, a manager also the Team tab, the owner the administration", () => {
-    expect(linksOf("EMPLOYEE")).toEqual(["/dashboard", "/my-time", "/my-history", "/profile"]);
+    expect(linksOf("EMPLOYEE")).toEqual(["/dashboard", "/my-time", "/my-schedule", "/my-history", "/profile"]);
     expect(linksOf("MANAGER")).toEqual(expect.arrayContaining(["/team", "/team/reports"]));
-    expect(linksOf("MANAGER").some((href) => href.startsWith("/admin"))).toBe(false);
+    // the roster is the one administration page a manager may open (read-only)
+    expect(linksOf("MANAGER").filter((href) => href.startsWith("/admin"))).toEqual(["/admin/roster"]);
     expect(linksOf("ADMIN").every((href) => !href.startsWith("/team") && !href.startsWith("/platform"))).toBe(true);
     expect(homeFor("MANAGER")).toBe("/team");
     expect(homeFor("EMPLOYEE")).toBe("/dashboard");
+  });
+
+  it("keeps the shifts for the owner and gives the roster to the owner and the manager", () => {
+    expect(trackRoutes.find((route) => route.path === "admin/shifts")!.roles).toEqual(["ADMIN"]);
+    expect([...trackRoutes.find((route) => route.path === "admin/roster")!.roles].sort()).toEqual(["ADMIN", "MANAGER"]);
+    expect(linksOf("ADMIN")).toEqual(expect.arrayContaining(["/admin/shifts", "/admin/roster"]));
+    expect(linksOf("MANAGER")).not.toContain("/admin/shifts");
+    expect(linksOf("EMPLOYEE")).not.toContain("/admin/roster");
   });
 
   it("has no team pages (the reporting manager replaces teams)", () => {

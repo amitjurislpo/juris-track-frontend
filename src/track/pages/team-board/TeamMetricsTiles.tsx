@@ -15,9 +15,10 @@ export function TeamMetricsTiles({ metrics, serverTime, nowMilliseconds }: { met
     [t("Working"), String(metrics.working)],
     [t("On break"), String(metrics.onBreak)],
     [t("Not started"), String(metrics.notStarted)],
+    [t("Week off"), String(metrics.weekOff), t("off today, not started")],
     [t("Day ended"), String(metrics.dayEnded)],
     [t("Not ended"), String(metrics.stale), t("open too long")],
-    [t("Productive today"), formatDuration(totalProductiveSeconds), t("everybody together")],
+    [t("Productive (current shifts)"), formatDuration(totalProductiveSeconds), t("everybody together, in each person's current shift")],
     [t("Average productive"), formatDuration(averageProductiveSeconds), t("per person who started")],
   ];
   return (

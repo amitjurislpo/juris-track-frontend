@@ -1,8 +1,10 @@
 import type { TeamMemberDetail } from "@/track/api-types";
+import { ShiftLine } from "@/track/components/time/ShiftLine";
 import { WorkdayStatusChip } from "@/track/components/time/WorkdayStatusChip";
 import { WorkdaySummary } from "@/track/components/time/WorkdaySummary";
-import { formatClock, formatDateKey, formatDuration, formatTime } from "@/track/lib/time/format";
+import { formatClock, formatDuration, formatTime } from "@/track/lib/time/format";
 import { workdayFigures } from "@/track/lib/time/live-totals";
+import { dayHeading, shiftOf } from "@/track/lib/time/shift";
 import { ACTIVITY_LABELS } from "@/track/lib/time/types";
 import { zoneAbbreviation } from "@/track/lib/time/zone-names";
 import { useTrack } from "@/track/TrackContext";
@@ -25,9 +27,10 @@ export function MemberStatusCard({ member, nowMilliseconds, timeZone, onOpenWork
   return (
     <section className="card pad enter" style={{ ["--i" as string]: 1 }} aria-labelledby="now-heading">
       <div className="card-h">
-        <h3 id="now-heading">{workday && workday.date !== member.today ? t("Workday of {date}", { date: formatDateKey(workday.date) }) : t("Today")}</h3>
-        <span data-testid="member-status"><WorkdayStatusChip status={status} isStale={workday?.isStale} /></span>
+        <h3 id="now-heading">{dayHeading(workday?.date, member.today, t)}</h3>
+        <span data-testid="member-status"><WorkdayStatusChip status={status} isStale={workday?.isStale} isOffDay={workday ? workday.isOffDay : Boolean(member.isOffDay)} /></span>
       </div>
+      <div style={{ marginBottom: 10 }}><ShiftLine shift={shiftOf(workday, member.shift ?? null)} isOutsideShift={workday?.isOutsideShift} /></div>
       <div style={{ display: "flex", alignItems: "flex-end", gap: 16, flexWrap: "wrap", marginBottom: workday ? 16 : 0 }}>
         <div>
           <div className="eyebrow">{t("Productive time")}</div>
@@ -36,7 +39,7 @@ export function MemberStatusCard({ member, nowMilliseconds, timeZone, onOpenWork
           </div>
         </div>
         <div className="faint" style={{ fontSize: 13, paddingBottom: 6 }}>
-          {status === "NOT_STARTED" && t("Has not started today.")}
+          {status === "NOT_STARTED" && Boolean(member.isOffDay) ? t("Week off today. Any time worked counts as extra time.") : t("Has not started today.")}
           {status === "WORKING" && live && t("Current session {duration}", { duration: formatDuration(live.currentWorkSeconds) })}
           {status === "ON_BREAK" && live && <b className="num" style={{ color: "var(--text)" }}>{t("Current break {duration}", { duration: formatClock(live.currentBreakSeconds) })}</b>}
           {status === "DAY_ENDED" && workday?.endedAt && t("Ended at {time}", { time: `${formatTime(workday.endedAt, timeZone)} ${zone}` })}
@@ -45,7 +48,7 @@ export function MemberStatusCard({ member, nowMilliseconds, timeZone, onOpenWork
       </div>
       {workday && live && (
         <>
-          <WorkdaySummary figures={{ ...live, startedAt: workday.startedAt, endedAt: workday.endedAt }} timeZone={timeZone} label={t("Today's totals")} />
+          <WorkdaySummary figures={{ ...live, startedAt: workday.startedAt, endedAt: workday.endedAt, scheduledSeconds: workday.shift?.scheduledSeconds, varianceSeconds: workday.varianceSeconds, extraSeconds: workday.extraSeconds }} timeZone={timeZone} label={t("Today's totals")} />
           <div style={{ marginTop: 14 }}><button type="button" className="btn btn-sm" onClick={onOpenWorkday}>{t("Open this workday")}</button></div>
         </>
       )}

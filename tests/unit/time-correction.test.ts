@@ -28,7 +28,7 @@ const RUNNING_WORK: TimelineSegment = { id: "w3", type: "WORK", startedAt: "2026
 
 function workday(segments: TimelineSegment[], endedAt: string | null): WorkdaySnapshot {
   return {
-    id: "d1", date: "2026-10-22", status: endedAt ? "DAY_ENDED" : "WORKING", startedAt: segments[0].startedAt, endedAt, isStale: false,
+    id: "d1", date: "2026-10-22", status: endedAt ? "DAY_ENDED" : "WORKING", startedAt: segments[0].startedAt, endedAt, isStale: false, shift: null, isOutsideShift: false, varianceSeconds: null, extraSeconds: 0, isOffDay: false,
     closedProductiveSeconds: 0, closedBreakSeconds: 0, activeWorkStartedAt: null, activeBreakStartedAt: null,
     productiveSeconds: 0, breakSeconds: 0, spanSeconds: 0, breakCount: 0,
     lastActivity: { type: "STARTED_WORK", at: segments[0].startedAt }, segments,

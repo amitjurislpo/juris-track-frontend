@@ -1,9 +1,11 @@
 import { TrackLink } from "@/track/components/TrackLink";
 import type { TeamMemberRow } from "@/track/api-types";
 import { SortableHeader } from "@/track/components/list/SortableHeader";
+import { OutsideShiftChip } from "@/track/components/time/OutsideShiftChip";
 import { WorkdayStatusChip } from "@/track/components/time/WorkdayStatusChip";
 import { DEFAULT_TEAM_SORT, memberPagePath } from "@/track/lib/team-board-query";
 import { formatClock, formatDuration, formatTime, fullName } from "@/track/lib/time/format";
+import { formatShiftLabel, formatShiftWindow } from "@/track/lib/time/shift";
 import { teamRowFigures } from "@/track/lib/time/team-live-figures";
 import { ACTIVITY_LABELS } from "@/track/lib/time/types";
 import { zoneAbbreviation } from "@/track/lib/time/zone-names";
@@ -24,6 +26,7 @@ export function TeamBoardTable({ rows, nowMilliseconds, timeZone }: { rows: Team
           <tr>
             <SortableHeader sortKey="name" defaultSort={DEFAULT_TEAM_SORT}>{t("Name")}</SortableHeader>
             <th className="hide-sm">{t("Manager")}</th>
+            <th className="hide-sm">{t("Shift")}</th>
             <SortableHeader sortKey="status" defaultSort={DEFAULT_TEAM_SORT}>{t("Status")}</SortableHeader>
             <SortableHeader sortKey="productiveSeconds" defaultSort={DEFAULT_TEAM_SORT} className="r">{t("Productive")}</SortableHeader>
             <th className="r hide-sm">{t("Break")}</th>
@@ -43,11 +46,14 @@ export function TeamBoardTable({ rows, nowMilliseconds, timeZone }: { rows: Team
                   <div className="person"><div>
                     <b><TrackLink to={memberPath} style={{ color: "inherit", textDecoration: "none" }} onClick={(e) => e.stopPropagation()}>{name}</TrackLink></b>
                     <small>{row.employee.employeeCode ?? row.employee.email}</small>
+                    {row.shift && <small className="sub-sm" data-testid="shift-sub">{formatShiftLabel(row.shift)}</small>}
                   </div></div>
                 </td>
                 <td className="muted hide-sm">{row.employee.managerName ?? "—"}</td>
+                <td className="muted hide-sm" style={{ whiteSpace: "nowrap" }}>{row.shift ? <>{row.shift.name}<small style={{ display: "block" }}>{formatShiftWindow(row.shift)}</small></> : "—"}</td>
                 <td>
-                  <WorkdayStatusChip status={row.status} isStale={row.isStale} />
+                  <WorkdayStatusChip status={row.status} isStale={row.isStale} isOffDay={row.isOffDay} />
+                  {row.isOutsideShift && <div style={{ marginTop: 4 }}><OutsideShiftChip /></div>}
                   {row.status === "ON_BREAK" && figures && (
                     <small className="faint num" style={{ display: "block", marginTop: 4 }}>{t("Break {duration}", { duration: formatClock(figures.currentBreakSeconds) })}</small>
                   )}

@@ -17,8 +17,8 @@ import {
   selectedStatuses,
   selectedView,
 } from "@/track/lib/report-query";
-import { toDateKey } from "@/track/lib/time/business-calendar";
 import { viewerTimeZone } from "@/track/lib/viewer-time-zone";
+import { useServerToday } from "@/track/time/useServerToday";
 import { useDisplayTimeZone } from "@/track/time/useDisplayTimeZone";
 import { usePage } from "@/track/usePage";
 import { ActiveFilterBar } from "./ActiveFilterBar";
@@ -44,7 +44,8 @@ export default function ReportsPage() {
   const role = user.role === "ADMIN" ? "ADMIN" : "MANAGER";
   const isOwner = role === "ADMIN";
   const businessTimeZone = viewerTimeZone(user);
-  const range = resolvedReportRange(searchParams, toDateKey(new Date(), businessTimeZone));
+  const serverToday = useServerToday(businessTimeZone);
+  const range = resolvedReportRange(searchParams, serverToday);
   const view = selectedView(searchParams);
   const path = reportPath(searchParams);
   const hasFilters = hasActiveFilters(searchParams, role);

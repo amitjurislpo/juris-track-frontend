@@ -1,6 +1,6 @@
 /** The JSON of the API's answers (`data`), with the API's field names exactly (see the backend's references/API.md). */
 import type { TeamScope } from "./lib/team-board-query";
-import type { ActivityType, LiveStatus, WorkdaySnapshot } from "./lib/time/types";
+import type { ActivityType, LiveStatus, ShiftFigures, WorkdayShift, WorkdaySnapshot } from "./lib/time/types";
 import type { Role } from "./roles";
 
 /** One page of a list endpoint. */
@@ -69,11 +69,58 @@ export interface Employee {
   lastLoginAt: string | null;
   createdAt: string;
   activeReportCount: number;
+  /** The shift the person works now. */
+  shift: EmployeeShift;
+}
+
+/** The short shift of a person (`GET /employees`): enough to show its name and window. */
+type EmployeeShift = Pick<WorkdayShift, "name" | "startTime" | "endTime"> & { id: string };
+
+/** A row of `GET /shifts` and the answer of `GET /shifts/{shiftId}`. */
+export interface Shift {
+  id: string;
+  name: string;
+  /** "HH:mm" in the business time zone. */
+  startTime: string;
+  endTime: string;
+  /** The shift ends on the next day. */
+  crossesMidnight: boolean;
+  scheduledMinutes: number;
+  /** Minutes before the start from which work still belongs to this shift. */
+  earlyStartMinutes: number;
+  /** Minutes after the end until which work still belongs to this shift. */
+  lateEndMinutes: number;
+  /** The business's default shift ("General day"): it cannot be deactivated. */
+  isDefault: boolean;
+  isActive: boolean;
+  employeeCount: number;
+}
+
+/** One date of a person's roster (`GET /schedule-entries`, `GET /me/schedule`). */
+export interface ScheduleDay {
+  date: string;
+  shiftId: string | null;
+  shiftName: string | null;
+  reason?: string | null;
+  /** The date is a week off. */
+  isOff: boolean;
+  /** Where it comes from: a roster entry of that date, the person's shift assignment, or the business default shift. */
+  source: "ENTRY" | "ASSIGNMENT" | "DEFAULT";
+}
+
+/** A person with their days: a row of `GET /schedule-entries`, and what `GET /me/schedule` answers for oneself. */
+export interface ScheduleRow {
+  employeeId: string;
+  name: string;
+  employeeCode: string | null;
+  shift: EmployeeShift;
+  days: ScheduleDay[];
 }
 
 /** A row of `GET /workdays/mine` (the signed-in user's history); an open day's figures run to the time of the answer. */
-export interface WorkdayHistoryRow {
+export interface WorkdayHistoryRow extends ShiftFigures {
   id: string;
+  /** The shift date. */
   date: string;
   status: "WORKING" | "ON_BREAK" | "DAY_ENDED";
   isStale: boolean;
@@ -123,7 +170,7 @@ export interface WorkdayHistory extends ListPage<WorkdayHistoryRow> {
   range: "today" | "yesterday" | "week" | "month" | "custom";
   from: string;
   to: string;
-  totals: { workdays: number; productiveSeconds: number; breakSeconds: number; spanSeconds: number; breakCount: number };
+  totals: { workdays: number; productiveSeconds: number; extraSeconds?: number; breakSeconds: number; spanSeconds: number; breakCount: number };
   dailySeries: DailySeriesPoint[];
 }
 
@@ -140,6 +187,8 @@ export interface ReportTotals {
   workdays: number;
   employees: number;
   productiveSeconds: number;
+  /** Productive seconds outside the shift or on a week off. */
+  extraSeconds?: number;
   breakSeconds: number;
   spanSeconds: number;
   breakCount: number;
@@ -182,6 +231,8 @@ export interface ReportSummaryRow {
   spanSeconds: number;
   breakCount: number;
   averageProductiveSeconds: number;
+  /** Productive seconds outside the shift or on a week off. */
+  extraSeconds?: number;
   firstStartedAt: string;
   /** Null when every workday of the group is still open. */
   lastEndedAt: string | null;
@@ -210,7 +261,7 @@ interface TeamMemberEmployee {
  * A row of the live board: the person and today's state as `GET /me/time` decides it for oneself. The time fields mean what they
  * mean in a workday snapshot (live values up to the board's `serverTime`); a NOT_STARTED row has every number 0 and every time null.
  */
-export interface TeamMemberRow {
+export interface TeamMemberRow extends ShiftFigures {
   employee: TeamMemberEmployee;
   status: LiveStatus;
   workdayId: string | null;
@@ -235,6 +286,8 @@ export interface TeamMetrics {
   working: number;
   onBreak: number;
   notStarted: number;
+  /** People who are off today and have no workday (not counted in `notStarted`). */
+  weekOff: number;
   dayEnded: number;
   /** Open and running longer than the business's stale workday hours ("Not ended"). */
   stale: number;
@@ -262,6 +315,10 @@ export interface TeamMemberDetail {
   businessTimeZone: string;
   staleWorkdayHours: number;
   status: LiveStatus;
+  /** The shift occurrence the person is in now (absent in older answers). */
+  shift?: WorkdayShift | null;
+  /** Today is a week off for the person (absent in older answers). */
+  isOffDay?: boolean;
   /** The open workday (whatever its date), else today's ended workday, else null. */
   workday: WorkdaySnapshot | null;
 }

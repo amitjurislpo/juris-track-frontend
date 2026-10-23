@@ -17,7 +17,7 @@ export function EndedWorkdayNotice({ workdayId, timeZone }: { workdayId: string;
       <b>{t("Your workday of {date} ended after midnight. Here is its summary.", { date: formatDateKey(workday.date) })}</b>
       <span>{t("Today has not started yet: select Start work when you begin again.")}</span>
       <div style={{ marginTop: 8 }}>
-        <WorkdaySummary figures={workday} timeZone={timeZone} label={t("Summary of {date}", { date: formatDateKey(workday.date) })} />
+        <WorkdaySummary figures={{ ...workday, scheduledSeconds: workday.shift?.scheduledSeconds, varianceSeconds: workday.varianceSeconds, extraSeconds: workday.extraSeconds }} timeZone={timeZone} label={t("Summary of {date}", { date: formatDateKey(workday.date) })} />
       </div>
     </section>
   );

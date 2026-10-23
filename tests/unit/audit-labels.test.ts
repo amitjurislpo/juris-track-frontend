@@ -24,6 +24,7 @@ const CATALOGUE_ACTIONS = [
   "audit.exported",
   "business.created", "business.updated", "business.suspended", "business.reactivated",
   "employee.created", "employee.updated", "employee.deactivated", "employee.reactivated", "employee.change_refused",
+  "employee.shift_changed", "shift.created", "shift.updated", "shift.status_changed", "schedule.entry_set", "schedule.entry_removed",
   "time.workday_started", "time.workday_reopened", "time.break_started", "time.work_resumed", "time.workday_ended", "time.event_failed",
   "workday.closed", "time.session_adjusted", "time.workday_closed", "time.correction_refused",
   "integration.business_provisioned", "integration.business_linked", "integration.business_unlinked", "integration.business_updated",
@@ -35,7 +36,7 @@ const hindi = (text: string) => HINDI_MESSAGES[text] ?? text;
 
 describe("audit action labels", () => {
   it("label every action of the catalogue, and only those", () => {
-    expect(CATALOGUE_ACTIONS).toHaveLength(51);
+    expect(CATALOGUE_ACTIONS).toHaveLength(57);
     for (const action of CATALOGUE_ACTIONS) expect(AUDIT_ACTION_LABELS[action], action).toBeTruthy();
     expect(Object.keys(AUDIT_ACTION_LABELS).sort()).toEqual([...CATALOGUE_ACTIONS].sort());
   });

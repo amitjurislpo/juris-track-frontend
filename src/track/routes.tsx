@@ -10,6 +10,9 @@ const ProfilePage = lazy(() => import("./pages/profile/page"));
 const EmployeesPage = lazy(() => import("./pages/admin-employees/page"));
 const NewEmployeePage = lazy(() => import("./pages/admin-employee-new/page"));
 const EmployeePage = lazy(() => import("./pages/admin-employee/page"));
+const MySchedulePage = lazy(() => import("./pages/my-schedule/page"));
+const RosterPage = lazy(() => import("./pages/admin-roster/page"));
+const ShiftsPage = lazy(() => import("./pages/admin-shifts/page"));
 const SettingsPage = lazy(() => import("./pages/admin-settings/page"));
 const BusinessesPage = lazy(() => import("./pages/platform/page"));
 const BusinessPage = lazy(() => import("./pages/platform-business/page"));
@@ -41,11 +44,14 @@ const BUSINESS_USERS: readonly Role[] = ["ADMIN", "MANAGER", "EMPLOYEE"];
 const SUPER_ADMIN_ONLY: readonly Role[] = ["SUPER_ADMIN"];
 const MANAGER_ONLY: readonly Role[] = ["MANAGER"];
 const ADMIN_ONLY: readonly Role[] = ["ADMIN"];
+/** The roster is edited by the owner and read by a manager (their reports). */
+const ROSTER_ROLES: readonly Role[] = ["ADMIN", "MANAGER"];
 
 export const trackRoutes: TrackRoute[] = [
   // personal time tracking: the same for every user of a business, whatever the role
   { path: "dashboard", title: "Dashboard", roles: BUSINESS_USERS, Page: DashboardPage },
   { path: "my-time", title: "My Time", roles: BUSINESS_USERS, Page: MyTimePage },
+  { path: "my-schedule", title: "My Schedule", roles: BUSINESS_USERS, Page: MySchedulePage },
   { path: "my-history", title: "My History", roles: BUSINESS_USERS, Page: MyHistoryPage },
   { path: "profile", title: "Profile", roles: BUSINESS_USERS, Page: ProfilePage },
   // manager: the Team tab (the people who report to them)
@@ -60,6 +66,8 @@ export const trackRoutes: TrackRoute[] = [
   { path: "admin/time-tracking", title: "Time Tracking", roles: ADMIN_ONLY, Page: TeamBoardPage },
   { path: "admin/time-tracking/:id", title: "Employee", roles: ADMIN_ONLY, Page: TeamMemberPage },
   { path: "admin/reports", title: "Reports", roles: ADMIN_ONLY, Page: ReportsPage },
+  { path: "admin/roster", title: "Roster", roles: ROSTER_ROLES, Page: RosterPage },
+  { path: "admin/shifts", title: "Shifts", roles: ADMIN_ONLY, Page: ShiftsPage },
   { path: "admin/audit-log", title: "Audit Log", roles: ADMIN_ONLY, Page: AuditLogPage },
   { path: "admin/settings", title: "Settings", roles: ADMIN_ONLY, Page: SettingsPage },
   // platform (super admin: creates businesses and their owners)

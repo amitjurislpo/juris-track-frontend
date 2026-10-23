@@ -29,8 +29,18 @@ export const PROBLEM_MESSAGES: Record<string, string> = {
   TIME_INTERVAL_OVERLAP: "The corrected interval overlaps another work or break interval. Choose times that do not overlap.",
   WORKDAY_MUST_START_WITH_WORK: "A workday must begin with a work interval: a break cannot come first.",
   INTERVAL_STILL_RUNNING: "This interval is still running. Close the workday instead of setting an end time.",
-  CORRECTION_OUT_OF_RANGE: "A time must be on the workday's date or the day after, in the business time zone.",
+  CORRECTION_OUT_OF_RANGE: "Choose a time on the workday's date or the day after, in the business time zone. To close a forgotten shift, give the time it really ended.",
   WORKDAY_OVERLAP: "The corrected time overlaps another workday of this person. Their hours would count twice.",
+  // shifts (PUT /shifts/{shiftId}/status, PUT /employees/{employeeId}/shift)
+  SHIFT_IN_USE: "Employees still work this shift. Move them to another shift first, then deactivate it.",
+  DEFAULT_SHIFT_REQUIRED: "The default shift cannot be deactivated: every new employee starts on it.",
+  SHIFT_EFFECTIVE_DATE_IN_PAST: "Choose today or a later date: a shift change cannot rewrite past days.",
+  // roster (PUT/DELETE /employees/{employeeId}/schedule-entries)
+  SCHEDULE_DATE_TOO_FAR: "This date is too far ahead. Choose a nearer date.",
+  SCHEDULE_DATE_HAS_WORKDAY: "This date already has a recorded workday, so its roster entry cannot be changed. Correct the workday instead.",
+  SHIFT_NOT_FOUND: "This shift does not exist in your business.",
+  SHIFT_INACTIVE: "This shift is deactivated. Reactivate it first or choose another shift.",
+  SHIFT_NAME_IN_USE: "A shift with this name already exists.",
   // reports (GET /reports/workdays as CSV): more rows than one file may hold
   EXPORT_TOO_LARGE: "This export has too many rows for one file. Narrow the date range or choose fewer people, then export again.",
   // any write: the request body is above the API's limit (64 KB)
@@ -54,6 +64,8 @@ export const PROBLEM_FIELDS: Record<string, string> = {
   MANAGER_CYCLE: "managerId",
   MANAGER_HAS_REPORTS: "role",
   ROLE_NOT_ASSIGNABLE: "role",
+  SHIFT_EFFECTIVE_DATE_IN_PAST: "effectiveFrom",
+  SHIFT_NAME_IN_USE: "name",
 };
 
 /** The message to show for a failed write: the clear text of its code, else the API's `detail`. */
