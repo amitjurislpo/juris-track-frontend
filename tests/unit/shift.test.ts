@@ -19,6 +19,9 @@ describe("shift windows", () => {
     expect(formatShiftWindow({ startTime: "19:30", endTime: "04:30" })).toBe("19:30 – 04:30 (+1)");
     expect(formatShiftWindow({ startTime: "14:00", endTime: "23:00" })).toBe("14:00 – 23:00");
     expect(formatShiftWindow({ startTime: "09:00", endTime: "09:00" })).toBe("09:00 – 09:00 (+1)");
+    expect(formatShiftWindow({ startTime: "00:00", endTime: "00:00" })).toBe("All day");
+    expect(formatScheduledMinutes(1440)).toBe("All day");
+    expect(formatScheduledSeconds(86400)).toBe("All day");
   });
 
   it("trusts crossesMidnight when the API sends it", () => {
@@ -56,7 +59,7 @@ describe("variance wording", () => {
   });
 
   it("has Hindi for its patterns", () => {
-    for (const key of ["{hours}h {minutes}m", "+{hours}h {minutes}m over", "{hours}h {minutes}m short", "On schedule"]) expect(HINDI_MESSAGES[key], key).toBeTruthy();
+    for (const key of ["{hours}h {minutes}m", "+{hours}h {minutes}m over", "{hours}h {minutes}m short", "On schedule", "All day"]) expect(HINDI_MESSAGES[key], key).toBeTruthy();
   });
 
   it("follows the display language", () => {

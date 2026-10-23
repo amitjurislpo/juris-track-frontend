@@ -72,7 +72,11 @@ test.describe.serial("Shifts and roster", () => {
     await login(employeePage, NIGHT_WORKER.email);
     await expectLanded(employeePage, "/dashboard");
     await employeePage.goto("/my-time");
-    await expect(employeePage.getByTestId("shift-line")).toContainText(`${SHIFT_NAME} 19:30 – 04:30 (+1)`);
+    // The shift applies from today's date on. With no workday yet, the timer shows the shift occurrence nearest to now: from midnight to
+    // 09:45 (business time) that is still yesterday's occurrence, which is the default shift (the new one starts at 19:30 and is farther away).
+    const [hour, minute] = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date()).split(":").map(Number);
+    const isNewShiftNearest = hour * 60 + minute > 9 * 60 + 45;
+    await expect(employeePage.getByTestId("shift-line")).toContainText(isNewShiftNearest ? `${SHIFT_NAME} 19:30 – 04:30 (+1)` : "General day All day");
     await employeePage.context().close();
   });
 

@@ -32,8 +32,9 @@ export function scheduledMinutesOf(startTime: string, endTime: string): number {
   return difference > 0 ? difference : difference + 24 * 60;
 }
 
-/** 19:30 – 04:30 (+1) — the "(+1)" marks an end on the next day. */
+/** 19:30 – 04:30 (+1) — the "(+1)" marks an end on the next day; the default shift (00:00 – 00:00, the whole calendar day) reads "All day". */
 export function formatShiftWindow(shift: ShiftWindow): string {
+  if (shift.startTime === "00:00" && shift.endTime === "00:00") return displayText("All day");
   const crossesMidnight = shift.crossesMidnight ?? shiftCrossesMidnight(shift.startTime, shift.endTime);
   return `${shift.startTime} – ${shift.endTime}${crossesMidnight ? " (+1)" : ""}`;
 }
@@ -50,11 +51,13 @@ function hoursAndMinutes(totalSeconds: number): { hours: number; minutes: string
 
 /** 9h 00m — scheduled length of a shift given in minutes. */
 export function formatScheduledMinutes(scheduledMinutes: number): string {
+  if (scheduledMinutes === 24 * 60) return displayText("All day");
   return displayText("{hours}h {minutes}m", hoursAndMinutes(scheduledMinutes * 60));
 }
 
 /** 9h 00m — the same from seconds (the scheduled length of a workday's shift). */
 export function formatScheduledSeconds(scheduledSeconds: number): string {
+  if (scheduledSeconds === 24 * 3600) return displayText("All day");
   return displayText("{hours}h {minutes}m", hoursAndMinutes(scheduledSeconds));
 }
 

@@ -58,6 +58,12 @@ export interface ShiftFigures {
   isOffDay: boolean;
 }
 
+/** The break that started last; `endedAt` is null while it runs. */
+export interface LastBreak {
+  startedAt: string;
+  endedAt: string | null;
+}
+
 /**
  * A workday as of the server time it was read at. Live values are advanced on the client (see `liveTotals`):
  *   productive = closedProductiveSeconds + (now - activeWorkStartedAt)
@@ -80,6 +86,7 @@ export interface WorkdaySnapshot extends ShiftFigures {
   breakSeconds: number;
   spanSeconds: number;
   breakCount: number;
+  lastBreak: LastBreak | null;
   lastActivity: { type: ActivityType; at: string };
   /** Oldest first. */
   segments: TimelineSegment[];

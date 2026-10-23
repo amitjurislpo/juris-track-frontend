@@ -142,6 +142,7 @@ test.describe.serial("personal time tracking", () => {
     expect(await readTimer(page)).toBe(pausedAt);
     await expect(figure(page, "Today's totals", "Break")).not.toHaveText(breakBefore ?? "");
     await expect(figure(page, "Today's totals", "Breaks")).toHaveText("1");
+    await expect(figure(page, "Today's totals", "Last break")).toHaveText(/^\d\d:\d\d · running$/); // when the break started, while it runs
 
     // a reload keeps the same timer (it comes from the server's timestamps, not from a counter in the page)
     await page.reload();
@@ -152,6 +153,7 @@ test.describe.serial("personal time tracking", () => {
     const otherPage = await signInElsewhere(browser, WORKER.email, "/dashboard");
     await expect(timeStatus(otherPage)).toHaveText("On break");
     expect(await readTimer(otherPage)).toBe(pausedAt);
+    await expect(otherPage.getByLabel("Today", { exact: true })).toContainText(/Last break \d\d:\d\d · running/); // the Today card of the dashboard
     await otherPage.goto("/my-time");
     await expect(button(otherPage, "Back to work")).toBeEnabled();
     await otherPage.context().close();
@@ -162,6 +164,7 @@ test.describe.serial("personal time tracking", () => {
     await expect.poll(() => readTimer(page), { timeout: 10_000 }).toBeGreaterThan(pausedAt);
     await expect(page.getByRole("group", { name: "Work and break timeline" }).getByRole("img")).toHaveCount(3);
 
+    await expect(figure(page, "Today's totals", "Last break")).toHaveText(/^\d\d:\d\d$/); // the break is over: its start time stays
     await endWorkday(page);
     await expect(button(page, "Start again")).toBeVisible();
     await expect(page.getByText(START_AGAIN_HINT)).toBeVisible();
@@ -178,6 +181,9 @@ test.describe.serial("personal time tracking", () => {
     await expect(tableRows(page)).toHaveCount(1);
     const row = tableRows(page).first();
     for (const value of [productive, breakTime, span, "Day ended", dateText(businessDate(0))]) await expect(row).toContainText(value);
+    // the columns say when work started and ended and when the last break started
+    for (const heading of ["Work started", "Work ended", "Last break"]) await expect(page.locator("table.t thead")).toContainText(heading);
+    await expect(row.locator("td").nth(7)).toHaveText(/^\d\d:\d\d$/);
     expect(await countsOf(WORKER.email)).toEqual({ workdays: 1, workSessions: 2, breakSessions: 1 });
   });
 
@@ -393,7 +399,8 @@ test.describe.serial("personal time tracking", () => {
     for (const unchanged of [dateText(yesterday), "8h 30m 00s", "30m 00s", "9h 00m 00s"]) await expect(row).toContainText(unchanged);
     await row.click();
     const intervals = page.getByRole("dialog").getByRole("list", { name: "Intervals" }).getByRole("listitem");
-    await expect(intervals.nth(0)).toContainText(`${clockIn(DISPLAY_TIME_ZONE, yesterday, "09:00")} – ${clockIn(DISPLAY_TIME_ZONE, yesterday, "13:00")}`);
+    // in New York this interval runs past midnight, so its end carries its date ("23 Oct, 03:30")
+    await expect(intervals.nth(0)).toContainText(new RegExp(`${clockIn(DISPLAY_TIME_ZONE, yesterday, "09:00")} – (\\d+ \\w+, )?${clockIn(DISPLAY_TIME_ZONE, yesterday, "13:00")}`));
     await expect(intervals.nth(0)).toContainText("4h 00m 00s");
     await page.keyboard.press("Escape");
 

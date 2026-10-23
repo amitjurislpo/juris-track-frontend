@@ -1,6 +1,6 @@
 /** The JSON of the API's answers (`data`), with the API's field names exactly (see the backend's references/API.md). */
 import type { TeamScope } from "./lib/team-board-query";
-import type { ActivityType, LiveStatus, ShiftFigures, WorkdayShift, WorkdaySnapshot } from "./lib/time/types";
+import type { ActivityType, LastBreak, LiveStatus, ShiftFigures, WorkdayShift, WorkdaySnapshot } from "./lib/time/types";
 import type { Role } from "./roles";
 
 /** One page of a list endpoint. */
@@ -64,6 +64,8 @@ export interface Employee {
   email: string;
   role: Exclude<Role, "SUPER_ADMIN">;
   isActive: boolean;
+  /** False = the owner switched sign-in off: the person stays in the business but cannot sign in. */
+  isLoginEnabled: boolean;
   managerId: string | null;
   managerName: string | null;
   lastLoginAt: string | null;
@@ -130,6 +132,7 @@ export interface WorkdayHistoryRow extends ShiftFigures {
   breakSeconds: number;
   spanSeconds: number;
   breakCount: number;
+  lastBreak: LastBreak | null;
 }
 
 /** A row of `GET /audit-logs` (owner: their business; super admin: every entry). Names are the current ones, resolved when read. */
@@ -277,6 +280,7 @@ export interface TeamMemberRow extends ShiftFigures {
   breakSeconds: number;
   spanSeconds: number;
   breakCount: number;
+  lastBreak: LastBreak | null;
   lastActivity: { type: ActivityType; at: string } | null;
 }
 

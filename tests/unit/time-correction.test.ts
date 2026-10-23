@@ -30,7 +30,7 @@ function workday(segments: TimelineSegment[], endedAt: string | null): WorkdaySn
   return {
     id: "d1", date: "2026-10-22", status: endedAt ? "DAY_ENDED" : "WORKING", startedAt: segments[0].startedAt, endedAt, isStale: false, shift: null, isOutsideShift: false, varianceSeconds: null, extraSeconds: 0, isOffDay: false,
     closedProductiveSeconds: 0, closedBreakSeconds: 0, activeWorkStartedAt: null, activeBreakStartedAt: null,
-    productiveSeconds: 0, breakSeconds: 0, spanSeconds: 0, breakCount: 0,
+    productiveSeconds: 0, breakSeconds: 0, spanSeconds: 0, breakCount: 0, lastBreak: null,
     lastActivity: { type: "STARTED_WORK", at: segments[0].startedAt }, segments,
   };
 }

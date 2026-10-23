@@ -788,3 +788,7 @@ button.roster-cell{cursor:pointer}
 .roster-person li.today{font-weight:600}
 @media(max-width:700px){.roster-grid{display:none}.roster-agenda{display:block}}
 .schedule-list{list-style:none;margin:0;padding:0}.schedule-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}.schedule-list li.today{background:var(--accentsoft)}
+
+/* in a page column the timer card takes the height of its content (the prototype's min-height:100% stretched it over the whole screen and squeezed the cards below it to their headings) */
+.col>.card{flex:none}
+.col>.timecard{min-height:0}

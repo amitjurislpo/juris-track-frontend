@@ -41,7 +41,7 @@ export default function NewEmployeePage() {
       const shiftResult = await setEmployeeShift(result.data.id, { shiftId });
       if (!shiftResult.ok) toast(t("The employee was added, but the shift could not be set: {reason}", { reason: problemMessage(shiftResult, t) }));
     }
-    navigate(result.data ? `/admin/employees/${result.data.id}` : "/admin/employees");
+    navigate("/admin/employees");
   };
 
   return (
