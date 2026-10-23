@@ -19,6 +19,7 @@ export function teamRowFigures(row: TeamMemberRow, nowMilliseconds: number): Liv
       currentBreakSeconds: 0,
       spanSeconds: row.spanSeconds,
       breakCount: row.breakCount,
+      lastBreak: row.lastBreak,
     };
   }
   return liveTotals({ ...row, startedAt: row.startedAt }, nowMilliseconds);

@@ -1,7 +1,7 @@
 import type { TeamMemberDetail } from "@/track/api-types";
 import { WorkdayStatusChip } from "@/track/components/time/WorkdayStatusChip";
 import { WorkdaySummary } from "@/track/components/time/WorkdaySummary";
-import { formatClock, formatDateKey, formatDuration, formatTime } from "@/track/lib/time/format";
+import { formatClock, formatDateKey, formatDuration, formatTime, formatTimeOnDay } from "@/track/lib/time/format";
 import { workdayFigures } from "@/track/lib/time/live-totals";
 import { ACTIVITY_LABELS } from "@/track/lib/time/types";
 import { zoneAbbreviation } from "@/track/lib/time/zone-names";
@@ -39,7 +39,7 @@ export function MemberStatusCard({ member, nowMilliseconds, timeZone, onOpenWork
           {status === "NOT_STARTED" && t("Has not started today.")}
           {status === "WORKING" && live && t("Current session {duration}", { duration: formatDuration(live.currentWorkSeconds) })}
           {status === "ON_BREAK" && live && <b className="num" style={{ color: "var(--text)" }}>{t("Current break {duration}", { duration: formatClock(live.currentBreakSeconds) })}</b>}
-          {status === "DAY_ENDED" && workday?.endedAt && t("Ended at {time}", { time: `${formatTime(workday.endedAt, timeZone)} ${zone}` })}
+          {status === "DAY_ENDED" && workday?.endedAt && t("Ended at {time}", { time: `${formatTimeOnDay(workday.endedAt, timeZone, workday.startedAt)} ${zone}` })}
           {workday && <span style={{ display: "block" }}>{t(ACTIVITY_LABELS[workday.lastActivity.type])} · {formatTime(workday.lastActivity.at, timeZone)} {zone}</span>}
         </div>
       </div>

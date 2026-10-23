@@ -1,9 +1,10 @@
 import { TrackLink } from "@/track/components/TrackLink";
 import type { TeamMemberRow } from "@/track/api-types";
 import { SortableHeader } from "@/track/components/list/SortableHeader";
+import { LastBreakNote } from "@/track/components/time/LastBreakNote";
 import { WorkdayStatusChip } from "@/track/components/time/WorkdayStatusChip";
 import { DEFAULT_TEAM_SORT, memberPagePath } from "@/track/lib/team-board-query";
-import { formatClock, formatDuration, formatTime, fullName } from "@/track/lib/time/format";
+import { formatClock, formatDuration, formatTime, formatTimeOnDay, fullName } from "@/track/lib/time/format";
 import { teamRowFigures } from "@/track/lib/time/team-live-figures";
 import { ACTIVITY_LABELS } from "@/track/lib/time/types";
 import { zoneAbbreviation } from "@/track/lib/time/zone-names";
@@ -11,7 +12,7 @@ import { useTrack } from "@/track/TrackContext";
 
 /**
  * The people of the board: name and code, manager, state ("Not ended" for a day left open too long, the running break's length),
- * productive time (live for a working person), break time, start and last activity in the display time zone. Sortable through the
+ * productive time (live for a working person), break time, when work started, the last break and last activity in the display time zone. Sortable through the
  * URL; a row opens the person.
  */
 export function TeamBoardTable({ rows, nowMilliseconds, timeZone }: { rows: TeamMemberRow[]; nowMilliseconds: number; timeZone: string }) {
@@ -27,7 +28,8 @@ export function TeamBoardTable({ rows, nowMilliseconds, timeZone }: { rows: Team
             <SortableHeader sortKey="status" defaultSort={DEFAULT_TEAM_SORT}>{t("Status")}</SortableHeader>
             <SortableHeader sortKey="productiveSeconds" defaultSort={DEFAULT_TEAM_SORT} className="r">{t("Productive")}</SortableHeader>
             <th className="r hide-sm">{t("Break")}</th>
-            <th className="hide-sm">{t("Started ({zone})", { zone })}</th>
+            <th className="hide-sm">{t("Work started ({zone})", { zone })}</th>
+            <th className="hide-sm">{t("Last break")}</th>
             <SortableHeader sortKey="lastActivity" defaultSort={DEFAULT_TEAM_SORT} className="hide-sm">{t("Last activity")}</SortableHeader>
           </tr>
         </thead>
@@ -43,6 +45,7 @@ export function TeamBoardTable({ rows, nowMilliseconds, timeZone }: { rows: Team
                   <div className="person"><div>
                     <b><TrackLink to={memberPath} style={{ color: "inherit", textDecoration: "none" }} onClick={(e) => e.stopPropagation()}>{name}</TrackLink></b>
                     <small>{row.employee.employeeCode ?? row.employee.email}</small>
+                    {figures && <LastBreakNote lastBreak={figures.lastBreak} timeZone={timeZone} className="show-sm" />}
                   </div></div>
                 </td>
                 <td className="muted hide-sm">{row.employee.managerName ?? "—"}</td>
@@ -57,8 +60,12 @@ export function TeamBoardTable({ rows, nowMilliseconds, timeZone }: { rows: Team
                     ? <span role="timer" aria-label={t("Productive time of {name}", { name })} data-seconds={figures.productiveSeconds}>{formatDuration(figures.productiveSeconds)}</span>
                     : "—"}
                 </td>
-                <td className="r num hide-sm">{figures ? formatDuration(figures.breakSeconds) : "—"}</td>
-                <td className="num hide-sm">{formatTime(row.startedAt, timeZone)}</td>
+                <td className="r num hide-sm">
+                  {figures ? formatDuration(figures.breakSeconds) : "—"}
+                  {figures && <small className="faint" style={{ display: "block", marginTop: 4 }}>{t(figures.breakCount === 1 ? "{count} break" : "{count} breaks", { count: figures.breakCount })}</small>}
+                </td>
+                <td className="num hide-sm">{formatTimeOnDay(row.startedAt, timeZone, new Date(nowMilliseconds))}</td>
+                <td className="num hide-sm">{figures?.lastBreak ? <LastBreakNote lastBreak={figures.lastBreak} timeZone={timeZone} isLabelled={false} /> : "—"}</td>
                 <td className="muted hide-sm" style={{ whiteSpace: "nowrap" }}>
                   {row.lastActivity ? `${t(ACTIVITY_LABELS[row.lastActivity.type])} · ${formatTime(row.lastActivity.at, timeZone)}` : "—"}
                 </td>

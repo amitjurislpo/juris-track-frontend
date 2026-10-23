@@ -43,9 +43,12 @@ export function DailyChart({ points, height = 170, label }: { points: DailyChart
             })}
           </svg>
           <div className={`daychart-x${chart.bars.length <= 7 ? " daychart-x-few" : ""}`} aria-hidden="true">
-            {chart.bars.map((bar) => (
-              <span key={bar.date}>{bar.hasLabel ? formatDateKey(bar.date, { weekday: chart.bars.length <= 7, year: false }).replace(",", "") : ""}</span>
-            ))}
+            {chart.bars.map((bar) => {
+              const text = bar.hasLabel ? formatDateKey(bar.date, { weekday: chart.bars.length <= 7, year: false }).replace(",", "") : "";
+              if (chart.bars.length > 7 || !text) return <span key={bar.date}>{text}</span>;
+              const [weekday, ...dayAndMonth] = text.split(" "); // a week's columns are narrow: the weekday above, the date below
+              return <span key={bar.date}><em>{weekday}</em><em>{dayAndMonth.join(" ")}</em></span>;
+            })}
           </div>
         </div>
       </div>

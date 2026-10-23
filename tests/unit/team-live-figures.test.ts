@@ -10,7 +10,7 @@ function row(fields: Partial<TeamMemberRow>): TeamMemberRow {
     employee: { id: "e1", employeeCode: "E1", firstName: "Asha", lastName: "Rao", email: "asha@example.test", role: "EMPLOYEE", isActive: true, managerId: "m1", managerName: "Milo Manager" },
     status: "NOT_STARTED", workdayId: null, date: null, startedAt: null, endedAt: null, isStale: false,
     closedProductiveSeconds: 0, closedBreakSeconds: 0, activeWorkStartedAt: null, activeBreakStartedAt: null,
-    productiveSeconds: 0, breakSeconds: 0, spanSeconds: 0, breakCount: 0, lastActivity: null,
+    productiveSeconds: 0, breakSeconds: 0, spanSeconds: 0, breakCount: 0, lastBreak: null, lastActivity: null,
     ...fields,
   };
 }
@@ -36,10 +36,18 @@ describe("teamRowFigures", () => {
     expect(teamRowFigures(onBreak, at("2026-10-22T10:10:00Z"))?.productiveSeconds).toBe(7200);
   });
 
+  it("carries the last break of an open and of an ended day", () => {
+    const lastBreak = { startedAt: "2026-10-22T09:55:00Z", endedAt: null };
+    const onBreak = row({ status: "ON_BREAK", startedAt: "2026-10-22T08:00:00Z", activeBreakStartedAt: "2026-10-22T09:55:00Z", breakCount: 1, lastBreak });
+    expect(teamRowFigures(onBreak, at(SERVER_TIME))?.lastBreak).toEqual(lastBreak);
+    const ended = row({ status: "DAY_ENDED", startedAt: "2026-10-22T03:00:00Z", endedAt: "2026-10-22T09:00:00Z", breakCount: 1, lastBreak: { startedAt: "2026-10-22T05:00:00Z", endedAt: "2026-10-22T05:10:00Z" } });
+    expect(teamRowFigures(ended, at(SERVER_TIME))?.lastBreak).toEqual(ended.lastBreak);
+  });
+
   it("shows an ended day's own totals, whatever the time", () => {
     const ended = row({ status: "DAY_ENDED", startedAt: "2026-10-22T03:00:00Z", endedAt: "2026-10-22T09:00:00Z", productiveSeconds: 20000,
       breakSeconds: 1600, spanSeconds: 21600, breakCount: 2, closedProductiveSeconds: 20000, closedBreakSeconds: 1600 });
-    expect(teamRowFigures(ended, at("2026-10-22T23:00:00Z"))).toEqual({ productiveSeconds: 20000, breakSeconds: 1600, currentWorkSeconds: 0, currentBreakSeconds: 0, spanSeconds: 21600, breakCount: 2 });
+    expect(teamRowFigures(ended, at("2026-10-22T23:00:00Z"))).toEqual({ productiveSeconds: 20000, breakSeconds: 1600, currentWorkSeconds: 0, currentBreakSeconds: 0, spanSeconds: 21600, breakCount: 2, lastBreak: null });
   });
 });
 

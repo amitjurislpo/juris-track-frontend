@@ -17,6 +17,7 @@ export const PROBLEM_MESSAGES: Record<string, string> = {
   MANAGER_HAS_REPORTS: "This manager still has active reports. Give them another manager first.",
   ROLE_NOT_ASSIGNABLE: "This role cannot be given here: an employee is an Employee or a Manager, and the owner stays the owner.",
   CANNOT_DEACTIVATE_SELF: "You cannot deactivate your own account.",
+  CANNOT_DISABLE_OWN_LOGIN: "You cannot switch off your own sign-in.",
   LAST_ACTIVE_OWNER: "The business must keep at least one active owner.",
   BUSINESS_SUSPENDED: "Your company's access to JurisTrack is suspended. Please contact support.",
   // time events (POST /me/time-events): the state changed elsewhere (another tab or device) or the button was out of date

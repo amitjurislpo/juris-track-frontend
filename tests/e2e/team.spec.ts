@@ -179,6 +179,11 @@ test.describe.serial("Team tab and time corrections", () => {
     await comeBackToTab(page);
     await expect(boardRow(page, WORKER)).toContainText("On break");
     await expect(boardRow(page, WORKER)).toContainText(/Break 00:00:\d\d/);
+    await expect(boardRow(page, WORKER)).toContainText("1 break"); // how many breaks so far, next to their total
+    await expect(boardRow(page, WORKER)).toContainText(/Last break \d\d:\d\d · running/); // and when the last one started
+    await expect(page.locator("table.t thead")).toContainText("Work started");
+    await expect(page.locator("table.t thead")).toContainText("Last break");
+    await expect(boardRow(page, WORKER).locator("td").nth(6)).toHaveText(/^\d\d:\d\d · running$/); // its own column
     await expect(tile(page, "On break", 1)).toBeVisible();
     const pausedAt = await secondsOf(timer);
     await page.waitForTimeout(2_500);
