@@ -169,7 +169,7 @@ test.describe.serial("Team tab and time corrections", () => {
     await expect(boardRow(page, WORKER)).toContainText("Working");
     await expect(tile(page, "Working", 1)).toBeVisible();
     await expect(tile(page, "Not started", 4)).toBeVisible();
-    await expect(boardRow(page, WORKER)).toContainText(/Started work · \d\d:\d\d/);
+    await expect(boardRow(page, WORKER)).toContainText(/Started work · \d\d:\d\d [AP]M/);
     // the timer runs on the page's own (server-corrected) clock between two readings of the board
     const timer = rowTimer(page, WORKER);
     const firstReading = await secondsOf(timer);
@@ -180,10 +180,10 @@ test.describe.serial("Team tab and time corrections", () => {
     await expect(boardRow(page, WORKER)).toContainText("On break");
     await expect(boardRow(page, WORKER)).toContainText(/Break 00:00:\d\d/);
     await expect(boardRow(page, WORKER)).toContainText("1 break"); // how many breaks so far, next to their total
-    await expect(boardRow(page, WORKER)).toContainText(/Last break \d\d:\d\d · running/); // and when the last one started
+    await expect(boardRow(page, WORKER)).toContainText(/Last break \d\d:\d\d [AP]M · running/); // and when the last one started
     await expect(page.locator("table.t thead")).toContainText("Work started");
     await expect(page.locator("table.t thead")).toContainText("Last break");
-    await expect(boardRow(page, WORKER).locator("td").nth(7)).toHaveText(/^\d\d:\d\d · running$/); // its own column
+    await expect(boardRow(page, WORKER).locator("td").nth(7)).toHaveText(/^\d\d:\d\d [AP]M · running$/); // its own column
     await expect(tile(page, "On break", 1)).toBeVisible();
     const pausedAt = await secondsOf(timer);
     await page.waitForTimeout(2_500);
@@ -359,7 +359,7 @@ test.describe.serial("Team tab and time corrections", () => {
     await expect(totals).toContainText("7h 30m 00s");
     await expect(totals).toContainText("30m 00s");
     await expect(tableRows(page).first()).toContainText("09:00");
-    await expect(tableRows(page).first()).toContainText("17:00");
+    await expect(tableRows(page).first()).toContainText("05:00 PM");
 
     await tableRows(page).first().click();
     const dialog = page.getByRole("dialog");

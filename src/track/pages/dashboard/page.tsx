@@ -14,6 +14,7 @@ import { useServerToday } from "@/track/time/useServerToday";
 import { useDisplayTimeZone } from "@/track/time/useDisplayTimeZone";
 import { useTimeEvent } from "@/track/time/useTimeEvent";
 import { useTimeState } from "@/track/time/useTimeState";
+import { useTrack } from "@/track/TrackContext";
 import { useData, usePage } from "@/track/usePage";
 import { NextShiftCard } from "./NextShiftCard";
 import { TodayCard } from "./TodayCard";
@@ -34,6 +35,7 @@ const RECENT_WORKDAYS = 5;
  */
 export default function DashboardPage() {
   const { user, t } = usePage();
+  const { greetingFor: hostGreetingFor = greetingFor } = useTrack();
   const timeState = useTimeState({ isLive: true });
   const runner = useTimeEvent();
   const { timeZone } = useDisplayTimeZone();
@@ -51,7 +53,7 @@ export default function DashboardPage() {
 
   return (
     <div className="col">
-      <PageHeader eyebrow={t("My workspace")} title={t(greetingFor(hour), { name: user.firstName })} sub={formatDateKey(reading.state.today)} />
+      <PageHeader eyebrow={t("My workspace")} title={t(hostGreetingFor(hour), { name: user.firstName })} sub={formatDateKey(reading.state.today)} />
       <div className="bento">
         <TodayCard reading={reading} runner={runner} timeZone={timeZone} />
         <section className="card pad span-5 enter" style={{ ["--i" as string]: 2 }} aria-labelledby="week-heading">

@@ -50,7 +50,7 @@ export default function NewEmployeePage() {
       <form className="card enter" style={{ ["--i" as string]: 1, padding: 20 }} onSubmit={save} noValidate>
         <EmployeeFields form={form} onChange={(updatedForm) => { setForm(updatedForm); setErrors(NO_ERRORS); }} errors={errors.fields} managers={managers} />
         <div style={{ marginTop: 14 }}>
-          <FormField label={t("Shift")} hint={t("new employees start on the default shift")}>
+          <FormField label={t("Shift")} hint={t("The default shift is pre-selected; pick another to change it")}>
             <select value={shiftId} onChange={(e) => setPickedShiftId(e.target.value)}>
               {shifts.map((shift) => <option key={shift.id} value={shift.id}>{`${shift.name} · ${formatShiftWindow(shift)}`}</option>)}
             </select>

@@ -8,8 +8,8 @@ import { defineConfig, loadEnv } from "vite";
  */
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const backend = (env.BACKEND_URL || "http://127.0.0.1:8082").replace(/\/$/, "");
-  const port = Number(env.WEB_PORT || 3007);
+  const backend = (env.BACKEND_URL || "http://127.0.0.1:8081").replace(/\/$/, "");
+  const port = Number(env.WEB_PORT || 3006);
   const proxy = { "/api": { target: backend, changeOrigin: false, xfwd: true } };
   return {
     plugins: [react()],

@@ -3,7 +3,7 @@ import type { Employee } from "@/track/api-types";
 import { ConfirmDialog } from "@/track/components/ConfirmDialog";
 import { FormField } from "@/track/components/FormField";
 import { problemMessage } from "@/track/lib/problems";
-import { fullName } from "@/track/lib/time/format";
+import { formatDateKey, fullName } from "@/track/lib/time/format";
 import { formatShiftLabel, formatShiftWindow } from "@/track/lib/time/shift";
 import { useTrack } from "@/track/TrackContext";
 import { useShifts } from "../admin-shifts/useShifts";
@@ -60,7 +60,7 @@ export function EmployeeShiftCard({ employee }: { employee: Employee }) {
           body={t("Move {name} to {shift} {from}? Days already recorded are not rewritten: they keep the shift they were counted against.", {
             name: fullName(employee),
             shift: formatShiftLabel(chosen),
-            from: effectiveFrom ? t("from {date}", { date: effectiveFrom }) : t("from now"),
+            from: effectiveFrom ? t("from {date}", { date: formatDateKey(effectiveFrom) }) : t("from now"),
           })}
           confirmLabel={t("Change shift")}
           isBusy={isSaving}

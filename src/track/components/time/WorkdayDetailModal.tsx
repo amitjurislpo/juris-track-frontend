@@ -28,6 +28,7 @@ function WorkdayDetail({ workdayId, timeZone, renderExtras }: { workdayId: strin
   const now = useServerClock(reading?.clockOffsetMilliseconds ?? 0, isOpen);
   if (!workday) return null;
   const live = workdayFigures(workday, now);
+  const isAllDayShift = workday.shift?.startTime === "00:00" && workday.shift.endTime === "00:00";
   return (
     <div className="col" style={{ gap: 16 }}>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
@@ -36,12 +37,14 @@ function WorkdayDetail({ workdayId, timeZone, renderExtras }: { workdayId: strin
       </div>
       {workday.shift && (
         <p className="muted" style={{ margin: 0, fontSize: 13.5 }} data-testid="shift-schedule">
-          {t("Scheduled {start} – {end} ({duration}).", {
-            start: formatTime(workday.shift.scheduledStartAt, timeZone),
-            end: formatTime(workday.shift.scheduledEndAt, timeZone),
-            duration: formatScheduledSeconds(workday.shift.scheduledSeconds),
-          })}
-          {workday.varianceSeconds !== null && <> <b data-testid="shift-variance">{t("Productive time against the schedule: {variance}.", { variance: formatVariance(workday.varianceSeconds) })}</b></>}
+          {isAllDayShift
+            ? t("Scheduled all day.")
+            : t("Scheduled {start} – {end} ({duration}).", {
+              start: formatTime(workday.shift.scheduledStartAt, timeZone),
+              end: formatTime(workday.shift.scheduledEndAt, timeZone),
+              duration: formatScheduledSeconds(workday.shift.scheduledSeconds),
+            })}
+          {workday.varianceSeconds !== null && !isAllDayShift && <> <b data-testid="shift-variance">{t("Productive time against the schedule: {variance}.", { variance: formatVariance(workday.varianceSeconds) })}</b></>}
         </p>
       )}
       <WorkdaySummary figures={{ ...live, startedAt: workday.startedAt, endedAt: workday.endedAt, scheduledSeconds: workday.shift?.scheduledSeconds, extraSeconds: workday.extraSeconds }} timeZone={timeZone} label={t("Workday summary")} />

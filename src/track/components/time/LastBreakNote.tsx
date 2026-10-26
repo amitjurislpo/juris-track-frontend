@@ -19,5 +19,5 @@ export function LastBreakNote({ lastBreak, timeZone, isLabelled = true, classNam
   const text = isLabelled
     ? (lastBreak.endedAt ? t("Last break {time}", { time }) : t("Last break {time} · running", { time }))
     : (lastBreak.endedAt ? time : t("{time} · running", { time }));
-  return <small className={className} style={style}>{text}</small>;
+  return <small className={[isLabelled ? "" : "figure", className].filter(Boolean).join(" ") || undefined} style={style}>{text}</small>;
 }

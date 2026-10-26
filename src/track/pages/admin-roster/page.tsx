@@ -51,7 +51,7 @@ export default function RosterPage() {
       </div>
       {data && (
         <RosterBoard key={`${from}|${data.page}|${searchParams.search ?? ""}|${searchParams.managerId ?? ""}`} data={data} from={from} to={to} today={today}
-          activeShifts={activeShifts} allShifts={allShifts} canEdit={isOwner} />
+          activeShifts={activeShifts} allShifts={allShifts} canEdit={isOwner} hasFilters={Boolean(searchParams.search || (isOwner && searchParams.managerId))} />
       )}
     </div>
   );

@@ -3,7 +3,7 @@ import { FormField } from "@/track/components/FormField";
 import { Icon } from "@/track/components/Icon";
 import { Modal } from "@/track/components/Modal";
 import { formErrorsOf, type FormErrors } from "@/track/lib/problems";
-import { timeZoneOptions } from "@/track/lib/time/zone-names";
+import { timeZoneOptions, zoneOptionLabel } from "@/track/lib/time/zone-names";
 import { useTrack } from "@/track/TrackContext";
 import { createBusiness } from "./actions";
 
@@ -58,7 +58,7 @@ export function NewBusinessButton() {
               </FormField>
               <FormField label={t("Time zone")} error={errors.fields.timeZone}>
                 <select value={form.timeZone} onChange={(e) => change("timeZone", e.target.value)}>
-                  {zones.map((zone) => <option key={zone} value={zone}>{zone}</option>)}
+                  {zones.map((zone) => <option key={zone} value={zone}>{zoneOptionLabel(zone)}</option>)}
                 </select>
               </FormField>
             </div>

@@ -19,7 +19,7 @@ export function TimeActionButtons({ status, runner, endSummary, isLarge = true }
   endSummary?: string;
   isLarge?: boolean;
 }) {
-  const { t } = useTrack();
+  const { t, isReadOnly = false } = useTrack();
   const [isConfirmingEnd, setIsConfirmingEnd] = useState(false);
   const actions = timerActionsFor(status, runner.runningEvent !== null || runner.inconsistencyMessage !== null);
   const hints = actions.flatMap((action) => (action.hint ? [action.hint] : []));
@@ -45,8 +45,8 @@ export function TimeActionButtons({ status, runner, endSummary, isLarge = true }
         {actions.map((action, position) => (
           // keyed by position: the button the user pressed stays in place and only changes its label, so a keyboard user keeps the focus
           <span key={position} className={action.isPrimary && status === "NOT_STARTED" ? "punch" : undefined}>
-            {action.isPrimary && status === "NOT_STARTED" && action.isEnabled && <span className="halo" aria-hidden="true"></span>}
-            <button type="button" className={`btn ${action.isPrimary ? "btn-gold" : ""} ${isLarge ? "btn-lg" : ""}`.trim()} disabled={!action.isEnabled}
+            {action.isPrimary && status === "NOT_STARTED" && action.isEnabled && !isReadOnly && <span className="halo" aria-hidden="true"></span>}
+            <button type="button" className={`btn ${action.isPrimary ? "btn-gold" : ""} ${isLarge ? "btn-lg" : ""}`.trim()} disabled={!action.isEnabled || isReadOnly}
               aria-busy={runner.runningEvent === action.event || undefined} onClick={() => press(action)}>
               <Icon name={ICONS[action.event]} size={16} />
               {runner.runningEvent === action.event ? t("Saving…") : t(action.label)}
@@ -54,7 +54,8 @@ export function TimeActionButtons({ status, runner, endSummary, isLarge = true }
           </span>
         ))}
       </div>
-      {hints.map((hint) => <p key={hint} className="timer-hint">{t(hint)}</p>)}
+      {isReadOnly && <p className="timer-hint">{t("Your subscription has ended: you can see your time but not change it.")}</p>}
+      {!isReadOnly && hints.map((hint) => <p key={hint} className="timer-hint">{t(hint)}</p>)}
       {isConfirmingEnd && (
         <ConfirmDialog
           title={t("End your workday?")}
