@@ -39,10 +39,10 @@ export function MemberStatusCard({ member, nowMilliseconds, timeZone, onOpenWork
           </div>
         </div>
         <div className="faint" style={{ fontSize: 13, paddingBottom: 6 }}>
-          {status === "NOT_STARTED" && Boolean(member.isOffDay) ? t("Week off today. Any time worked counts as extra time.") : t("Has not started today.")}
-          {status === "WORKING" && live && t("Current session {duration}", { duration: formatDuration(live.currentWorkSeconds) })}
-          {status === "ON_BREAK" && live && <b className="num" style={{ color: "var(--text)" }}>{t("Current break {duration}", { duration: formatClock(live.currentBreakSeconds) })}</b>}
-          {status === "DAY_ENDED" && workday?.endedAt && t("Ended at {time}", { time: `${formatTimeOnDay(workday.endedAt, timeZone, workday.startedAt)} ${zone}` })}
+          {status === "NOT_STARTED" && <span style={{ display: "block" }}>{member.isOffDay ? t("Week off today. Any time worked counts as extra time.") : t("Has not started today.")}</span>}
+          {status === "WORKING" && live && <span style={{ display: "block" }}>{t("Working now · current session {duration}", { duration: formatDuration(live.currentWorkSeconds) })}</span>}
+          {status === "ON_BREAK" && live && <b className="num" style={{ display: "block", color: "var(--text)" }}>{t("Current break {duration}", { duration: formatClock(live.currentBreakSeconds) })}</b>}
+          {status === "DAY_ENDED" && workday?.endedAt && <span style={{ display: "block" }}>{t("Ended at {time}", { time: `${formatTimeOnDay(workday.endedAt, timeZone, workday.startedAt)} ${zone}` })}</span>}
           {workday && <span style={{ display: "block" }}>{t(ACTIVITY_LABELS[workday.lastActivity.type])} · {formatTime(workday.lastActivity.at, timeZone)} {zone}</span>}
         </div>
       </div>

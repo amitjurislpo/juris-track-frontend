@@ -72,8 +72,8 @@ export function TeamBoardTable({ rows, nowMilliseconds, timeZone }: { rows: Team
                 </td>
                 <td className="num hide-sm">{formatTimeOnDay(row.startedAt, timeZone, new Date(nowMilliseconds))}</td>
                 <td className="num hide-sm">{figures?.lastBreak ? <LastBreakNote lastBreak={figures.lastBreak} timeZone={timeZone} isLabelled={false} /> : "—"}</td>
-                <td className="muted hide-sm" style={{ whiteSpace: "nowrap" }}>
-                  {row.lastActivity ? `${t(ACTIVITY_LABELS[row.lastActivity.type])} · ${formatTime(row.lastActivity.at, timeZone)}` : "—"}
+                <td className="muted hide-sm">
+                  {row.lastActivity ? <>{t(ACTIVITY_LABELS[row.lastActivity.type])} · <span style={{ whiteSpace: "nowrap" }}>{formatTime(row.lastActivity.at, timeZone)}</span></> : "—"}
                 </td>
               </tr>
             );

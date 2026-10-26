@@ -6,6 +6,7 @@ import { problemMessage } from "@/track/lib/problems";
 import {
   changingEntries, chunkEntries, patternEntries, patternProblem, WEEKDAY_LABELS, WEEKDAYS, type RosterDayState, type RosterPattern,
 } from "@/track/lib/roster";
+import { formatDateKey } from "@/track/lib/time/format";
 import { useTrack } from "@/track/TrackContext";
 import { setScheduleEntries } from "./actions";
 
@@ -113,6 +114,7 @@ export function RosterPatternDialog({ rows, shifts, defaultFrom, defaultTo, onCl
           <FormField label={t("From")}><input type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} /></FormField>
           <FormField label={t("To")}><input type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} /></FormField>
         </div>
+        {from && to && <p className="muted" style={{ margin: 0, fontSize: 13 }}>{t("From {from} to {to}", { from: formatDateKey(from), to: formatDateKey(to) })}</p>}
         <FormField label={t("Shift on working days")}>
           <select value={shiftId} onChange={(e) => setShiftId(e.target.value)}>
             {shifts.map((shift) => <option key={shift.id} value={shift.id}>{shift.name}</option>)}

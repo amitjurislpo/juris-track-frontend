@@ -35,17 +35,29 @@ export function toDecimalHours(totalSeconds: number): string {
 
 const toDate = (value: Date | string) => (typeof value === "string" ? new Date(value) : value);
 
-/** 09:05 in the given time zone (24-hour clock; digits as the display language writes them). */
+/** 09:05 AM · 07:30 PM — the 12-hour clock with AM/PM in capitals, in every display language (digits as the language writes them). */
 export function formatTime(value: Date | string | null | undefined, timeZone: string): string {
   if (!value) return NO_VALUE;
-  return new Intl.DateTimeFormat(displayLocale(), { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(toDate(value));
+  const date = toDate(value);
+  const hourOfDay = Number(new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", hourCycle: "h23" }).format(date));
+  return new Intl.DateTimeFormat(displayLocale(), { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h12" })
+    .formatToParts(date)
+    .map((part) => (part.type === "dayPeriod" ? (hourOfDay < 12 ? "AM" : "PM") : part.type === "literal" ? part.value.replace(/\s/g, " ") : part.value))
+    .join("");
+}
+
+/** 07:30 PM for a time of day written "19:30" (a shift's start or end, already in the business time zone). */
+export function formatTimeOfDay(time: string): string {
+  const [hours, minutes] = time.split(":").map(Number);
+  const hoursOnClock = hours % 12 === 0 ? 12 : hours % 12;
+  return `${String(hoursOnClock).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${hours < 12 ? "AM" : "PM"}`;
 }
 
 const dateKeyIn = (value: Date | string, timeZone: string) =>
   new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(toDate(value));
 
 /**
- * 06:30 when `value` falls on the same calendar day (in `timeZone`) as `reference`, else with its date: "25 Oct, 06:30". Used for an
+ * 06:30 AM when `value` falls on the same calendar day (in `timeZone`) as `reference`, else with its date: "25 Oct, 06:30 AM". Used for an
  * end after midnight of a night shift (reference = the start) and for a start or last break that is not today (reference = now).
  */
 export function formatTimeOnDay(value: Date | string | null | undefined, timeZone: string, reference: Date | string): string {
@@ -55,18 +67,11 @@ export function formatTimeOnDay(value: Date | string | null | undefined, timeZon
   return `${day}, ${formatTime(value, timeZone)}`;
 }
 
-/** 1 Oct 2026, 09:05 in the given time zone (month names in the display language). */
+/** 1 Oct 2026, 09:05 AM in the given time zone (month names in the display language). */
 export function formatDateTime(value: Date | string | null | undefined, timeZone: string): string {
   if (!value) return NO_VALUE;
-  return new Intl.DateTimeFormat(displayLocale(), {
-    timeZone,
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).format(toDate(value));
+  const day = new Intl.DateTimeFormat(displayLocale(), { timeZone, day: "numeric", month: "short", year: "numeric" }).format(toDate(value));
+  return `${day}, ${formatTime(value, timeZone)}`;
 }
 
 /** Wed, 1 Oct 2026 — for a calendar date key (time-zone free); weekday and month names in the display language. */

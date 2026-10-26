@@ -8,7 +8,7 @@ import { useServerClock } from "@/track/time/useServerClock";
 const CLOCK_TICK_MILLISECONDS = 30_000;
 
 /**
- * "Show times in": the business time zone and its display time zones (`GET /me/time`), each with its current time. The choice is
+ * "Show times in": the business time zone and its display time zones (`GET /me/time`), each with its current time and short name ("12:14 AM IST"; the full name is the tooltip). The choice is
  * this browser's (see useDisplayTimeZone) and changes the clock times on the time pages, not the dates or durations. Hidden when
  * the business offers only one zone, and for the super admin.
  */
@@ -18,9 +18,9 @@ export function TimeZoneSwitcher() {
   const now = new Date(useServerClock(clockOffsetMilliseconds, choices.length > 1, CLOCK_TICK_MILLISECONDS));
   if (choices.length < 2) return null;
   return (
-    <select className="lang-switch tz-switch" value={timeZone} aria-label={t("Show times in")} onChange={(e) => setTimeZone(e.target.value)}>
+    <select className="lang-switch tz-switch" value={timeZone} aria-label={t("Show times in")} title={zoneLongName(timeZone, now)} onChange={(e) => setTimeZone(e.target.value)}>
       {choices.map((zone) => (
-        <option key={zone} value={zone}>{`${formatTime(now, zone)} ${zoneAbbreviation(zone, now)} · ${zoneLongName(zone, now)}`}</option>
+        <option key={zone} value={zone} title={zoneLongName(zone, now)}>{`${formatTime(now, zone)} ${zoneAbbreviation(zone, now)}`}</option>
       ))}
     </select>
   );

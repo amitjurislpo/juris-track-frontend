@@ -51,8 +51,7 @@ export function AuditDetailPanel({ row, timeZone, isPlatform, onClose, onFilter 
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}><AuditChips category={entry.category} outcome={entry.outcome} /></div>
       <section aria-label={t("Entry details")}>
         <Field label={t("When")}>
-          {formatDateTime(entry.createdAt, timeZone)}
-          <small className="mono muted audit-utc">{entry.createdAt}</small>
+          <span title={entry.createdAt}>{formatDateTime(entry.createdAt, timeZone)}</span>
         </Field>
         {isPlatform && <Field label={t("Business")}>{entry.businessName ?? t("No business")}</Field>}
         <Field label={t("Actor")}>

@@ -6,16 +6,17 @@ const LENGTH = 6;
 
 /**
  * Six one-digit boxes for the emailed sign-in code. Typing moves to the next box, Backspace to the previous one, and
- * pasting a code fills them all. The joined value is posted as the field `name`; `onComplete` fires when all six are
+ * pasting a code fills them all. `onEdit` fires on every change (the form clears a refused-code message then). The joined value is posted as the field `name`; `onComplete` fires when all six are
  * filled (the form submits itself).
  */
-export function OtpInput({ name = "otp", invalid, disabled, onComplete }: { name?: string; invalid?: boolean; disabled?: boolean; onComplete?: (code: string) => void }) {
+export function OtpInput({ name = "otp", invalid, disabled, onEdit, onComplete }: { name?: string; invalid?: boolean; disabled?: boolean; onEdit?: () => void; onComplete?: (code: string) => void }) {
   const t = useT();
   const [digits, setDigits] = useState<string[]>(() => Array(LENGTH).fill(""));
   const refs = useRef<(HTMLInputElement | null)[]>([]);
 
   const commit = (next: string[]) => {
     setDigits(next);
+    onEdit?.();
     const code = next.join("");
     if (code.length === LENGTH && next.every(Boolean)) onComplete?.(code);
   };

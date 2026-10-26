@@ -19,9 +19,12 @@ export function RosterActionBar({ count, shifts, isBusy, onSetShift, onClear, on
   return (
     <div className="roster-actions card enter" role="region" aria-label={t("Selected days")} data-testid="roster-actions">
       <b>{count === 1 ? t("{count} day selected", { count }) : t("{count} days selected", { count })}</b>
-      <select aria-label={t("Shift")} value={chosenShiftId} onChange={(e) => setShiftId(e.target.value)}>
-        {shifts.map((shift) => <option key={shift.id} value={shift.id}>{shift.name}</option>)}
-      </select>
+      <label className="tsel">
+        <span>{t("Shift")}</span>
+        <select value={chosenShiftId} onChange={(e) => setShiftId(e.target.value)}>
+          {shifts.map((shift) => <option key={shift.id} value={shift.id}>{shift.name}</option>)}
+        </select>
+      </label>
       <button type="button" className="btn btn-sm btn-gold" disabled={isBusy || !chosenShiftId} onClick={() => onSetShift(chosenShiftId)}>{t("Set shift")}</button>
       <button type="button" className="btn btn-sm" disabled={isBusy} onClick={() => onSetShift(null)}>{t("Week off")}</button>
       <button type="button" className="btn btn-sm" disabled={isBusy} onClick={onClear}>{t("Clear entry")}</button>

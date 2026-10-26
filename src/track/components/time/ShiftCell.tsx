@@ -7,7 +7,7 @@ export function ShiftCell({ shift, isOutsideShift }: { shift: WorkdayShift | nul
   if (!shift) return <>—</>;
   return (
     <>
-      {shift.name}
+      <span style={{ whiteSpace: "nowrap" }}>{shift.name}</span>
       <small className="muted" style={{ display: "block", whiteSpace: "nowrap" }}>{formatShiftWindow(shift)}</small>
       {isOutsideShift && <div style={{ marginTop: 4 }}><OutsideShiftChip /></div>}
     </>

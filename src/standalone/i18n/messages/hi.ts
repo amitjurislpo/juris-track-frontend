@@ -21,7 +21,6 @@ export const standaloneHindiMessages: Record<string, string> = {
   "Wrong email?": "ग़लत ईमेल?",
   "Change email": "ईमेल बदलें",
   "Development: the code is": "केवल डेवलपमेंट के लिए: कोड है",
-  "Keep me signed in for 30 days": "मुझे 30 दिन तक साइन इन रखें",
   "Signing in…": "साइन इन हो रहा है…",
   "Verify and sign in": "जाँचें और साइन इन करें",
   "Didn't get it?": "कोड नहीं मिला?",

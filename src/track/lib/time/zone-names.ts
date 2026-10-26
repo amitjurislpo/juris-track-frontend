@@ -60,3 +60,8 @@ export function zoneLabel(timeZone: string, instant: Date = new Date()): string 
 export function zoneLongName(timeZone: string, instant: Date = new Date()): string {
   return zoneName(timeZone, "long", instant, displayLocale());
 }
+
+/** A zone in a list of choices: the friendly name first, the IANA id after it ("India Standard Time (IST) · Asia/Kolkata"). */
+export function zoneOptionLabel(timeZone: string, instant: Date = new Date()): string {
+  return `${zoneLabel(timeZone, instant)} · ${timeZone}`;
+}

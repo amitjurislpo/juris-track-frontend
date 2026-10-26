@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { MAXIMUM_BUSINESS_NAME_LENGTH, MAXIMUM_DISPLAY_TIME_ZONES, type BusinessSettingsForm } from "../lib/business-settings";
-import { timeZoneOptions } from "../lib/time/zone-names";
+import { timeZoneOptions, zoneLabel, zoneOptionLabel } from "../lib/time/zone-names";
 import { useTrack } from "../TrackContext";
 import { FormField } from "./FormField";
 import { Icon } from "./Icon";
@@ -22,7 +22,7 @@ export function BusinessSettingsFields({ form, onChange, errors }: { form: Busin
       <div className="grid2">
         <FormField label={t("Time zone")} hint={t("workdays started from now on use it")} error={errors.timeZone}>
           <select value={form.timeZone} onChange={(e) => onChange({ ...form, timeZone: e.target.value })}>
-            {zones.map((zone) => <option key={zone} value={zone}>{zone}</option>)}
+            {zones.map((zone) => <option key={zone} value={zone}>{zoneOptionLabel(zone)}</option>)}
           </select>
         </FormField>
         <FormField label={t("Stale workday hours")} hint={t("1 to 48; at least your longest shift plus 2 hours")} error={errors.staleWorkdayHours}>
@@ -34,7 +34,7 @@ export function BusinessSettingsFields({ form, onChange, errors }: { form: Busin
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }} role="list" aria-labelledby="display-time-zones-label">
           {form.displayTimeZones.map((zone) => (
             <span key={zone} role="listitem" className="chip nodot gold">
-              {zone}
+              {zoneLabel(zone)}
               <button type="button" className="linkish" style={{ display: "inline-flex" }} aria-label={t("Remove {zone}", { zone })}
                 onClick={() => onChange({ ...form, displayTimeZones: form.displayTimeZones.filter((displayZone) => displayZone !== zone) })}>
                 <Icon name="x" size={12} />
@@ -46,7 +46,7 @@ export function BusinessSettingsFields({ form, onChange, errors }: { form: Busin
         <select aria-label={t("Add a display time zone")} value="" disabled={isDisplayListFull}
           onChange={(e) => { if (e.target.value) onChange({ ...form, displayTimeZones: [...form.displayTimeZones, e.target.value] }); }}>
           <option value="">{isDisplayListFull ? t("The list is full (8 time zones)") : t("Add a display time zone…")}</option>
-          {zones.filter((zone) => !form.displayTimeZones.includes(zone)).map((zone) => <option key={zone} value={zone}>{zone}</option>)}
+          {zones.filter((zone) => !form.displayTimeZones.includes(zone)).map((zone) => <option key={zone} value={zone}>{zoneOptionLabel(zone)}</option>)}
         </select>
         {displayZoneError && <span className="err" role="alert">{displayZoneError}</span>}
       </div>

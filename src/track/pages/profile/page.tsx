@@ -1,6 +1,6 @@
 import { PageHeader } from "@/track/components/PageHeader";
 import { fullName } from "@/track/lib/time/format";
-import { zoneLabel } from "@/track/lib/time/zone-names";
+import { zoneOptionLabel } from "@/track/lib/time/zone-names";
 import { ROLE_LABELS } from "@/track/roles";
 import { usePage } from "@/track/usePage";
 
@@ -14,7 +14,7 @@ export default function ProfilePage() {
     [t("Role"), t(ROLE_LABELS[user.role])],
     [t("Reporting manager"), user.managerName ?? t("No manager")],
     [t("Business"), user.businessName ?? "—"],
-    [t("Business time zone"), user.businessTimeZone ? `${user.businessTimeZone} · ${zoneLabel(user.businessTimeZone)}` : "—"],
+    [t("Business time zone"), user.businessTimeZone ? zoneOptionLabel(user.businessTimeZone) : "—"],
   ];
   return (
     <div className="col">
