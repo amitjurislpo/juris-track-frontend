@@ -5,7 +5,7 @@
  */
 import type { DateKey } from "./business-calendar";
 import { displayText } from "./display-language";
-import { formatDateKey } from "./format";
+import { formatDateKey, formatTimeOfDay } from "./format";
 import type { WorkdayShift } from "./types";
 
 /** The part of a shift that tells when it starts and ends (the times are "HH:mm" in the business time zone). */
@@ -32,16 +32,16 @@ export function scheduledMinutesOf(startTime: string, endTime: string): number {
   return difference > 0 ? difference : difference + 24 * 60;
 }
 
-/** 19:30 – 04:30 (+1) — the "(+1)" marks an end on the next day; the default shift (00:00 – 00:00, the whole calendar day) reads "All day". */
+/** 07:30 PM – 04:30 AM (+1) — the "(+1)" marks an end on the next day; the default shift (00:00 – 00:00, the whole calendar day) reads "All day". */
 export function formatShiftWindow(shift: ShiftWindow): string {
   if (shift.startTime === "00:00" && shift.endTime === "00:00") return displayText("All day");
   const crossesMidnight = shift.crossesMidnight ?? shiftCrossesMidnight(shift.startTime, shift.endTime);
-  return `${shift.startTime} – ${shift.endTime}${crossesMidnight ? " (+1)" : ""}`;
+  return `${formatTimeOfDay(shift.startTime)} – ${formatTimeOfDay(shift.endTime)}${crossesMidnight ? " (+1)" : ""}`;
 }
 
-/** US shift 19:30 – 04:30 (+1) */
+/** US shift · 07:30 PM – 04:30 AM (+1) */
 export function formatShiftLabel(shift: ShiftWindow & { name: string }): string {
-  return `${shift.name} ${formatShiftWindow(shift)}`;
+  return `${shift.name} · ${formatShiftWindow(shift)}`;
 }
 
 function hoursAndMinutes(totalSeconds: number): { hours: number; minutes: string } {
@@ -55,9 +55,14 @@ export function formatScheduledMinutes(scheduledMinutes: number): string {
   return displayText("{hours}h {minutes}m", hoursAndMinutes(scheduledMinutes * 60));
 }
 
+/** True for the default shift (00:00 – 00:00): the whole calendar day, so no scheduled hours to measure a workday against. */
+export function isAllDaySeconds(scheduledSeconds: number | null | undefined): boolean {
+  return scheduledSeconds === 24 * 3600;
+}
+
 /** 9h 00m — the same from seconds (the scheduled length of a workday's shift). */
 export function formatScheduledSeconds(scheduledSeconds: number): string {
-  if (scheduledSeconds === 24 * 3600) return displayText("All day");
+  if (isAllDaySeconds(scheduledSeconds)) return displayText("All day");
   return displayText("{hours}h {minutes}m", hoursAndMinutes(scheduledSeconds));
 }
 

@@ -1,5 +1,4 @@
 import { lazy, type ComponentType } from "react";
-import { ComingSoon } from "./components/ComingSoon";
 import type { Role } from "./roles";
 
 // built pages load on first use (the host's Suspense boundary shows the loading state meanwhile)
@@ -7,6 +6,7 @@ const DashboardPage = lazy(() => import("./pages/dashboard/page"));
 const MyTimePage = lazy(() => import("./pages/my-time/page"));
 const MyHistoryPage = lazy(() => import("./pages/my-history/page"));
 const ProfilePage = lazy(() => import("./pages/profile/page"));
+const AdminOverviewPage = lazy(() => import("./pages/admin-overview/page"));
 const EmployeesPage = lazy(() => import("./pages/admin-employees/page"));
 const NewEmployeePage = lazy(() => import("./pages/admin-employee-new/page"));
 const EmployeePage = lazy(() => import("./pages/admin-employee/page"));
@@ -25,7 +25,7 @@ const AuditLogPage = lazy(() => import("./pages/audit-log/page"));
 
 /**
  * Every JurisTrack page. `roles` are the roles that may open it (see RequireRole). The host mounts these under its own
- * layout (the standalone shell, or JurisOne's). Pages of later phases are "Coming soon" placeholders until they are built.
+ * layout (the standalone shell, or JurisOne's).
  */
 export interface TrackRoute {
   /** Path without a leading slash (`admin/teams/:id`). */
@@ -35,9 +35,6 @@ export interface TrackRoute {
   roles: readonly Role[];
   Page: ComponentType;
 }
-
-/** A page whose content is built in a later phase. */
-const placeholder = (title: string): ComponentType => function PlaceholderPage() { return <ComingSoon title={title} />; };
 
 /** Every user of a business tracks their own time; the super admin (no business) does not. */
 const BUSINESS_USERS: readonly Role[] = ["ADMIN", "MANAGER", "EMPLOYEE"];
@@ -59,7 +56,7 @@ export const trackRoutes: TrackRoute[] = [
   { path: "team/employees/:id", title: "Employee", roles: MANAGER_ONLY, Page: TeamMemberPage },
   { path: "team/reports", title: "Reports", roles: MANAGER_ONLY, Page: ReportsPage },
   // admin (the business owner)
-  { path: "admin", title: "Overview", roles: ADMIN_ONLY, Page: placeholder("Overview") },
+  { path: "admin", title: "Overview", roles: ADMIN_ONLY, Page: AdminOverviewPage },
   { path: "admin/employees", title: "Employees", roles: ADMIN_ONLY, Page: EmployeesPage },
   { path: "admin/employees/new", title: "New employee", roles: ADMIN_ONLY, Page: NewEmployeePage },
   { path: "admin/employees/:id", title: "Employee", roles: ADMIN_ONLY, Page: EmployeePage },

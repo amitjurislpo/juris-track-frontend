@@ -89,17 +89,16 @@ test.describe("sign-in by emailed code", () => {
     await expect(page.getByRole("heading", { name: "Check your email" })).toHaveCount(0);
   });
 
-  test("without 'keep me signed in' the session cookies end with the browser", async ({ page }) => {
+  test("there is no 'keep me signed in' choice and the session cookies outlive the browser", async ({ page }) => {
     await requestCode(page, DEMO.employees[2]);
-    await page.getByLabel("Keep me signed in for 30 days").uncheck();
+    await expect(page.getByLabel("Keep me signed in for 30 days")).toHaveCount(0);
     await page.getByLabel("Digit 1 of 6").fill(OTP);
     await expectLanded(page, "/dashboard");
     const accessCookie = await cookieValue(page, "jt_at");
     const refreshCookie = await cookieValue(page, "jt_rt");
     expect(accessCookie?.httpOnly).toBe(true);
     expect(accessCookie?.sameSite).toBe("Lax");
-    expect(accessCookie?.expires).toBe(-1);
-    expect(refreshCookie?.expires).toBe(-1);
+    expect(refreshCookie?.expires).toBeGreaterThan(Date.now() / 1000);
   });
 });
 

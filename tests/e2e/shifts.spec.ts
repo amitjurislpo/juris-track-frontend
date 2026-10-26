@@ -44,12 +44,12 @@ test.describe.serial("Shifts and roster", () => {
     await dialog.getByLabel("Name").fill(SHIFT_NAME);
     await dialog.getByLabel("Starts at").fill("19:30");
     await dialog.getByLabel("Ends at").fill("04:30");
-    await expect(dialog.getByTestId("shift-preview")).toContainText("19:30 – 04:30 (+1)");
+    await expect(dialog.getByTestId("shift-preview")).toContainText("07:30 PM – 04:30 AM (+1)");
     await expect(dialog.getByTestId("shift-preview")).toContainText("9h 00m");
     await dialog.getByRole("button", { name: "Add shift" }).click();
     await expect(toastWith(page, "Shift")).toBeVisible();
     const row = tableRows(page).filter({ hasText: SHIFT_NAME });
-    await expect(row).toContainText("19:30 – 04:30 (+1)");
+    await expect(row).toContainText("07:30 PM – 04:30 AM (+1)");
     await expect(row).toContainText("9h 00m");
   });
 
@@ -76,7 +76,7 @@ test.describe.serial("Shifts and roster", () => {
     // 09:45 (business time) that is still yesterday's occurrence, which is the default shift (the new one starts at 19:30 and is farther away).
     const [hour, minute] = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date()).split(":").map(Number);
     const isNewShiftNearest = hour * 60 + minute > 9 * 60 + 45;
-    await expect(employeePage.getByTestId("shift-line")).toContainText(isNewShiftNearest ? `${SHIFT_NAME} 19:30 – 04:30 (+1)` : "General day All day");
+    await expect(employeePage.getByTestId("shift-line")).toContainText(isNewShiftNearest ? `${SHIFT_NAME} · 07:30 PM – 04:30 AM (+1)` : "General day · All day");
     await employeePage.context().close();
   });
 

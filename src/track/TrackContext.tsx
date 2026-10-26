@@ -64,6 +64,12 @@ export interface TrackContextValue {
   onUnauthorized?: (info: { isQuiet: boolean }) => Promise<boolean>;
   /** Called when the API answers 403 `BUSINESS_SUSPENDED`: the host shows its "access is paused" screen instead of the pages. */
   onBusinessSuspended?: () => void;
+  /** The greeting of the dashboard for an hour of the display time zone (0-23): a translation key with `{name}`. Without it the dashboard uses its own morning / afternoon / evening rule; JurisOne gives its Home page's rule so both greet the same. */
+  greetingFor?: (hour: number) => string;
+  /** Called when the API answers 404: the host may find out that the module itself is gone, leave the pages and return the message to show; null for an ordinary 404. */
+  onNotFound?: () => Promise<string | null>;
+  /** True when the host says changes are not allowed (the subscription has ended): the time buttons are disabled and the host's API refuses the writes too. */
+  isReadOnly?: boolean;
 }
 
 const TrackContext = createContext<TrackContextValue | null>(null);
@@ -87,6 +93,7 @@ export function TrackProvider({ value, children }: { value: TrackContextValue; c
       onUnauthorized: (info) => latest.current.onUnauthorized?.(info) ?? Promise.resolve(false),
       translateMessage: (text) => latest.current.t(text),
       onBusinessSuspended: () => latest.current.onBusinessSuspended?.(),
+      onNotFound: () => latest.current.onNotFound?.() ?? Promise.resolve(null),
       queryClient,
     }),
     [value.apiBasePath, queryClient],

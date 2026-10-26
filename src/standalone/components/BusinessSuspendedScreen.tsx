@@ -1,3 +1,4 @@
+import { LanguageSwitcher } from "@/standalone/components/LanguageSwitcher";
 import { useT } from "@/standalone/i18n/client";
 import { signOut } from "@/standalone/login/actions";
 import { queryClient } from "@/standalone/query";
@@ -12,6 +13,7 @@ export function BusinessSuspendedScreen() {
   const t = useT();
   return (
     <main className="paused">
+      <span className="paused-language"><LanguageSwitcher /></span>
       <div className="empty" role="alert">
         <span className="otp-mail"><Icon name="lock" size={22} /></span>
         <b className="display">{t("Your company's access is paused")}</b>

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { HINDI_MESSAGES } from "@/standalone/i18n/translate";
 import { resetDisplayLanguage, setDisplayLanguage } from "@/track/lib/time/display-language";
 import {
-  dayHeading, formatScheduledMinutes, formatScheduledSeconds, formatShiftLabel, formatShiftWindow, formatVariance, scheduledMinutesOf, shiftCrossesMidnight, shiftOf,
+  dayHeading, formatScheduledMinutes, formatScheduledSeconds, formatShiftLabel, formatShiftWindow, formatVariance, isAllDaySeconds, scheduledMinutesOf, shiftCrossesMidnight, shiftOf,
 } from "@/track/lib/time/shift";
 import type { WorkdayShift } from "@/track/lib/time/types";
 
@@ -16,22 +16,22 @@ const usShift: WorkdayShift = {
 
 describe("shift windows", () => {
   it("marks an end on the next day with (+1)", () => {
-    expect(formatShiftWindow({ startTime: "19:30", endTime: "04:30" })).toBe("19:30 – 04:30 (+1)");
-    expect(formatShiftWindow({ startTime: "14:00", endTime: "23:00" })).toBe("14:00 – 23:00");
-    expect(formatShiftWindow({ startTime: "09:00", endTime: "09:00" })).toBe("09:00 – 09:00 (+1)");
+    expect(formatShiftWindow({ startTime: "19:30", endTime: "04:30" })).toBe("07:30 PM – 04:30 AM (+1)");
+    expect(formatShiftWindow({ startTime: "14:00", endTime: "23:00" })).toBe("02:00 PM – 11:00 PM");
+    expect(formatShiftWindow({ startTime: "09:00", endTime: "09:00" })).toBe("09:00 AM – 09:00 AM (+1)");
     expect(formatShiftWindow({ startTime: "00:00", endTime: "00:00" })).toBe("All day");
     expect(formatScheduledMinutes(1440)).toBe("All day");
     expect(formatScheduledSeconds(86400)).toBe("All day");
   });
 
   it("trusts crossesMidnight when the API sends it", () => {
-    expect(formatShiftWindow({ startTime: "19:30", endTime: "04:30", crossesMidnight: false })).toBe("19:30 – 04:30");
+    expect(formatShiftWindow({ startTime: "19:30", endTime: "04:30", crossesMidnight: false })).toBe("07:30 PM – 04:30 AM");
     expect(shiftCrossesMidnight("22:00", "06:00")).toBe(true);
     expect(shiftCrossesMidnight("06:00", "14:00")).toBe(false);
   });
 
   it("labels a shift with its name and window", () => {
-    expect(formatShiftLabel(usShift)).toBe("US shift 19:30 – 04:30 (+1)");
+    expect(formatShiftLabel(usShift)).toBe("US shift · 07:30 PM – 04:30 AM (+1)");
   });
 
   it("works out the scheduled length, also across midnight", () => {
@@ -49,6 +49,11 @@ describe("shift windows", () => {
 });
 
 describe("variance wording", () => {
+  it("has no variance against the default all-day shift", () => {
+    expect(isAllDaySeconds(24 * 3600)).toBe(true);
+    expect(isAllDaySeconds(9 * 3600)).toBe(false);
+    expect(isAllDaySeconds(null)).toBe(false);
+  });
   it("says over, short or on schedule", () => {
     expect(formatVariance(25 * 60)).toBe("+0h 25m over");
     expect(formatVariance(-40 * 60)).toBe("0h 40m short");

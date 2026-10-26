@@ -95,6 +95,12 @@ export async function storedCodeCount(email: string): Promise<number> {
 }
 
 /** A short message shown by the app after a write (the API's `message`). */
+/** "13:30" as the app shows a time of day: "01:30 PM" (12-hour clock, AM/PM in capitals). */
+export function to12Hour(time: string): string {
+  const [hours, minutes] = time.split(":").map(Number);
+  return `${String(hours % 12 === 0 ? 12 : hours % 12).padStart(2, "0")}:${String(minutes).padStart(2, "0")} ${hours < 12 ? "AM" : "PM"}`;
+}
+
 export const toastWith = (page: Page, text: string) => page.locator(".toast").filter({ hasText: text });
 
 /** The rows of the page's list table. */

@@ -658,10 +658,10 @@ main.content:focus{outline:none}
 .daychart-x{display:flex;margin-top:6px;font-size:11px;color:var(--faint);line-height:1.3}
 .daychart-x span{flex:1 1 0;min-width:0;display:flex;justify-content:center;white-space:nowrap;overflow:visible}
 .daychart-x-few span{flex-direction:column;align-items:center;text-align:center}.daychart-x-few em{font-style:normal;display:block;white-space:nowrap}
-.tz-switch{max-width:230px}
+.tz-switch{max-width:150px}
 .seg-scroll{max-width:100%;overflow-x:auto;scrollbar-width:none}.seg-scroll::-webkit-scrollbar{display:none}.seg-scroll button{white-space:nowrap}
-@media (max-width:400px){.tz-switch{max-width:108px}.top .lang-switch{max-width:86px}}
-@media (max-width:360px){.tz-switch{max-width:76px}.top .lang-switch{max-width:68px}}
+@media (max-width:400px){.tz-switch{max-width:126px}.top .lang-switch{max-width:84px}}
+@media (max-width:360px){.tz-switch{max-width:104px}.top .lang-switch{max-width:72px}}
 /* the Team board's eight tiles: two per row on a phone, four on a laptop */
 .kpis.kpis-compact{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .kpis-compact .kpi{padding:12px 14px;gap:4px;min-width:0}
@@ -792,3 +792,37 @@ button.roster-cell{cursor:pointer}
 /* in a page column the timer card takes the height of its content (the prototype's min-height:100% stretched it over the whole screen and squeezed the cards below it to their headings) */
 .col>.card{flex:none}
 .col>.timecard{min-height:0}
+
+/* a name cell keeps its lines apart (email / code / last break), and a duration never breaks across lines */
+.person small:not(.show-sm):not(.sub-sm){display:block}
+table.t td.num{white-space:nowrap}
+
+/* QA polish: a time or duration never breaks across lines (long names and emails may); summary figures share one size and stay on one line */
+table.t td.num,table.t td.num small,table.t td.nowrap{white-space:nowrap}
+table.t td .person{min-width:130px}
+small.figure{font-size:inherit}
+.summary{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.summary dd{min-width:0}
+.summary b{display:block;font-size:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.summary b small{font-size:inherit;font-weight:inherit}
+/* the fields of a grid row keep their content at the top (a taller neighbour with an error or a hint must not push this one down) */
+.field{align-content:flex-start}
+/* an open employee list of the reports page sits above the tiles under it */
+.report-filters{position:relative;z-index:6}
+/* the roster's legend, the owner's overview shortcuts and the language switcher of the "access is paused" screen */
+.roster-legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0;padding:10px 14px;list-style:none;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.roster-legend li{display:inline-flex;align-items:center;gap:6px}
+.roster-legend .roster-cell{min-width:32px;height:24px;font-size:11.5px}
+.overview-link{display:flex;align-items:flex-start;gap:12px;color:var(--text);text-decoration:none}
+.overview-link small{display:block;margin-top:2px;font-size:12.5px}
+.overview-link:hover{border-color:var(--line3)}
+.paused{position:relative}
+.paused-language{position:absolute;top:16px;right:16px}
+/* top bar: the time zone select keeps its whole "12:14 AM IST" (the language select is the one that shrinks on a phone) */
+.top .lang-switch.tz-switch{max-width:150px}
+@media(max-width:400px){.top .lang-switch{padding:0 4px;font-size:12.5px;max-width:76px}.top .lang-switch.tz-switch{max-width:116px}}
+small.figure,.summary b small{color:inherit}
+/* a running interval reaches "Now" at full strength (the old 75% opacity read as a bar that stops short); stripes mark it as still counting */
+.daybar i.running{opacity:1;background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.25) 0 6px,transparent 6px 12px)}
+/* tighter cell padding so the wide time tables fit next to the sidebar on a laptop without scrolling sideways */
+table.t th,table.t td{padding-left:12px;padding-right:12px}

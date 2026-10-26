@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { apiSession, expectLanded, login, MAXIMUM_EXPORT_ROWS, sql, SUPER_ADMIN_EMAIL, tableRows, toastWith } from "./helpers";
+import { apiSession, expectLanded, login, MAXIMUM_EXPORT_ROWS, sql, SUPER_ADMIN_EMAIL, tableRows, to12Hour, toastWith } from "./helpers";
 
 // Module 5.5 (reports and the CSV export): the manager's and the owner's report pages, their filters, the summary tabs and the
 // CSV download. The tests run in order against one new business per run (unique names and emails), set up through the real API;
@@ -394,7 +394,7 @@ test.describe.serial("reports", () => {
     await page.getByLabel("Show times in").selectOption(DISPLAY_TIME_ZONE);
     await expect(page.locator("table.t thead")).toContainText(`Work started (${abbreviation})`);
     const ashaRow = tableRows(page).filter({ hasText: name(ASHA) }).filter({ hasText: "8h 00m 00s" });
-    await expect(ashaRow).toContainText(clockIn(DISPLAY_TIME_ZONE, businessDate(1), "09:00"));
+    await expect(ashaRow).toContainText(to12Hour(clockIn(DISPLAY_TIME_ZONE, businessDate(1), "09:00")));
     await expect(page.getByText(`The file is in English, with times in ${abbreviation} (${DISPLAY_TIME_ZONE}).`)).toBeVisible();
     const newYork = await downloadCsv(page);
     const newYorkLines = newYork.text.slice(0, -2).split("\r\n");

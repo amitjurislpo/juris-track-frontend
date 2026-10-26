@@ -4,6 +4,9 @@ import type { ActionResult, FieldError } from "./action";
 /** The problem code of a request by a user whose business the platform has suspended (403). */
 export const BUSINESS_SUSPENDED = "BUSINESS_SUSPENDED";
 
+/** The problem code the client gives a request answered 404 when the host found that the whole module is no longer available. */
+const MODULE_UNAVAILABLE = "MODULE_UNAVAILABLE";
+
 /**
  * The problem code the client itself gives a request that never got an answer (offline, the API or proxy down, the connection
  * dropped, a timeout). It comes back in the normal problem shape (`status` 0), so forms show it and pages can offer a retry.
@@ -32,6 +35,11 @@ export interface ApiClientOptions {
   translateMessage?: (text: string) => string;
   /** Called when the API answers 403 `BUSINESS_SUSPENDED` (the user's business was suspended while they were signed in). */
   onBusinessSuspended?: () => void;
+  /**
+   * Called when the API answers 404. The host checks whether the whole module is gone (a stale tab after the business lost access)
+   * and, if so, takes the user away and returns the message to show instead of "Not found."; null when it is an ordinary 404.
+   */
+  onNotFound?: () => Promise<string | null>;
   /** Refetched after every successful write. */
   queryClient: QueryClient;
 }
@@ -137,7 +145,12 @@ export function createApiClient(options: ApiClientOptions) {
 
   /** One API call; a 401 gives the host one chance to renew the session, then the request is repeated once. */
   async function call<T>(method: Method, path: string, body?: unknown, callOptions: { isQuiet?: boolean } = {}): Promise<ApiResponse<T>> {
-    return withSessionRenewal(path, !!callOptions.isQuiet, () => send<T>(method, path, body));
+    const answer = await withSessionRenewal(path, !!callOptions.isQuiet, () => send<T>(method, path, body));
+    if (answer.status === 404 && !answer.body.ok && options.onNotFound) {
+      const message = await options.onNotFound();
+      if (message) return { status: 404, body: { ...answer.body, error: translateMessage(message), code: MODULE_UNAVAILABLE } };
+    }
+    return answer;
   }
 
   /**

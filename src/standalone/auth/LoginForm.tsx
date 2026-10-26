@@ -34,8 +34,13 @@ export function LoginForm({ notice, next, devCode }: { notice?: string; next?: s
   const [seenState, setSeenState] = useState(state);
   const [boxes, setBoxes] = useState(0);
   const [cooldown, setCooldown] = useState(0);
+  // a refused code is shown until the user starts again (types, goes back, asks for a new code); a new refusal is a new result and shows again
+  const [clearedState, setClearedState] = useState<FormState | null>(null);
+  const clearError = () => setClearedState(state);
+  const codeError = clearedState === state ? undefined : state.error;
   if (seenSent !== sent) {
     setSeenSent(sent);
+    setClearedState(state);
     if (sent.ok) { setBoxes((count) => count + 1); setCooldown(RESEND_SECONDS); }
   }
   if (seenState !== state) {
@@ -48,7 +53,7 @@ export function LoginForm({ notice, next, devCode }: { notice?: string; next?: s
     return () => clearTimeout(timerId);
   }, [cooldown]);
 
-  const noticeBox = notice && !state.error && !sent.ok;
+  const noticeBox = notice && !codeError && !sent.ok;
 
   if (!codeStep) {
     return (
@@ -75,7 +80,7 @@ export function LoginForm({ notice, next, devCode }: { notice?: string; next?: s
 
   return (
     <form ref={formRef} className="login-card" action={action} noValidate>
-      <button type="button" className="btn btn-ghost btn-sm" onClick={() => setDismissed(sent)} style={{ alignSelf: "flex-start", marginLeft: -8 }}>
+      <button type="button" className="btn btn-ghost btn-sm" onClick={() => { clearError(); setDismissed(sent); }} style={{ alignSelf: "flex-start", marginLeft: -8 }}>
         <Icon name="chevL" size={15} />{t("Back")}
       </button>
       <div>
@@ -86,17 +91,13 @@ export function LoginForm({ notice, next, devCode }: { notice?: string; next?: s
         </p>
         <p className="otp-wrong">
           {t("Wrong email?")}{" "}
-          <button type="button" className="linklike" onClick={() => setDismissed(sent)}>{t("Change email")}</button>
+          <button type="button" className="linklike" onClick={() => { clearError(); setDismissed(sent); }}>{t("Change email")}</button>
         </p>
       </div>
       <input type="hidden" name="email" value={email} />
-      <OtpInput key={boxes} invalid={!!state.error} disabled={busy} onComplete={() => setTimeout(() => formRef.current?.requestSubmit(), 0)} />
+      <OtpInput key={boxes} invalid={!!codeError} disabled={busy} onEdit={clearError} onComplete={() => setTimeout(() => formRef.current?.requestSubmit(), 0)} />
       {devCode && <div className="chip info" style={{ height: "auto", padding: "8px 12px", whiteSpace: "normal" }} role="note">{t("Development: the code is")} <b className="num">{devCode}</b></div>}
-      <div aria-live="polite">{state.error && <div className="err" role="alert">{state.error}</div>}{sent.error && !state.error && <div className="err" role="alert">{sent.error}</div>}</div>
-      <label style={{ display: "flex", gap: 8, alignItems: "center", cursor: "pointer", fontSize: 13.5, color: "var(--muted)" }}>
-        <input type="checkbox" name="remember" defaultChecked style={{ accentColor: "var(--accent)", width: 15, height: 15 }} />
-        {t("Keep me signed in for 30 days")}
-      </label>
+      <div aria-live="polite">{codeError && <div className="err" role="alert">{codeError}</div>}{sent.error && !codeError && <div className="err" role="alert">{sent.error}</div>}</div>
       {next && <input type="hidden" name="next" value={next} />}
       <button className="btn btn-gold btn-lg" type="submit" disabled={busy} style={{ width: "100%" }}>
         {busy ? t("Signing in…") : t("Verify and sign in")}

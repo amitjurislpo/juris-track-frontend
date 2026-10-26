@@ -30,27 +30,27 @@ if it does, and it also forbids hard-coded `/api` addresses there.
 
 ## Run it (development)
 
-1. Run the API (backend repo): `docker compose up -d db`, then `./mvnw spring-boot:run` in `backend/` -> http://localhost:8082
+1. Run the API (backend repo): `docker compose up -d db`, then `./mvnw spring-boot:run` in `backend/` -> http://localhost:8081
 2. `npm install`
-3. `npm run dev` -> http://localhost:3007
+3. `npm run dev` -> http://localhost:3006
 
-Settings come from the environment only (no env files): `WEB_PORT` (default 3007) and `BACKEND_URL` (default `http://127.0.0.1:8082`).
+Settings come from the environment only (no env files): `WEB_PORT` (default 3006) and `BACKEND_URL` (default `http://127.0.0.1:8081`).
 The dev server and `vite preview` proxy `/api/*` to `BACKEND_URL`, so the browser only talks to its own origin (the API's
-`SameSite=Lax` cookies and Origin check expect that). The backend's app URL / frontend origin must be `http://localhost:3007`.
+`SameSite=Lax` cookies and Origin check expect that). The backend's app URL / frontend origin must be `http://localhost:3006`.
 
 To show the fixed sign-in code on the login page in development, set `VITE_DEV_OTP_CODE` to the backend's fixed code at build time
 (leave it unset everywhere else; it is only a hint).
 
 | Environment | Web | API | Database |
 |---|---|---|---|
-| dev | 3007 | 8082 | 5437 |
+| dev | 3006 | 8081 | 5437 |
 | e2e | 3008 | 8083 | `<db>_e2e` |
 
 ## Scripts
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Dev server with hot reload on `WEB_PORT` (3007) |
+| `npm run dev` | Dev server with hot reload on `WEB_PORT` (3006) |
 | `npm run build` | Typecheck, then build static files into `dist/` |
 | `npm run preview` | Serve `dist/` locally (with the `/api` proxy) |
 | `npm run typecheck` / `npm run lint` | `tsc --noEmit` / ESLint |
@@ -155,7 +155,7 @@ server {
   root /srv/juristrack-frontend/dist;
 
   location /api/ {
-    proxy_pass http://127.0.0.1:8082;
+    proxy_pass http://127.0.0.1:8081;
     proxy_set_header Host $host;                 # the API accepts writes only with Origin = its juristrack.frontend-origin (this site)
     proxy_set_header X-Forwarded-Host $host;
     proxy_set_header X-Forwarded-For $remote_addr;

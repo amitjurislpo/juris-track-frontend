@@ -17,19 +17,19 @@ describe("formatters follow the display language", () => {
 
   it("write durations with the Hindi unit letters", () => {
     setDisplayLanguage("hi-IN", hindi);
-    expect(formatDuration(28085)).toBe("7 घं 48 मि 05 से");
-    expect(formatDuration(189)).toBe("3 मि 09 से");
-    expect(formatDuration(42)).toBe("42 से");
+    expect(formatDuration(28085)).toBe("7 घं 48 मि 05 सेक");
+    expect(formatDuration(189)).toBe("3 मि 09 सेक");
+    expect(formatDuration(42)).toBe("42 सेकंड");
     expect(formatDuration(null)).toBe("—");
   });
 
-  it("write dates, date-times and zone names in Hindi, but keep the zone code and the 24-hour clock", () => {
+  it("write dates, date-times and zone names in Hindi, but keep the zone code and the AM/PM clock", () => {
     setDisplayLanguage("hi-IN", hindi);
     const date = formatDateKey("2026-10-01");
     expect(date).toMatch(/[ऀ-ॿ]/);
     expect(date).not.toMatch(/Oct|Thu/);
     expect(formatDateTime("2026-10-01T03:35:00Z", "Asia/Kolkata")).toMatch(/[ऀ-ॿ]/);
-    expect(formatTime("2026-10-01T03:35:00Z", "Asia/Kolkata")).toBe("09:05");
+    expect(formatTime("2026-10-01T03:35:00Z", "Asia/Kolkata")).toBe("09:05 AM");
     const longName = zoneLongName("Asia/Kolkata", new Date("2026-10-01T00:00:00Z"));
     expect(longName).toMatch(/[ऀ-ॿ]/);
     expect(zoneAbbreviation("America/New_York", new Date("2026-07-01T00:00:00Z"))).toBe("EDT");

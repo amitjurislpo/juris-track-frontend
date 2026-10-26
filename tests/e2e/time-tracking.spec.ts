@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { apiSession, expectLanded, login, renewSession, signInElsewhere, sql, SUPER_ADMIN_EMAIL, tableRows, toastWith, WEB_ORIGIN } from "./helpers";
+import { apiSession, expectLanded, login, renewSession, signInElsewhere, sql, SUPER_ADMIN_EMAIL, tableRows, to12Hour, toastWith, WEB_ORIGIN } from "./helpers";
 
 // Module 2 (personal time tracking): My time (the timer), the dashboard, My history and the display time zone switcher.
 // The tests run in order against one new business per run (unique names and emails), set up through the real API.
@@ -142,7 +142,7 @@ test.describe.serial("personal time tracking", () => {
     expect(await readTimer(page)).toBe(pausedAt);
     await expect(figure(page, "Today's totals", "Break")).not.toHaveText(breakBefore ?? "");
     await expect(figure(page, "Today's totals", "Breaks")).toHaveText("1");
-    await expect(figure(page, "Today's totals", "Last break")).toHaveText(/^\d\d:\d\d · running$/); // when the break started, while it runs
+    await expect(figure(page, "Today's totals", "Last break")).toHaveText(/^\d\d:\d\d [AP]M · running$/); // when the break started, while it runs
 
     // a reload keeps the same timer (it comes from the server's timestamps, not from a counter in the page)
     await page.reload();
@@ -153,7 +153,7 @@ test.describe.serial("personal time tracking", () => {
     const otherPage = await signInElsewhere(browser, WORKER.email, "/dashboard");
     await expect(timeStatus(otherPage)).toHaveText("On break");
     expect(await readTimer(otherPage)).toBe(pausedAt);
-    await expect(otherPage.getByLabel("Today", { exact: true })).toContainText(/Last break \d\d:\d\d · running/); // the Today card of the dashboard
+    await expect(otherPage.getByLabel("Today", { exact: true })).toContainText(/Last break \d\d:\d\d [AP]M · running/); // the Today card of the dashboard
     await otherPage.goto("/my-time");
     await expect(button(otherPage, "Back to work")).toBeEnabled();
     await otherPage.context().close();
@@ -164,7 +164,7 @@ test.describe.serial("personal time tracking", () => {
     await expect.poll(() => readTimer(page), { timeout: 10_000 }).toBeGreaterThan(pausedAt);
     await expect(page.getByRole("group", { name: "Work and break timeline" }).getByRole("img")).toHaveCount(3);
 
-    await expect(figure(page, "Today's totals", "Last break")).toHaveText(/^\d\d:\d\d$/); // the break is over: its start time stays
+    await expect(figure(page, "Today's totals", "Last break")).toHaveText(/^\d\d:\d\d [AP]M$/); // the break is over: its start time stays
     await endWorkday(page);
     await expect(button(page, "Start again")).toBeVisible();
     await expect(page.getByText(START_AGAIN_HINT)).toBeVisible();
@@ -183,7 +183,7 @@ test.describe.serial("personal time tracking", () => {
     for (const value of [productive, breakTime, span, "Day ended", dateText(businessDate(0))]) await expect(row).toContainText(value);
     // the columns say when work started and ended and when the last break started
     for (const heading of ["Work started", "Work ended", "Last break"]) await expect(page.locator("table.t thead")).toContainText(heading);
-    await expect(row.locator("td").nth(9)).toHaveText(/^\d\d:\d\d$/);
+    await expect(row.locator("td").nth(9)).toHaveText(/^\d\d:\d\d [AP]M$/);
     expect(await countsOf(WORKER.email)).toEqual({ workdays: 1, workSessions: 2, breakSessions: 1 });
   });
 
@@ -325,7 +325,7 @@ test.describe.serial("personal time tracking", () => {
     await expect(page).toHaveURL(/range=yesterday/);
     await expect(tableRows(page)).toHaveCount(1);
     const yesterdayRow = tableRows(page).first();
-    for (const value of [dateText(yesterday), "09:00", "18:00", "8h 30m 00s", "30m 00s", "9h 00m 00s", "Day ended"]) await expect(yesterdayRow).toContainText(value);
+    for (const value of [dateText(yesterday), "09:00 AM", "06:00 PM", "8h 30m 00s", "30m 00s", "9h 00m 00s", "Day ended"]) await expect(yesterdayRow).toContainText(value);
     const totals = page.getByRole("list", { name: "Totals of the range" });
     await expect(totals).toContainText("8h 30m 00s");
     await expect(totals.getByRole("listitem").filter({ hasText: "Workdays" })).toContainText("1");
@@ -370,13 +370,13 @@ test.describe.serial("personal time tracking", () => {
     const dialog = page.getByRole("dialog", { name: dateText(yesterday) });
     const intervals = dialog.getByRole("list", { name: "Intervals" }).getByRole("listitem");
     await expect(intervals).toHaveCount(3);
-    await expect(intervals.nth(0)).toContainText("09:00 – 13:00");
+    await expect(intervals.nth(0)).toContainText("09:00 AM – 01:00 PM");
     await expect(intervals.nth(0)).toContainText("Work");
     await expect(intervals.nth(0)).toContainText("4h 00m 00s");
-    await expect(intervals.nth(1)).toContainText("13:00 – 13:30");
+    await expect(intervals.nth(1)).toContainText("01:00 PM – 01:30 PM");
     await expect(intervals.nth(1)).toContainText("Break");
     await expect(intervals.nth(1)).toContainText("30m 00s");
-    await expect(intervals.nth(2)).toContainText("13:30 – 18:00");
+    await expect(intervals.nth(2)).toContainText("01:30 PM – 06:00 PM");
     await expect(dialog.getByLabel("Workday summary")).toContainText("8h 30m 00s");
     await dialog.getByRole("button", { name: "Close" }).click();
     await expect(dialog).toHaveCount(0);
@@ -391,23 +391,23 @@ test.describe.serial("personal time tracking", () => {
     await expect(switcher.locator("option")).toHaveCount(2);
     await expect(switcher).toHaveValue(BUSINESS_TIME_ZONE);
     const row = tableRows(page).first();
-    await expect(row).toContainText("09:00");
+    await expect(row).toContainText("09:00 AM");
 
     await switcher.selectOption(DISPLAY_TIME_ZONE);
-    await expect(row).toContainText(clockIn(DISPLAY_TIME_ZONE, yesterday, "09:00"));
-    await expect(row).toContainText(clockIn(DISPLAY_TIME_ZONE, yesterday, "18:00"));
+    await expect(row).toContainText(to12Hour(clockIn(DISPLAY_TIME_ZONE, yesterday, "09:00")));
+    await expect(row).toContainText(to12Hour(clockIn(DISPLAY_TIME_ZONE, yesterday, "18:00")));
     for (const unchanged of [dateText(yesterday), "8h 30m 00s", "30m 00s", "9h 00m 00s"]) await expect(row).toContainText(unchanged);
     await row.click();
     const intervals = page.getByRole("dialog").getByRole("list", { name: "Intervals" }).getByRole("listitem");
-    // in New York this interval runs past midnight, so its end carries its date ("23 Oct, 03:30")
-    await expect(intervals.nth(0)).toContainText(new RegExp(`${clockIn(DISPLAY_TIME_ZONE, yesterday, "09:00")} – (\\d+ \\w+, )?${clockIn(DISPLAY_TIME_ZONE, yesterday, "13:00")}`));
+    // in New York this interval runs past midnight, so its end carries its date ("23 Oct, 03:30 AM")
+    await expect(intervals.nth(0)).toContainText(new RegExp(`${to12Hour(clockIn(DISPLAY_TIME_ZONE, yesterday, "09:00"))} – (\\d+ \\w+, )?${to12Hour(clockIn(DISPLAY_TIME_ZONE, yesterday, "13:00"))}`));
     await expect(intervals.nth(0)).toContainText("4h 00m 00s");
     await page.keyboard.press("Escape");
 
     // remembered by this browser, and used by the timer page too
     await page.reload();
     await expect(page.getByLabel("Show times in")).toHaveValue(DISPLAY_TIME_ZONE);
-    await expect(tableRows(page).first()).toContainText(clockIn(DISPLAY_TIME_ZONE, yesterday, "09:00"));
+    await expect(tableRows(page).first()).toContainText(to12Hour(clockIn(DISPLAY_TIME_ZONE, yesterday, "09:00")));
     await page.goto("/my-time");
     const [firstWork] = await sql<{ started_at: Date }>(
       "SELECT ws.started_at FROM work_sessions ws JOIN workdays w ON w.id = ws.workday_id WHERE w.employee_id = $1 AND w.work_date = $2 ORDER BY ws.started_at LIMIT 1",

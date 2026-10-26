@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { ListPage, ScheduleRow, Shift } from "@/track/api-types";
+import { TrackLink } from "@/track/components/TrackLink";
 import { EmptyState } from "@/track/components/EmptyState";
 import { Pagination } from "@/track/components/list/Pagination";
 import { problemMessage } from "@/track/lib/problems";
@@ -10,6 +11,7 @@ import { removeScheduleEntry, setScheduleEntries, setScheduleEntry } from "./act
 import { RosterActionBar } from "./RosterActionBar";
 import { RosterAgenda } from "./RosterAgenda";
 import { RosterGrid } from "./RosterGrid";
+import { RosterLegend } from "./RosterLegend";
 import { RosterPatternDialog } from "./RosterPatternDialog";
 
 /** What the write of one person's dates answers: done, or the message that refused it. */
@@ -19,7 +21,7 @@ type PersonResult = { ok: true } | { ok: false; message: string };
  * One month of the roster for the people of one page: the grid (or the agenda on phones), the selection of days and, for the owner,
  * the actions on the selection. A manager sees the same read-only. Starts again whenever the month, search or page changes.
  */
-export function RosterBoard({ data, from, to, today, activeShifts, allShifts, canEdit }: {
+export function RosterBoard({ data, from, to, today, activeShifts, allShifts, canEdit, hasFilters }: {
   data: ListPage<ScheduleRow>;
   from: string;
   to: string;
@@ -27,6 +29,8 @@ export function RosterBoard({ data, from, to, today, activeShifts, allShifts, ca
   activeShifts: Shift[];
   allShifts: Shift[];
   canEdit: boolean;
+  /** A search or manager filter is applied: an empty page then means "nothing matches", else there are no employees at all. */
+  hasFilters: boolean;
 }) {
   const { t, toast } = useTrack();
   const [selection, setSelection] = useState<RosterCell[]>([]);
@@ -99,9 +103,16 @@ export function RosterBoard({ data, from, to, today, activeShifts, allShifts, ca
           <>
             <RosterGrid rows={data.rows} dates={dates} today={today} shiftIds={shiftIds} selectedKeys={selectedKeys} canEdit={canEdit} onSelect={select} />
             <RosterAgenda rows={data.rows} today={today} shiftIds={shiftIds} selectedKeys={selectedKeys} canEdit={canEdit} onSelect={select} />
+            <RosterLegend rows={data.rows} shiftIds={shiftIds} />
           </>
         )}
-        {!data.rows.length && <EmptyState title={t("No one matches")} text={t("Try a different search or filter.")} />}
+        {!data.rows.length && (hasFilters
+          ? <EmptyState title={t("No one matches")} text={t("Try a different search or filter.")} />
+          : (
+            <EmptyState title={t("No employees yet")} text={canEdit ? t("Add people first, then plan their shifts here.") : undefined}>
+              {canEdit && <TrackLink to="/admin/employees" className="btn btn-sm">{t("Go to Employees")}</TrackLink>}
+            </EmptyState>
+          ))}
         <Pagination page={data.page} pageSize={data.pageSize} total={data.total} />
       </section>
       {isPatternOpen && (

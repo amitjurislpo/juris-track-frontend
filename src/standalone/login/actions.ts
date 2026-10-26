@@ -31,7 +31,7 @@ export async function signIn(_previousState: FormState, form: FormData): Promise
   const response = await standaloneApi.call("POST", "/auth/sessions", {
     email,
     otp: String(form.get("otp") ?? ""),
-    remember: form.get("remember") === "on",
+    remember: true, // every sign-in needs an emailed code, so there is no choice to make: the session lasts the full 30 days
   });
   if (!response.body.ok) return { error: response.body.error, email };
   queryClient.clear();
