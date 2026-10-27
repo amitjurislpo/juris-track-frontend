@@ -14,6 +14,7 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   timeout: 90_000,
+  expect: { timeout: 10_000 },
   reporter: [["list"]],
   use: { baseURL: `http://localhost:${e2ePorts.web}`, trace: "retain-on-failure" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],

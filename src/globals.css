@@ -826,3 +826,4 @@ small.figure,.summary b small{color:inherit}
 .daybar i.running{opacity:1;background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.25) 0 6px,transparent 6px 12px)}
 /* tighter cell padding so the wide time tables fit next to the sidebar on a laptop without scrolling sideways */
 table.t th,table.t td{padding-left:12px;padding-right:12px}
+@media(max-width:360px){.top{padding-left:12px;padding-right:12px}.top .lang-switch{max-width:56px}.top .lang-switch.tz-switch{max-width:84px}}
