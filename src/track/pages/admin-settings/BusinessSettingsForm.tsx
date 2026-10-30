@@ -20,9 +20,9 @@ export function BusinessSettingsForm({ settings }: { settings: BusinessSettings 
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { changes, fieldErrors } = businessSettingsChanges(original, form);
+    const { changes, fieldErrors } = businessSettingsChanges(original, form, settings.minimumStaleWorkdayHours);
     if (Object.keys(fieldErrors).length) {
-      setErrors({ fields: Object.fromEntries(Object.entries(fieldErrors).map(([field, message]) => [field, t(message)])), general: null });
+      setErrors({ fields: Object.fromEntries(Object.entries(fieldErrors).map(([field, message]) => [field, t(message, { minimum: settings.minimumStaleWorkdayHours })])), general: null });
       return;
     }
     if (!Object.keys(changes).length) return;
@@ -36,7 +36,7 @@ export function BusinessSettingsForm({ settings }: { settings: BusinessSettings 
   return (
     <form className="card" style={{ padding: 20 }} onSubmit={save} noValidate aria-labelledby="business-settings-heading">
       <div className="card-h"><h3 id="business-settings-heading">{t("Business")}</h3></div>
-      <BusinessSettingsFields form={form} onChange={(updatedForm) => { setForm(updatedForm); setErrors(NO_ERRORS); }} errors={errors.fields} />
+      <BusinessSettingsFields form={form} onChange={(updatedForm) => { setForm(updatedForm); setErrors(NO_ERRORS); }} errors={errors.fields} minimumStaleWorkdayHours={settings.minimumStaleWorkdayHours} />
       {errors.general && <div className="err" role="alert" style={{ marginTop: 12 }}>{errors.general}</div>}
       <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 18 }}>
         <button type="button" className="btn btn-ghost" disabled={!hasChanges} onClick={() => { setForm(original); setErrors(NO_ERRORS); }}>{t("Undo changes")}</button>
