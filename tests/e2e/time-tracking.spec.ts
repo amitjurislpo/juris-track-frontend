@@ -413,7 +413,7 @@ test.describe.serial("personal time tracking", () => {
       "SELECT ws.started_at FROM work_sessions ws JOIN workdays w ON w.id = ws.workday_id WHERE w.employee_id = $1 AND w.work_date = $2 ORDER BY ws.started_at LIMIT 1",
       [await userIdOf(WORKER.email), businessDate(0)]);
     const shownStart = new Intl.DateTimeFormat("en-GB", { timeZone: DISPLAY_TIME_ZONE, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(firstWork.started_at);
-    await expect(page.getByRole("list", { name: "Intervals" }).getByRole("listitem").first()).toContainText(shownStart);
+    await expect(page.getByRole("list", { name: "Intervals" }).getByRole("listitem").first()).toContainText(to12Hour(shownStart));
 
     await page.getByLabel("Show times in").selectOption(BUSINESS_TIME_ZONE);
     await expect(page.getByLabel("Show times in")).toHaveValue(BUSINESS_TIME_ZONE);

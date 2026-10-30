@@ -34,7 +34,7 @@ test.describe("sign-in by emailed code", () => {
     await expect(mainMenu(page).getByRole("link", { name: "Employees" })).toBeVisible();
     await expect(mainMenu(page).getByRole("link", { name: "Dashboard" })).toBeVisible(); // the owner tracks their own time too
     await expect(page.getByRole("button", { name: /Olivia Owner/ })).toBeVisible();
-    await expect(mainMenu(page)).toContainText("Demo Company");
+    await expect(mainMenu(page)).toContainText("JURIS TRACK"); // the brand lockup; the business name is no longer in the menu
   });
 
   test("the manager lands on the team board", async ({ page }) => {
