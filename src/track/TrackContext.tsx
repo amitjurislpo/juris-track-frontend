@@ -4,7 +4,7 @@ import { createApiClient, registerTrackClient } from "./api";
 import { setDisplayLanguage } from "./lib/time/display-language";
 import type { Role } from "./roles";
 
-/** The signed-in user as JurisTrack needs to know them (the standalone app reads it from `GET /api/me`). */
+/** The signed-in user as JurisTrack needs to know them (the standalone app reads it from `GET /api/v1/me`). */
 export interface TrackUser {
   id: string;
   firstName: string;

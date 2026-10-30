@@ -100,14 +100,14 @@ const comeBackToTab = (page: Page) => page.evaluate(() => document.dispatchEvent
 test.describe.serial("personal time tracking", () => {
   test.beforeAll(async () => {
     const superAdmin = await apiSession(SUPER_ADMIN_EMAIL);
-    const created = await superAdmin.post("/api/businesses", { data: { name: BUSINESS_NAME, timeZone: BUSINESS_TIME_ZONE, owner: OWNER } });
+    const created = await superAdmin.post("/api/v1/businesses", { data: { name: BUSINESS_NAME, timeZone: BUSINESS_TIME_ZONE, owner: OWNER } });
     expect(created.status()).toBe(201);
     businessId = (await created.json()).data.id;
     await superAdmin.dispose();
 
     const owner = await apiSession(OWNER.email);
     const addEmployee = async (employee: typeof WORKER, role: "EMPLOYEE" | "MANAGER", managerId?: string) => {
-      const answer = await owner.post("/api/employees", { data: { ...employee, role, ...(managerId ? { managerId } : {}) } });
+      const answer = await owner.post("/api/v1/employees", { data: { ...employee, role, ...(managerId ? { managerId } : {}) } });
       expect(answer.status()).toBe(201);
       return (await answer.json()).data.id as string;
     };
@@ -219,7 +219,7 @@ test.describe.serial("personal time tracking", () => {
     // three tabs press Start at the same moment after the day ended: exactly one reopens it
     await endWorkday(page);
     await renewSession(page);
-    const answers = await Promise.all([1, 2, 3].map(() => page.request.post("/api/me/time-events", { data: { type: "START" }, headers: { Origin: WEB_ORIGIN } })));
+    const answers = await Promise.all([1, 2, 3].map(() => page.request.post("/api/v1/me/time-events", { data: { type: "START" }, headers: { Origin: WEB_ORIGIN } })));
     expect(answers.map((answer) => answer.status()).sort()).toEqual([200, 200, 201]);
     const repeats = await Promise.all(answers.filter((answer) => answer.status() === 200).map((answer) => answer.json()));
     expect(repeats.every((repeat) => repeat.data.alreadyApplied === true && repeat.message === undefined)).toBe(true);
@@ -271,7 +271,7 @@ test.describe.serial("personal time tracking", () => {
     await expect(timeStatus(page)).toHaveText("Working");
     await endWorkday(page);
     await renewSession(page);
-    expect((await (await page.request.get("/api/me/time")).json()).data.status).toBe("DAY_ENDED");
+    expect((await (await page.request.get("/api/v1/me/time")).json()).data.status).toBe("DAY_ENDED");
 
     await page.context().clearCookies();
     await login(page, OWNER.email);
@@ -294,9 +294,9 @@ test.describe.serial("personal time tracking", () => {
     }
     await renewSession(page);
     for (const answer of [
-      await page.request.get("/api/me/time"),
-      await page.request.get("/api/workdays/mine"),
-      await page.request.post("/api/me/time-events", { data: { type: "START" }, headers: { Origin: WEB_ORIGIN } }),
+      await page.request.get("/api/v1/me/time"),
+      await page.request.get("/api/v1/workdays/mine"),
+      await page.request.post("/api/v1/me/time-events", { data: { type: "START" }, headers: { Origin: WEB_ORIGIN } }),
     ]) {
       expect(answer.status()).toBe(403);
       expect((await answer.json()).code).toBe("FORBIDDEN");
@@ -485,8 +485,8 @@ test.describe.serial("personal time tracking", () => {
 
     const superAdmin = await apiSession(SUPER_ADMIN_EMAIL);
     await renewSession(page);
-    expect((await superAdmin.put(`/api/businesses/${businessId}/status`, { data: { isSuspended: true, reason: "e2e: paused timer" } })).status()).toBe(200);
-    const refused = await page.request.get("/api/me/time");
+    expect((await superAdmin.put(`/api/v1/businesses/${businessId}/status`, { data: { isSuspended: true, reason: "e2e: paused timer" } })).status()).toBe(200);
+    const refused = await page.request.get("/api/v1/me/time");
     expect(refused.status()).toBe(403);
     expect((await refused.json()).code).toBe("BUSINESS_SUSPENDED");
     // the timer's next reading gets the same answer: the app shows the paused screen instead of the timer
@@ -494,7 +494,7 @@ test.describe.serial("personal time tracking", () => {
     await expect(page.getByText(PAUSED)).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole("timer")).toHaveCount(0);
 
-    expect((await superAdmin.put(`/api/businesses/${businessId}/status`, { data: { isSuspended: false } })).status()).toBe(200);
+    expect((await superAdmin.put(`/api/v1/businesses/${businessId}/status`, { data: { isSuspended: false } })).status()).toBe(200);
     await superAdmin.dispose();
     await page.getByRole("button", { name: "Try again" }).click();
     // suspending closed the open workday (reactivating does not reopen it): the timer is back, the day is ended, and the person can start again

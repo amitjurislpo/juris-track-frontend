@@ -25,9 +25,9 @@ const panel = (page: Page) => page.getByRole("dialog");
 const userIdOf = async (email: string) => (await sql<{ id: string }>("SELECT id FROM users WHERE email = $1", [email]))[0].id;
 /** The page has no sideways scroll. */
 const sidewaysOverflow = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-/** The next `GET /api/audit-logs` list request the page sends. */
+/** The next `GET /api/v1/audit-logs` list request the page sends. */
 const nextListRequest = (page: Page, isWanted: (parameters: URLSearchParams) => boolean = () => true) =>
-  page.waitForRequest((request) => request.method() === "GET" && /\/api\/audit-logs(\?|$)/.test(request.url()) && !request.url().includes("format=csv")
+  page.waitForRequest((request) => request.method() === "GET" && /\/api\/v1\/audit-logs(\?|$)/.test(request.url()) && !request.url().includes("format=csv")
     && isWanted(new URL(request.url()).searchParams));
 
 /** Picks `optionName` in a search picker after typing `text`. */
@@ -97,7 +97,7 @@ test.describe.serial("audit log", () => {
     await expect(entryPanel.getByRole("heading", { name: "Employee updated" })).toBeVisible();
     await expect(entryPanel).toContainText("employee.updated");
     await expect(entryPanel).toContainText(OWNER_NAME);
-    await expect(entryPanel).toContainText("PATCH /api/employees/");
+    await expect(entryPanel).toContainText("PATCH /api/v1/employees/");
     await expect(entryPanel).toContainText("Chrome"); // the user agent
     const changedCode = entryPanel.locator(".diff-row.changed", { hasText: "employeeCode" });
     await expect(changedCode.locator(".diff-value.old")).toHaveText(PERSON.code);
@@ -151,7 +151,7 @@ test.describe.serial("audit log", () => {
     await expect(auditRows(page, "Signed in")).toHaveCount(0);
     await auditRows(page, "Sign-in failed").first().click();
     await expect(panel(page)).toContainText("wrong_code");
-    await expect(panel(page)).toContainText("POST /api/auth/sessions");
+    await expect(panel(page)).toContainText("POST /api/v1/auth/sessions");
     await page.keyboard.press("Escape");
 
     // the active-filters bar names each filter and clears them
@@ -183,7 +183,7 @@ test.describe.serial("audit log", () => {
     const [anyEntry] = await sql<{ id: string }>("SELECT id FROM audit_logs ORDER BY created_at DESC LIMIT 1");
     for (const email of [DENIED_EMPLOYEE.email, DEMO.manager]) {
       const session = await apiSession(email);
-      for (const path of ["/api/audit-logs", `/api/audit-logs/${anyEntry.id}`, "/api/audit-logs?format=csv"]) {
+      for (const path of ["/api/v1/audit-logs", `/api/v1/audit-logs/${anyEntry.id}`, "/api/v1/audit-logs?format=csv"]) {
         const response = await session.get(path);
         expect(response.status(), `${email} ${path}`).toBe(403);
         expect((await response.json()).code).toBe("FORBIDDEN");
@@ -206,7 +206,7 @@ test.describe.serial("audit log", () => {
     await expect(refusals.first()).toContainText("Security");
     await refusals.first().click();
     await expect(panel(page)).toContainText("FORBIDDEN");
-    await expect(panel(page)).toContainText("GET /api/audit-logs");
+    await expect(panel(page)).toContainText("GET /api/v1/audit-logs");
   });
 
   test("filters, sorting and paging go to the API under its own parameter names", async ({ page }) => {
@@ -322,7 +322,7 @@ test.describe.serial("audit log", () => {
     await page.goto(`/admin/audit-log?search=${LAST_NAME}&action=employee.`);
     await expect(auditRows(page)).toHaveCount(3);
     const exportLink = page.getByRole("link", { name: "Export CSV" });
-    await expect(exportLink).toHaveAttribute("href", `/api/audit-logs?search=${LAST_NAME}&action=employee.&format=csv`);
+    await expect(exportLink).toHaveAttribute("href", `/api/v1/audit-logs?search=${LAST_NAME}&action=employee.&format=csv`);
 
     const downloadEvent = page.waitForEvent("download");
     await exportLink.click();
@@ -342,7 +342,7 @@ test.describe.serial("audit log", () => {
     expect(rows.join("\n")).toContain('"Contract ended"');
 
     // the same request through the API: the CSV of the filter
-    const response = await page.request.get(`/api/audit-logs?search=${LAST_NAME}&action=employee.&format=csv`);
+    const response = await page.request.get(`/api/v1/audit-logs?search=${LAST_NAME}&action=employee.&format=csv`);
     expect(response.status()).toBe(200);
     expect(response.headers()["content-type"]).toContain("text/csv");
     expect(response.headers()["content-disposition"]).toContain("attachment");
@@ -371,10 +371,10 @@ test.describe.serial("audit log", () => {
     const [entry] = await sql<{ id: string; action: string }>("SELECT id, action FROM audit_logs ORDER BY created_at DESC LIMIT 1");
     const session = await apiSession(DEMO.owner);
     for (const method of ["DELETE", "PUT", "PATCH"] as const) {
-      const response = await session.fetch(`/api/audit-logs/${entry.id}`, { method, data: { action: "tampered" } });
+      const response = await session.fetch(`/api/v1/audit-logs/${entry.id}`, { method, data: { action: "tampered" } });
       expect(response.status(), method).toBeGreaterThanOrEqual(400);
     }
-    expect((await session.delete("/api/audit-logs")).status()).toBeGreaterThanOrEqual(400);
+    expect((await session.delete("/api/v1/audit-logs")).status()).toBeGreaterThanOrEqual(400);
     await session.dispose();
     const [unchanged] = await sql<{ action: string }>("SELECT action FROM audit_logs WHERE id = $1", [entry.id]);
     expect(unchanged.action).toBe(entry.action);
@@ -437,7 +437,7 @@ test.describe.serial("audit log", () => {
     await page.keyboard.press("Escape");
 
     // the platform log's API answers every business for the super admin
-    const response = await page.request.get(`/api/audit-logs?businessId=${demo.id}&pageSize=1`);
+    const response = await page.request.get(`/api/v1/audit-logs?businessId=${demo.id}&pageSize=1`);
     expect(response.status()).toBe(200);
     expect((await response.json()).data.rows[0].businessName).toBe("Demo Company");
   });
@@ -459,7 +459,7 @@ test.describe.serial("audit log", () => {
     await expect(refusal).toContainText("The export would hold 10,001 entries; narrow the filters to at most 10,000.");
     expect(isDownloadStarted).toBe(false);
 
-    const response = await page.request.get("/api/audit-logs?action=test.&format=csv");
+    const response = await page.request.get("/api/v1/audit-logs?action=test.&format=csv");
     expect(response.status()).toBe(422);
     const problem = await response.json();
     expect(problem.code).toBe("EXPORT_TOO_LARGE");
