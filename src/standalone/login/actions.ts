@@ -6,7 +6,7 @@ import { queryClient } from "@/standalone/query";
 import { CURRENT_USER_QUERY_KEY, fetchCurrentUser } from "@/standalone/session";
 import { homeFor } from "@/track/roles";
 
-// Sign-in flows run in the Spring Boot API (/api/auth/*): rate limits, lockout, audit and the session cookies (set by the
+// Sign-in flows run in the Spring Boot API (/api/v1/auth/*): rate limits, lockout, audit and the session cookies (set by the
 // API on the response; the browser keeps them). Signing in creates the session resource, signing out deletes it.
 
 const somethingWentWrong = () => translate(readLang(), "Something went wrong. Please try again.");
@@ -18,14 +18,14 @@ export interface FormState {
   email?: string;
 }
 
-/** Step 1 of the emailed-code sign-in: asks the API to email a 6-digit code (`POST /api/auth/otp-requests`). */
+/** Step 1 of the emailed-code sign-in: asks the API to email a 6-digit code (`POST /api/v1/auth/otp-requests`). */
 export async function requestSignInCode(_previousState: FormState, form: FormData): Promise<FormState> {
   const email = String(form.get("email") ?? "").slice(0, 200);
   const response = await standaloneApi.call("POST", "/auth/otp-requests", { email });
   return response.body.ok ? { ok: response.body.message ?? "Code sent", email } : { error: response.body.error, email };
 }
 
-/** Step 2: exchanges the code for a session (`POST /api/auth/sessions`), then opens `next` or the role's landing page. */
+/** Step 2: exchanges the code for a session (`POST /api/v1/auth/sessions`), then opens `next` or the role's landing page. */
 export async function signIn(_previousState: FormState, form: FormData): Promise<FormState> {
   const email = String(form.get("email") ?? "").slice(0, 200);
   const response = await standaloneApi.call("POST", "/auth/sessions", {
@@ -48,7 +48,7 @@ export async function signIn(_previousState: FormState, form: FormData): Promise
 }
 
 /**
- * Ends the session (`DELETE /api/auth/sessions/current`; the API clears the cookies) and goes to the sign-in page. When the API
+ * Ends the session (`DELETE /api/v1/auth/sessions/current`; the API clears the cookies) and goes to the sign-in page. When the API
  * cannot be reached the user still leaves: the local data is dropped and the session ends by itself when its cookie expires.
  */
 export async function signOut() {

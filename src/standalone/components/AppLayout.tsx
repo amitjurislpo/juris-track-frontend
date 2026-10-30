@@ -1,6 +1,7 @@
 import { Suspense, useMemo } from "react";
 import { Link, Navigate, Outlet, useLocation, useNavigate, useParams } from "react-router";
 import { handleUnauthorized } from "@/standalone/api";
+import { API_BASE_PATH } from "@/standalone/api-base-path";
 import { Shell } from "@/standalone/components/Shell";
 import { PageErrorBoundary } from "@/standalone/components/PageErrorBoundary";
 import { ToastProvider, useToast } from "@/standalone/components/Toasts";
@@ -13,7 +14,7 @@ import { BusinessSuspendedScreen } from "@/standalone/components/BusinessSuspend
 import { PageLoading } from "@/track/PageLoading";
 import { TrackProvider, type TrackContextValue } from "@/track/TrackContext";
 
-/** Supplies the JurisTrack pages with their context: `/api`, cookie session (no extra headers), this app's user, translator, router and toasts. */
+/** Supplies the JurisTrack pages with their context: `/api/v1`, cookie session (no extra headers), this app's user, translator, router and toasts. */
 function StandaloneTrack({ user }: { user: CurrentUser }) {
   const t = useT();
   const lang = useLang();
@@ -23,7 +24,7 @@ function StandaloneTrack({ user }: { user: CurrentUser }) {
   const params = useParams() as Record<string, string>;
   const { pathname, search } = currentLocation;
   const contextValue = useMemo<TrackContextValue>(() => ({
-    apiBasePath: "/api",
+    apiBasePath: API_BASE_PATH,
     getHeaders: () => ({}),
     user,
     t,

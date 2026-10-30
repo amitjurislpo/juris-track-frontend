@@ -115,12 +115,12 @@ export const WEB_ORIGIN = `http://localhost:${e2ePorts.web}`;
  */
 export async function apiSession(email: string): Promise<APIRequestContext> {
   const session = await request.newContext({ baseURL: WEB_ORIGIN, extraHTTPHeaders: { Origin: WEB_ORIGIN } });
-  expect((await session.post("/api/auth/otp-requests", { data: { email } })).status()).toBe(200);
-  expect((await session.post("/api/auth/sessions", { data: { email, otp: OTP } })).status()).toBe(201);
+  expect((await session.post("/api/v1/auth/otp-requests", { data: { email } })).status()).toBe(200);
+  expect((await session.post("/api/v1/auth/sessions", { data: { email, otp: OTP } })).status()).toBe(201);
   return session;
 }
 
 /** Renews the session cookies of a signed-in page, so `page.request` calls are not refused with an expired access token. */
 export async function renewSession(page: Page) {
-  expect((await page.request.post("/api/auth/session-refreshes", { headers: { Origin: WEB_ORIGIN } })).status()).toBe(201);
+  expect((await page.request.post("/api/v1/auth/session-refreshes", { headers: { Origin: WEB_ORIGIN } })).status()).toBe(201);
 }

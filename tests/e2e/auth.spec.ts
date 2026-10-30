@@ -131,7 +131,7 @@ test.describe("route protection and the session", () => {
     await expect(page.getByText("Signed out securely.")).toBeVisible();
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/login\?next=%2Fdashboard$/);
-    const me = await page.request.get("/api/me");
+    const me = await page.request.get("/api/v1/me");
     expect(me.status()).toBe(401);
   });
 
@@ -142,7 +142,7 @@ test.describe("route protection and the session", () => {
     const refreshTokenBefore = (await cookieValue(page, "jt_rt"))?.value;
     // wait until the access token has expired: the API now answers 401 TOKEN_EXPIRED to the old cookie
     await page.waitForTimeout((ACCESS_TOKEN_TTL_SECONDS + 2) * 1000);
-    const expired = await page.request.get("/api/me");
+    const expired = await page.request.get("/api/v1/me");
     expect(expired.status()).toBe(401);
     expect((await expired.json()).code).toBe("TOKEN_EXPIRED");
 
@@ -152,6 +152,6 @@ test.describe("route protection and the session", () => {
     const refreshTokenAfter = (await cookieValue(page, "jt_rt"))?.value;
     expect(refreshTokenAfter).toBeTruthy();
     expect(refreshTokenAfter).not.toBe(refreshTokenBefore);
-    expect((await page.request.get("/api/me")).status()).toBe(200);
+    expect((await page.request.get("/api/v1/me")).status()).toBe(200);
   });
 });
