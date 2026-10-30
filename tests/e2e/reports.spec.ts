@@ -118,15 +118,15 @@ async function downloadCsv(page: Page) {
 test.describe.serial("reports", () => {
   test.beforeAll(async () => {
     const superAdmin = await apiSession(SUPER_ADMIN_EMAIL);
-    const created = await superAdmin.post("/api/businesses", { data: { name: BUSINESS_NAME, timeZone: BUSINESS_TIME_ZONE, owner: OWNER } });
+    const created = await superAdmin.post("/api/v1/businesses", { data: { name: BUSINESS_NAME, timeZone: BUSINESS_TIME_ZONE, owner: OWNER } });
     expect(created.status()).toBe(201);
     ids.business = (await created.json()).data.id;
     await superAdmin.dispose();
 
     const owner = await apiSession(OWNER.email);
-    expect((await owner.patch("/api/business", { data: { displayTimeZones: [DISPLAY_TIME_ZONE] } })).status()).toBe(200);
+    expect((await owner.patch("/api/v1/business", { data: { displayTimeZones: [DISPLAY_TIME_ZONE] } })).status()).toBe(200);
     const addEmployee = async (employee: ReturnType<typeof person>, role: "EMPLOYEE" | "MANAGER", managerId?: string) => {
-      const answer = await owner.post("/api/employees", { data: { ...employee, role, ...(managerId ? { managerId } : {}) } });
+      const answer = await owner.post("/api/v1/employees", { data: { ...employee, role, ...(managerId ? { managerId } : {}) } });
       expect(answer.status(), await answer.text()).toBe(201);
       return (await answer.json()).data.id as string;
     };
@@ -164,11 +164,11 @@ test.describe.serial("reports", () => {
 
     // today, through the real API: Asha is working, Ben is on a break
     const asha = await apiSession(ASHA.email);
-    expect((await asha.post("/api/me/time-events", { data: { type: "START" } })).status()).toBeLessThan(300);
+    expect((await asha.post("/api/v1/me/time-events", { data: { type: "START" } })).status()).toBeLessThan(300);
     await asha.dispose();
     const ben = await apiSession(BEN.email);
-    expect((await ben.post("/api/me/time-events", { data: { type: "START" } })).status()).toBeLessThan(300);
-    expect((await ben.post("/api/me/time-events", { data: { type: "BREAK" } })).status()).toBeLessThan(300);
+    expect((await ben.post("/api/v1/me/time-events", { data: { type: "START" } })).status()).toBeLessThan(300);
+    expect((await ben.post("/api/v1/me/time-events", { data: { type: "BREAK" } })).status()).toBeLessThan(300);
     await ben.dispose();
   });
 
@@ -423,9 +423,9 @@ test.describe.serial("reports", () => {
       await page.goto(path);
       await expectLanded(page, "/dashboard");
     }
-    expect((await page.request.get("/api/reports/workdays")).status()).toBe(403);
-    expect((await page.request.get("/api/reports/summaries")).status()).toBe(403);
-    expect((await page.request.get("/api/reports/workdays", { headers: { Accept: "text/csv" } })).status()).toBe(403);
+    expect((await page.request.get("/api/v1/reports/workdays")).status()).toBe(403);
+    expect((await page.request.get("/api/v1/reports/summaries")).status()).toBe(403);
+    expect((await page.request.get("/api/v1/reports/workdays", { headers: { Accept: "text/csv" } })).status()).toBe(403);
 
     const superAdminContext = await browser.newContext();
     const superAdminPage = await superAdminContext.newPage();
@@ -433,8 +433,8 @@ test.describe.serial("reports", () => {
     await expectLanded(superAdminPage, "/platform");
     await superAdminPage.goto("/admin/reports");
     await expectLanded(superAdminPage, "/platform");
-    expect((await superAdminPage.request.get("/api/reports/workdays")).status()).toBe(403);
-    expect((await superAdminPage.request.get("/api/reports/summaries")).status()).toBe(403);
+    expect((await superAdminPage.request.get("/api/v1/reports/workdays")).status()).toBe(403);
+    expect((await superAdminPage.request.get("/api/v1/reports/summaries")).status()).toBe(403);
     await superAdminContext.close();
 
     const managerContext = await browser.newContext();
@@ -443,12 +443,12 @@ test.describe.serial("reports", () => {
     await expectLanded(managerPage, "/team");
     await managerPage.goto("/admin/reports");
     await expectLanded(managerPage, "/team");
-    expect((await managerPage.request.get("/api/reports/workdays?scope=all")).status()).toBe(403);
+    expect((await managerPage.request.get("/api/v1/reports/workdays?scope=all")).status()).toBe(403);
     await managerPage.goto("/team/reports?scope=all");
     await expect(managerPage.getByRole("alert")).toContainText("You can't see this report");
     await expect(managerPage.getByRole("alert")).toContainText("You can see only the people who report to you.");
     // somebody outside the reporting line is "not found", like an unknown id
-    expect((await managerPage.request.get(`/api/reports/workdays?employeeId=${ids.nora}`)).status()).toBe(404);
+    expect((await managerPage.request.get(`/api/v1/reports/workdays?employeeId=${ids.nora}`)).status()).toBe(404);
     await managerPage.goto(`/team/reports?employeeId=${ids.nora}`);
     await expect(managerPage.getByRole("alert")).toContainText("Not in your report");
     await managerPage.getByRole("alert").getByRole("button", { name: "Clear filters" }).click();

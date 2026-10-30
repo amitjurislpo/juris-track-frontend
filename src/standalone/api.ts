@@ -1,4 +1,5 @@
 import { createApiClient } from "@/track/api";
+import { API_BASE_PATH } from "@/standalone/api-base-path";
 import { readLang } from "./i18n/lang";
 import { translate } from "./i18n/translate";
 import { queryClient } from "./query";
@@ -35,9 +36,9 @@ export async function handleUnauthorized(info: { isQuiet: boolean }): Promise<bo
   return false;
 }
 
-/** The standalone app's API client: `/api`, cookie session (no extra headers). Used for sign-in, `GET /api/me` and the shell. */
+/** The standalone app's API client: `/api/v1`, cookie session (no extra headers). Used for sign-in, `GET /api/v1/me` and the shell. */
 export const standaloneApi = createApiClient({
-  basePath: "/api",
+  basePath: API_BASE_PATH,
   getHeaders: () => ({}),
   onUnauthorized: handleUnauthorized,
   translateMessage: (text) => translate(readLang(), text),

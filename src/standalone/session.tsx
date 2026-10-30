@@ -4,7 +4,7 @@ import type { TrackUser } from "@/track/TrackContext";
 import { standaloneApi } from "./api";
 
 /**
- * The signed-in user: the answer of `GET /api/me`. This is a contract the backend implements:
+ * The signed-in user: the answer of `GET /api/v1/me`. This is a contract the backend implements:
  * `{ id, firstName, lastName, email, role, businessName, employeeCode, managerName, businessTimeZone }` (`role` includes SUPER_ADMIN,
  * whose `businessName` and `businessTimeZone` are null) inside the usual `{ ok: true, data }` envelope; 401 when signed out, 403
  * `BUSINESS_SUSPENDED` when the user's business is suspended.

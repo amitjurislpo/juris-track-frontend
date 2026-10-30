@@ -21,7 +21,7 @@ from the Spring Boot API in the backend repo (`juris-track-backend`).
 
 ```
 src/track/        the embeddable JurisTrack part: pages, trackRoutes, actions.ts files, API client, TrackContext, rules, Hindi texts of the pages
-src/standalone/   the standalone app: sign-in (6-box emailed code), session (GET /api/me), shell and sidebar, theme, toasts, language switcher, router wiring
+src/standalone/   the standalone app: sign-in (6-box emailed code), session (GET /api/v1/me), shell and sidebar, theme, toasts, language switcher, router wiring
 src/main.tsx      starts the standalone app
 ```
 
@@ -84,7 +84,7 @@ Built pages (modules 1, 2 and 4 and the audit log, in `src/track/pages/`):
 | `admin/roster` | `admin-roster` | The roster (`GET /schedule-entries`): a month (`month=yyyy-MM`), one row per person (search, manager filter, pages of 20), one column per date, each cell the shift's short name in its colour or "Off". The person column is sticky and the dates scroll inside their own container; on phones an agenda list per person replaces the grid. The owner clicks a cell (shift-click for a range, ctrl-click to add) and sets a shift, a week off, or clears the entry; "Apply pattern" does weekly days off (for example Saturday and Sunday) or a rotation "N days on, M days off" from a start date for the selected people and a date range, says how many dates will change, and saves in batches of 62 dates; `SCHEDULE_DATE_HAS_WORKDAY` and `SCHEDULE_DATE_TOO_FAR` show their messages. A manager sees their reports' roster read-only. |
 | `my-schedule` | `my-schedule` | The user's next 14 days (`GET /me/schedule`): each date with its shift and hours, or "Week off". The Dashboard has a "Next shift" card (next working day and next week off). |
 | `admin/settings` | `admin-settings` | Business name, time zone, stale workday hours (1 to 48), display time zones (up to 8). |
-| `profile` | `profile` | The signed-in user's own account (read-only, from `GET /api/me`). |
+| `profile` | `profile` | The signed-in user's own account (read-only, from `GET /api/v1/me`). |
 | `dashboard` | `dashboard` | Today at a glance (state, live productive and break time, the same time buttons as My time), this week's productive and break time per day, the last five workdays (a row opens the workday). |
 | `my-time` | `my-time` | The timer: state chip, big productive timer, Start work / Take a break / Back to work / End workday (confirmation) / Start again, today's totals and timeline, the "Not ended" warning, the summary of a day ended after midnight. |
 | `my-history` | `my-history` | History of a date range (`range` = today, yesterday, week, month (default), custom with `from` / `to`), the range's totals and average per day, productive and break time per day (SVG chart), the workdays (sortable, paged); a row opens the workday with its intervals. |
@@ -97,7 +97,7 @@ List pages keep their search, filters, sorting and paging in the URL under the A
 is in `src/track/components` (list controls in `list/`, `Modal`, `ConfirmDialog`, `FormField`, `StatusChip`, `EmptyState`); the pure helpers
 (query strings, PATCH bodies, problem codes to messages and form fields) are in `src/track/lib` and unit tested.
 
-**Time tracking** (`GET /api/me/time`, `POST /api/me/time-events`, `GET /api/workdays/mine`, `GET /api/workdays/{workdayId}`). The pages never
+**Time tracking** (`GET /api/v1/me/time`, `POST /api/v1/me/time-events`, `GET /api/v1/workdays/mine`, `GET /api/v1/workdays/{workdayId}`). The pages never
 count time themselves: every figure is computed from the last server snapshot (`closedProductiveSeconds + (now - activeWorkStartedAt)`), and
 "now" is the server's clock as measured on each answer (`serverTime` against the middle of the round trip, `src/track/lib/time/clock-offset.ts`),
 so a wrong browser clock or a sleeping tab never changes a figure. The display ticks once a second and stops while the tab is hidden; the state
@@ -116,7 +116,7 @@ close time not before the last activity), the request bodies, the preview of the
 workday (the person pages never show one's own record; the API refuses one's own time with `CANNOT_CORRECT_OWN_TIME`).
 
 **Display time zone.** The top bar's "Show times in" switcher (every user of a business) offers the business time zone and the business's
-display time zones (from `GET /api/me/time`), each with its current time. The choice is per browser, kept in `localStorage`
+display time zones (from `GET /api/v1/me/time`), each with its current time. The choice is per browser, kept in `localStorage`
 (`juristrack.displayTimeZone`; a display preference the API never needs, so not a cookie; when storage is blocked the choice lasts until a
 reload). It changes the clock times on the time pages (start, end, intervals); workday dates and date ranges stay in the business time zone
 as the API returns them, and durations do not change. The switcher (`src/standalone/components/TimeZoneSwitcher.tsx`) is built on the
@@ -134,18 +134,18 @@ When the platform suspends a business, its signed-in users get 403 `BUSINESS_SUS
 
 ## The API contract the app assumes
 
-- `GET /api/me` -> `{ id, firstName, lastName, email, role, businessName, employeeCode, managerName, businessTimeZone }` (`role` is `SUPER_ADMIN`, `ADMIN` (shown as "Owner"), `MANAGER` or `EMPLOYEE`; `businessName` and `businessTimeZone` are null for `SUPER_ADMIN`), 401 when signed out, 403 `BUSINESS_SUSPENDED` when the business is suspended.
+- `GET /api/v1/me` -> `{ id, firstName, lastName, email, role, businessName, employeeCode, managerName, businessTimeZone }` (`role` is `SUPER_ADMIN`, `ADMIN` (shown as "Owner"), `MANAGER` or `EMPLOYEE`; `businessName` and `businessTimeZone` are null for `SUPER_ADMIN`), 401 when signed out, 403 `BUSINESS_SUSPENDED` when the business is suspended.
 - The full contract (every endpoint, field and error code) is `references/API.md` in the backend repo.
-- Time tracking: `GET /api/me/time`, `POST /api/me/time-events` `{ type: START | BREAK | RESUME | END }`, `GET /api/workdays/mine`
-  (`range`, `from`, `to`, `sort`, `sortDirection` (default `desc`), `page`, `pageSize`), `GET /api/workdays/{workdayId}`.
-- `POST /api/auth/otp-requests` `{ email }` mails a 6-digit code; `POST /api/auth/sessions` `{ email, otp, remember }` creates the session
-  (cookies); `DELETE /api/auth/sessions/current` signs out; `POST /api/auth/session-refreshes` renews the session cookies.
+- Time tracking: `GET /api/v1/me/time`, `POST /api/v1/me/time-events` `{ type: START | BREAK | RESUME | END }`, `GET /api/v1/workdays/mine`
+  (`range`, `from`, `to`, `sort`, `sortDirection` (default `desc`), `page`, `pageSize`), `GET /api/v1/workdays/{workdayId}`.
+- `POST /api/v1/auth/otp-requests` `{ email }` mails a 6-digit code; `POST /api/v1/auth/sessions` `{ email, otp, remember }` creates the session
+  (cookies); `DELETE /api/v1/auth/sessions/current` signs out; `POST /api/v1/auth/session-refreshes` renews the session cookies.
 - Success answers are `{ ok: true, data?, message? }`; errors are RFC 7807 problem details (`detail` is shown, `code` is mapped to a clear message
   in `src/track/lib/problems.ts`, `errors[{ field, message }]` of a 400 are shown next to their form fields).
 
 ## Deploying (standalone)
 
-`npm run build` produces static files. Serve them from a web server **on the same origin as the API** and send `/api/*` to the Spring Boot
+`npm run build` produces static files. Serve them from a web server **on the same origin as the API** and send `/api/*` (all of `/api/v1/*`) to the Spring Boot
 service; unknown paths must fall back to `index.html`. Example (nginx):
 
 ```nginx
@@ -175,7 +175,7 @@ only kept so that it can be. The boundary:
 - **What is embeddable:** everything in `src/track/`: `trackRoutes` (path, title, allowed roles, page component), the pages, their `actions.ts`
   and types, the API client and the Hindi texts (`trackHindiMessages`, `trackHindiApiMessages`). It owns no login and no shell.
 - **What the host provides, through `TrackContext`** (`src/track/TrackContext.tsx`, given to `<TrackProvider value=…>`):
-  - `apiBasePath`: where the API lives (`/api` standalone; the JurisOne gateway path when embedded). Pages use paths relative to it.
+  - `apiBasePath`: where the API lives (`/api/v1` standalone; the JurisOne gateway path `/api/v1/juris-track` when embedded). Pages use paths relative to it.
   - `getHeaders()`: extra headers for every call, for example `Authorization: Bearer <token>` (empty for the standalone cookie session).
   - `user`: `{ id, firstName, lastName, email, role, businessName, employeeCode, managerName, businessTimeZone }`, with `role` one of `SUPER_ADMIN`, `ADMIN`, `MANAGER`, `EMPLOYEE` and `businessName` / `businessTimeZone` null for the super admin.
   - `t(text, variables?)`: the translate function (the English text is the key; the host merges the Hindi dictionaries exported by `src/track/messages`).

@@ -20,14 +20,14 @@ const mainMenu = (page: Page) => page.getByRole("complementary", { name: "Main m
 test.describe.serial("Shifts and roster", () => {
   test.beforeAll(async () => {
     const superAdmin = await apiSession(SUPER_ADMIN_EMAIL);
-    const created = await superAdmin.post("/api/businesses", { data: { name: BUSINESS_NAME, timeZone: "Asia/Kolkata", owner: OWNER } });
+    const created = await superAdmin.post("/api/v1/businesses", { data: { name: BUSINESS_NAME, timeZone: "Asia/Kolkata", owner: OWNER } });
     expect(created.status()).toBe(201);
     await superAdmin.dispose();
     const owner = await apiSession(OWNER.email);
-    const manager = await owner.post("/api/employees", { data: { ...MANAGER, role: "MANAGER" } });
+    const manager = await owner.post("/api/v1/employees", { data: { ...MANAGER, role: "MANAGER" } });
     expect(manager.status()).toBe(201);
     const managerId = (await manager.json()).data.id as string;
-    expect((await owner.post("/api/employees", { data: { ...NIGHT_WORKER, role: "EMPLOYEE", managerId } })).status()).toBe(201);
+    expect((await owner.post("/api/v1/employees", { data: { ...NIGHT_WORKER, role: "EMPLOYEE", managerId } })).status()).toBe(201);
     await owner.dispose();
   });
 

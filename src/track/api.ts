@@ -20,12 +20,12 @@ const NETWORK_ERROR_MESSAGE = "Could not reach the server. Please check your con
 const REQUEST_TIMEOUT_MILLISECONDS = 30_000;
 
 /**
- * The API client. It is built from settings (`ApiClientOptions`), never from a fixed address: JurisTrack standalone uses `/api`
+ * The API client. It is built from settings (`ApiClientOptions`), never from a fixed address: JurisTrack standalone uses `/api/v1`
  * with a cookie session, embedded in JurisOne it uses the JurisOne gateway with a token in the Authorization header.
- * Paths passed to the client are relative to the base path (`/time/state`, not `/api/time/state`).
+ * Paths passed to the client are relative to the base path (`/time/state`, not `/api/v1/time/state`).
  */
 export interface ApiClientOptions {
-  /** Where the API lives, e.g. `/api`. */
+  /** Where the API lives, e.g. `/api/v1`. */
   basePath: string;
   /** Extra request headers (an Authorization token); asked for on every request. */
   getHeaders: () => Record<string, string> | Promise<Record<string, string>>;

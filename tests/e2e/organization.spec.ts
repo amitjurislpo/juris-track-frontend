@@ -139,7 +139,7 @@ test.describe.serial("organization and employees", () => {
     await page.getByLabel("Stale workday hours", { exact: true }).fill("10");
     await page.getByRole("button", { name: "Remove America/New_York" }).click();
     await page.getByLabel("Add a display time zone", { exact: true }).selectOption("Europe/London");
-    const patchRequest = page.waitForRequest((request) => request.method() === "PATCH" && request.url().endsWith("/api/business"));
+    const patchRequest = page.waitForRequest((request) => request.method() === "PATCH" && request.url().endsWith("/api/v1/business"));
     await page.getByRole("button", { name: "Save changes" }).click();
     expect((await patchRequest).postDataJSON()).toEqual({ name: RENAMED_BUSINESS_NAME, timeZone: "Asia/Dubai", staleWorkdayHours: 10, displayTimeZones: ["Asia/Kolkata", "Europe/London"] });
     await expect(toastWith(page, "Settings saved.")).toBeVisible();
@@ -156,7 +156,7 @@ test.describe.serial("organization and employees", () => {
 
     // changing one field sends only that field
     await page.getByLabel("Stale workday hours", { exact: true }).fill("12");
-    const secondRequest = page.waitForRequest((request) => request.method() === "PATCH" && request.url().endsWith("/api/business"));
+    const secondRequest = page.waitForRequest((request) => request.method() === "PATCH" && request.url().endsWith("/api/v1/business"));
     await page.getByRole("button", { name: "Save changes" }).click();
     expect((await secondRequest).postDataJSON()).toEqual({ staleWorkdayHours: 12 });
     await expect(toastWith(page, "Settings saved.")).toBeVisible();
@@ -204,7 +204,7 @@ test.describe.serial("organization and employees", () => {
     await expect(page.getByLabel("Reporting manager", { exact: true })).toHaveValue(await userIdOf(MANAGER.email));
 
     await page.getByLabel("Reporting manager", { exact: true }).selectOption({ label: "No manager" });
-    let patchRequest = page.waitForRequest((request) => request.method() === "PATCH" && request.url().includes("/api/employees/"));
+    let patchRequest = page.waitForRequest((request) => request.method() === "PATCH" && request.url().includes("/api/v1/employees/"));
     await page.getByRole("button", { name: "Save changes" }).click();
     expect((await patchRequest).postDataJSON()).toEqual({ managerId: null });
     await expect(toastWith(page, "Employee saved.")).toBeVisible();
@@ -212,7 +212,7 @@ test.describe.serial("organization and employees", () => {
 
     await page.getByLabel("Last name", { exact: true }).fill("Employed");
     await page.getByLabel("Reporting manager", { exact: true }).selectOption({ label: `${OWNER.firstName} ${OWNER.lastName}` });
-    patchRequest = page.waitForRequest((request) => request.method() === "PATCH" && request.url().includes("/api/employees/"));
+    patchRequest = page.waitForRequest((request) => request.method() === "PATCH" && request.url().includes("/api/v1/employees/"));
     await page.getByRole("button", { name: "Save changes" }).click();
     expect((await patchRequest).postDataJSON()).toEqual({ lastName: "Employed", managerId: await userIdOf(OWNER.email) });
     await expect(pageHeading(page)).toHaveText(`${EMPLOYEE.firstName} Employed`);
@@ -397,15 +397,15 @@ test.describe.serial("organization and employees", () => {
     await expectLanded(page, "/team");
     await page.goto("/admin/employees");
     await expectLanded(page, "/team");
-    expect((await page.request.get("/api/employees")).status()).toBe(403);
-    expect((await page.request.get("/api/business")).status()).toBe(403);
-    expect((await page.request.get("/api/businesses")).status()).toBe(403);
+    expect((await page.request.get("/api/v1/employees")).status()).toBe(403);
+    expect((await page.request.get("/api/v1/business")).status()).toBe(403);
+    expect((await page.request.get("/api/v1/businesses")).status()).toBe(403);
 
     await switchUser(page, DEMO.employees[0]);
     await expectLanded(page, "/dashboard");
     await page.goto("/admin/employees/new");
     await expectLanded(page, "/dashboard");
-    const refused = await page.request.get("/api/employees");
+    const refused = await page.request.get("/api/v1/employees");
     expect(refused.status()).toBe(403);
     expect((await refused.json()).code).toBe("FORBIDDEN");
 
@@ -414,7 +414,7 @@ test.describe.serial("organization and employees", () => {
     await expectLanded(page, "/admin");
     await page.goto("/platform");
     await expectLanded(page, "/admin");
-    expect((await page.request.get("/api/businesses")).status()).toBe(403);
+    expect((await page.request.get("/api/v1/businesses")).status()).toBe(403);
   });
 
   test("the profile shows the signed-in user's own data", async ({ page }) => {
@@ -458,7 +458,7 @@ test.describe.serial("organization and employees", () => {
     // the owner's next request answers 403 BUSINESS_SUSPENDED: the app shows the paused screen instead of the page
     await mainMenu(ownerPage).getByRole("link", { name: "Settings" }).click();
     await expect(ownerPage.getByText(PAUSED)).toBeVisible();
-    const me = await ownerPage.request.get("/api/me");
+    const me = await ownerPage.request.get("/api/v1/me");
     expect(me.status()).toBe(403);
     expect((await me.json()).code).toBe("BUSINESS_SUSPENDED");
     await ownerPage.reload();

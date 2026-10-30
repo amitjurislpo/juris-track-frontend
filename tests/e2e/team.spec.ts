@@ -97,14 +97,14 @@ const auditCount = async (action: string, actorEmail: string) =>
 test.describe.serial("Team tab and time corrections", () => {
   test.beforeAll(async () => {
     const superAdmin = await apiSession(SUPER_ADMIN_EMAIL);
-    const created = await superAdmin.post("/api/businesses", { data: { name: BUSINESS_NAME, timeZone: BUSINESS_TIME_ZONE, owner: OWNER } });
+    const created = await superAdmin.post("/api/v1/businesses", { data: { name: BUSINESS_NAME, timeZone: BUSINESS_TIME_ZONE, owner: OWNER } });
     expect(created.status()).toBe(201);
     businessId = (await created.json()).data.id;
     await superAdmin.dispose();
 
     const owner = await apiSession(OWNER.email);
     const addEmployee = async (employee: typeof WORKER, role: "EMPLOYEE" | "MANAGER", manager?: typeof WORKER) => {
-      const answer = await owner.post("/api/employees", { data: { ...employee, role, ...(manager ? { managerId: userIds[manager.email] } : {}) } });
+      const answer = await owner.post("/api/v1/employees", { data: { ...employee, role, ...(manager ? { managerId: userIds[manager.email] } : {}) } });
       expect(answer.status()).toBe(201);
       userIds[employee.email] = (await answer.json()).data.id as string;
     };
@@ -309,14 +309,14 @@ test.describe.serial("Team tab and time corrections", () => {
     const [archieWorkday] = await sql<{ id: string }>("SELECT id FROM workdays WHERE employee_id = $1", [userIds[ARCHIE.email]]);
     await renewSession(page);
     for (const answer of [
-      await page.request.get("/api/team/members"),
-      await page.request.get(`/api/team/members/${userIds[ARCHIE.email]}`),
-      await page.request.get(`/api/team/members/${userIds[ARCHIE.email]}/workdays`),
-      await page.request.put(`/api/workdays/${archieWorkday.id}/status`, { data: { status: "DAY_ENDED", reason: "Not my business" }, headers: { Origin: WEB_ORIGIN } }),
+      await page.request.get("/api/v1/team/members"),
+      await page.request.get(`/api/v1/team/members/${userIds[ARCHIE.email]}`),
+      await page.request.get(`/api/v1/team/members/${userIds[ARCHIE.email]}/workdays`),
+      await page.request.put(`/api/v1/workdays/${archieWorkday.id}/status`, { data: { status: "DAY_ENDED", reason: "Not my business" }, headers: { Origin: WEB_ORIGIN } }),
     ]) {
       expect(answer.status()).toBe(403);
     }
-    expect((await page.request.get(`/api/workdays/${archieWorkday.id}`)).status()).toBe(404);
+    expect((await page.request.get(`/api/v1/workdays/${archieWorkday.id}`)).status()).toBe(404);
   });
 
   test("a manager of another reporting line sees nobody of this one: the person's page says not found and the API answers 404", async ({ page }) => {
@@ -334,13 +334,13 @@ test.describe.serial("Team tab and time corrections", () => {
 
     const [archieWorkday] = await sql<{ id: string }>("SELECT id FROM workdays WHERE employee_id = $1", [userIds[ARCHIE.email]]);
     await renewSession(page);
-    expect((await page.request.get(`/api/team/members/${userIds[ARCHIE.email]}`)).status()).toBe(404);
-    expect((await page.request.get(`/api/team/members/${userIds[ARCHIE.email]}/workdays`)).status()).toBe(404);
-    expect((await page.request.get(`/api/workdays/${archieWorkday.id}`)).status()).toBe(404);
-    const refused = await page.request.put(`/api/workdays/${archieWorkday.id}/status`, { data: { status: "DAY_ENDED", reason: "Not my report" }, headers: { Origin: WEB_ORIGIN } });
+    expect((await page.request.get(`/api/v1/team/members/${userIds[ARCHIE.email]}`)).status()).toBe(404);
+    expect((await page.request.get(`/api/v1/team/members/${userIds[ARCHIE.email]}/workdays`)).status()).toBe(404);
+    expect((await page.request.get(`/api/v1/workdays/${archieWorkday.id}`)).status()).toBe(404);
+    const refused = await page.request.put(`/api/v1/workdays/${archieWorkday.id}/status`, { data: { status: "DAY_ENDED", reason: "Not my report" }, headers: { Origin: WEB_ORIGIN } });
     expect(refused.status()).toBe(404);
     // nor is a manager on their own board
-    expect((await page.request.get(`/api/team/members/${userIds[OTHER_MANAGER.email]}`)).status()).toBe(404);
+    expect((await page.request.get(`/api/v1/team/members/${userIds[OTHER_MANAGER.email]}`)).status()).toBe(404);
   });
 
   test("a person's page: who they are, their state, the history of a range with its totals, and a workday's intervals", async ({ page }) => {
@@ -433,15 +433,15 @@ test.describe.serial("Team tab and time corrections", () => {
     const [workday] = await sql<{ id: string }>("SELECT id FROM workdays WHERE employee_id = $1", [userIds[LEAD.email]]);
     const [session] = await sql<{ id: string }>("SELECT id FROM work_sessions WHERE workday_id = $1", [workday.id]);
     await renewSession(page);
-    const refused = await page.request.patch(`/api/workdays/${workday.id}/work-sessions/${session.id}`,
+    const refused = await page.request.patch(`/api/v1/workdays/${workday.id}/work-sessions/${session.id}`,
       { data: { startedAt: new Date(Date.now() - 3_600_000).toISOString(), reason: "I started earlier" }, headers: { Origin: WEB_ORIGIN } });
     expect(refused.status()).toBe(403);
     expect((await refused.json()).code).toBe("CANNOT_CORRECT_OWN_TIME");
-    const closeRefused = await page.request.put(`/api/workdays/${workday.id}/status`, { data: { status: "DAY_ENDED", reason: "Going home now" }, headers: { Origin: WEB_ORIGIN } });
+    const closeRefused = await page.request.put(`/api/v1/workdays/${workday.id}/status`, { data: { status: "DAY_ENDED", reason: "Going home now" }, headers: { Origin: WEB_ORIGIN } });
     expect(closeRefused.status()).toBe(403);
     // the owner corrects the manager's time instead (a manager's time is their manager's or the owner's to correct)
     const owner = await apiSession(OWNER.email);
-    expect((await owner.get(`/api/team/members/${userIds[LEAD.email]}`)).status()).toBe(200);
+    expect((await owner.get(`/api/v1/team/members/${userIds[LEAD.email]}`)).status()).toBe(200);
     await owner.dispose();
     await page.keyboard.press("Escape");
     await page.goto("/my-time");
@@ -508,7 +508,7 @@ test.describe.serial("Team tab and time corrections", () => {
     await expect(tile(page, "People", 5)).toBeVisible();
 
     const owner = await apiSession(OWNER.email);
-    expect((await owner.put(`/api/employees/${userIds[LEAVER.email]}/status`, { data: { isActive: false, reason: "e2e: left the company" } })).status()).toBe(200);
+    expect((await owner.put(`/api/v1/employees/${userIds[LEAVER.email]}/status`, { data: { isActive: false, reason: "e2e: left the company" } })).status()).toBe(200);
     await owner.dispose();
     await comeBackToTab(page);
     await expect(boardRow(page, LEAVER)).toHaveCount(0);
