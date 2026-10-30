@@ -9,7 +9,13 @@ import { Icon } from "./Icon";
  * The settings of a business (name, time zone, stale workday hours, display time zones), edited by the owner (Settings) and by
  * the super admin (a business's page). `errors` holds a message per field name.
  */
-export function BusinessSettingsFields({ form, onChange, errors }: { form: BusinessSettingsForm; onChange: (form: BusinessSettingsForm) => void; errors: Record<string, string> }) {
+export function BusinessSettingsFields({ form, onChange, errors, minimumStaleWorkdayHours }: {
+  form: BusinessSettingsForm;
+  onChange: (form: BusinessSettingsForm) => void;
+  errors: Record<string, string>;
+  /** The least the stale workday hours may be set to (the longest shift plus 3 hours). */
+  minimumStaleWorkdayHours: number;
+}) {
   const { t } = useTrack();
   const zones = useMemo(() => timeZoneOptions([form.timeZone, ...form.displayTimeZones]), [form.timeZone, form.displayTimeZones]);
   const isDisplayListFull = form.displayTimeZones.length >= MAXIMUM_DISPLAY_TIME_ZONES;
@@ -25,8 +31,8 @@ export function BusinessSettingsFields({ form, onChange, errors }: { form: Busin
             {zones.map((zone) => <option key={zone} value={zone}>{zoneOptionLabel(zone)}</option>)}
           </select>
         </FormField>
-        <FormField label={t("Stale workday hours")} hint={t("1 to 48; at least your longest shift plus 2 hours")} error={errors.staleWorkdayHours}>
-          <input type="number" inputMode="numeric" min={1} max={48} step={1} value={form.staleWorkdayHours} onChange={(e) => onChange({ ...form, staleWorkdayHours: e.target.value })} />
+        <FormField label={t("Stale workday hours")} hint={t("{minimum} to 48; at least your longest shift plus 3 hours", { minimum: minimumStaleWorkdayHours })} error={errors.staleWorkdayHours}>
+          <input type="number" inputMode="numeric" min={minimumStaleWorkdayHours} max={48} step={1} value={form.staleWorkdayHours} onChange={(e) => onChange({ ...form, staleWorkdayHours: e.target.value })} />
         </FormField>
       </div>
       <div className="field">

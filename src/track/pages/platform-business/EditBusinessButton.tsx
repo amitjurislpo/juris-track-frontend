@@ -23,9 +23,9 @@ export function EditBusinessButton({ business }: { business: BusinessDetail }) {
   const open = () => { setForm(toBusinessSettingsForm(business)); setErrors(NO_ERRORS); setIsOpen(true); };
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { changes, fieldErrors } = businessSettingsChanges(original, form);
+    const { changes, fieldErrors } = businessSettingsChanges(original, form, business.minimumStaleWorkdayHours);
     if (Object.keys(fieldErrors).length) {
-      setErrors({ fields: Object.fromEntries(Object.entries(fieldErrors).map(([field, message]) => [field, t(message)])), general: null });
+      setErrors({ fields: Object.fromEntries(Object.entries(fieldErrors).map(([field, message]) => [field, t(message, { minimum: business.minimumStaleWorkdayHours })])), general: null });
       return;
     }
     if (!Object.keys(changes).length) { setIsOpen(false); return; }
@@ -47,7 +47,7 @@ export function EditBusinessButton({ business }: { business: BusinessDetail }) {
             <button type="submit" form="business-settings-form" className="btn btn-gold" disabled={isSaving}>{isSaving ? t("Saving…") : t("Save")}</button>
           </>}>
           <form id="business-settings-form" onSubmit={save} noValidate>
-            <BusinessSettingsFields form={form} onChange={(updatedForm) => { setForm(updatedForm); setErrors(NO_ERRORS); }} errors={errors.fields} />
+            <BusinessSettingsFields form={form} onChange={(updatedForm) => { setForm(updatedForm); setErrors(NO_ERRORS); }} errors={errors.fields} minimumStaleWorkdayHours={business.minimumStaleWorkdayHours} />
             {errors.general && <div className="err" role="alert" style={{ marginTop: 12 }}>{errors.general}</div>}
           </form>
         </Modal>

@@ -28,6 +28,21 @@ describe("problemMessage", () => {
   });
 });
 
+describe("the stale workday hours refusals", () => {
+  const tooLow = "Stale workday hours must be at least 12: your longest shift is 9 h plus 3 h.";
+  const shiftTooLong = "This shift is 10 h long, so the stale workday hours must be at least 13 (the longest shift plus 3 h), but they are 12. Raise the stale workday hours in Settings first.";
+
+  it("shows the API's message (it names the numbers) next to the stale hours field", () => {
+    expect(formErrorsOf(failure({ code: "STALE_WORKDAY_HOURS_TOO_LOW", error: tooLow }), ["name", "staleWorkdayHours"], translate))
+      .toEqual({ fields: { staleWorkdayHours: tooLow }, general: null });
+  });
+
+  it("shows the refusal of a shift that is too long in the shift form, as the general message", () => {
+    expect(formErrorsOf(failure({ code: "SHIFT_LONGER_THAN_STALE_WORKDAY_HOURS", error: shiftTooLong }), ["name", "startTime", "endTime"], translate))
+      .toEqual({ fields: {}, general: shiftTooLong });
+  });
+});
+
 describe("formErrorsOf", () => {
   const employeeFields = ["employeeCode", "firstName", "lastName", "email", "role", "managerId"];
 
