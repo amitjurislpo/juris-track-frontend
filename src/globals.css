@@ -1619,3 +1619,17 @@ body{font-family:var(--font-geist),'Noto Sans Devanagari',system-ui,sans-serif}
 
 /* ---- read-only onboarding review: a disabled select keeps one chevron (the disabled well in foundation.css resets the background shorthand) ---- */
 [data-theme="dark"] .field select:disabled{background-repeat:no-repeat;background-position:right 10px center;background-size:14px}
+
+/* ---- very narrow phones (320px): the top bar's controls shrink so the page never scrolls sideways ---- */
+@media (max-width:360px){
+  .top{gap:4px;padding-left:10px;padding-right:10px}
+  .top .icon-btn{width:38px;min-width:0}
+  .top .lang-switch,.top .lang-switch.tz-switch{min-width:0;padding:0 2px}
+  .top .lang-switch.tz-switch{max-width:84px}
+  .top .lang-switch{max-width:56px}
+}
+@media (max-width:360px){main .col,main .col>*{min-width:0;max-width:100%}}
+/* the roster's selected-days bar sticks below the sticky top bar, not behind it */
+.roster-actions{top:72px}
+/* a table that hides columns on a phone (hide-sm) also drops its desktop minimum width, so what stays fits the screen */
+@media (max-width:700px){table.t:has(.hide-sm){min-width:0}}

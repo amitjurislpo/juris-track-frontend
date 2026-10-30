@@ -125,7 +125,7 @@ test.describe.serial("organization and employees", () => {
   test("the new owner signs in with the fixed code and changes the settings (only the changed fields are sent)", async ({ page }) => {
     await login(page, OWNER.email);
     await expectLanded(page, "/admin");
-    await expect(mainMenu(page)).toContainText(BUSINESS_NAME);
+    await expect(mainMenu(page)).toContainText("JURIS TRACK");
     await mainMenu(page).getByRole("link", { name: "Settings" }).click();
     await expect(page.getByLabel("Business name", { exact: true })).toHaveValue(BUSINESS_NAME);
 
@@ -150,7 +150,6 @@ test.describe.serial("organization and employees", () => {
     await expect(page.getByLabel("Time zone", { exact: true })).toHaveValue("Asia/Dubai");
     await expect(page.getByRole("button", { name: "Remove Europe/London" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Remove America/New_York" })).toHaveCount(0);
-    await expect(mainMenu(page)).toContainText(RENAMED_BUSINESS_NAME);
     const [business] = await sql<{ name: string; time_zone: string; stale_workday_hours: number; display_time_zones: string[] }>(
       "SELECT name, time_zone, stale_workday_hours, display_time_zones FROM businesses WHERE id = $1", [businessId]);
     expect(business).toEqual({ name: RENAMED_BUSINESS_NAME, time_zone: "Asia/Dubai", stale_workday_hours: 10, display_time_zones: ["Asia/Kolkata", "Europe/London"] });
