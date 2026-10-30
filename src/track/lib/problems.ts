@@ -67,6 +67,7 @@ export const PROBLEM_FIELDS: Record<string, string> = {
   ROLE_NOT_ASSIGNABLE: "role",
   SHIFT_EFFECTIVE_DATE_IN_PAST: "effectiveFrom",
   SHIFT_NAME_IN_USE: "name",
+  STALE_WORKDAY_HOURS_TOO_LOW: "staleWorkdayHours",
 };
 
 /** The message to show for a failed write: the clear text of its code, else the API's `detail`. */

@@ -33,6 +33,8 @@ export interface BusinessSettings {
   name: string;
   timeZone: string;
   staleWorkdayHours: number;
+  /** The least the owner may set: the longest active shift in whole hours plus 3 (1 without such a shift). A stored value below it still reads as is. */
+  minimumStaleWorkdayHours: number;
   displayTimeZones: string[];
   createdAt: string;
   updatedAt: string;

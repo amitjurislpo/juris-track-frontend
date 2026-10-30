@@ -55,19 +55,33 @@ describe("business settings form", () => {
 
   it("sends only the changed settings, with the hours as a number", () => {
     const original = toBusinessSettingsForm(settings);
-    expect(businessSettingsChanges(original, original)).toEqual({ changes: {}, fieldErrors: {} });
-    expect(businessSettingsChanges(original, { ...original, staleWorkdayHours: "12", displayTimeZones: [] }))
+    expect(businessSettingsChanges(original, original, 12)).toEqual({ changes: {}, fieldErrors: {} });
+    expect(businessSettingsChanges(original, { ...original, staleWorkdayHours: "12", displayTimeZones: [] }, 12))
       .toEqual({ changes: { staleWorkdayHours: 12, displayTimeZones: [] }, fieldErrors: {} });
+  });
+
+  it("refuses a changed stale hours value below the minimum (longest shift plus 3) and accepts exactly the minimum", () => {
+    const original = toBusinessSettingsForm(settings);
+    expect(businessSettingsChanges(original, { ...original, staleWorkdayHours: "11" }, 12).fieldErrors)
+      .toEqual({ staleWorkdayHours: "Stale workday hours must be at least {minimum}: your longest shift plus 3 hours." });
+    expect(businessSettingsChanges(original, { ...original, staleWorkdayHours: "12" }, 12)).toEqual({ changes: { staleWorkdayHours: 12 }, fieldErrors: {} });
+    expect(businessSettingsChanges(original, { ...original, staleWorkdayHours: "27" }, 27).fieldErrors).toEqual({});
+  });
+
+  it("lets an older stored value below the minimum stay while other settings change", () => {
+    const legacy = toBusinessSettingsForm({ ...settings, staleWorkdayHours: 10 });
+    expect(businessSettingsChanges(legacy, { ...legacy, name: "Acme Ltd" }, 12)).toEqual({ changes: { name: "Acme Ltd" }, fieldErrors: {} });
+    expect(businessSettingsChanges(legacy, { ...legacy, staleWorkdayHours: "11" }, 12).fieldErrors).toHaveProperty("staleWorkdayHours");
   });
 
   it("refuses an empty name, hours outside 1..48 or not whole, and more than 8 display zones before sending", () => {
     const original = toBusinessSettingsForm(settings);
-    expect(businessSettingsChanges(original, { ...original, name: " " }).fieldErrors).toHaveProperty("name");
+    expect(businessSettingsChanges(original, { ...original, name: " " }, 12).fieldErrors).toHaveProperty("name");
     for (const hours of ["0", "49", "1.5", "", "abc"]) {
-      expect(businessSettingsChanges(original, { ...original, staleWorkdayHours: hours }).fieldErrors, hours).toHaveProperty("staleWorkdayHours");
+      expect(businessSettingsChanges(original, { ...original, staleWorkdayHours: hours }, 1).fieldErrors, hours).toHaveProperty("staleWorkdayHours");
     }
-    for (const hours of ["1", "48"]) expect(businessSettingsChanges(original, { ...original, staleWorkdayHours: hours }).fieldErrors).toEqual({});
+    for (const hours of ["1", "48"]) expect(businessSettingsChanges(original, { ...original, staleWorkdayHours: hours }, 1).fieldErrors).toEqual({});
     const nineZones = Array.from({ length: 9 }, (_, i) => `Etc/GMT+${i + 1}`);
-    expect(businessSettingsChanges(original, { ...original, displayTimeZones: nineZones }).fieldErrors).toHaveProperty("displayTimeZones");
+    expect(businessSettingsChanges(original, { ...original, displayTimeZones: nineZones }, 12).fieldErrors).toHaveProperty("displayTimeZones");
   });
 });
