@@ -40,6 +40,8 @@ export const standaloneHindiMessages: Record<string, string> = {
   "Light theme": "लाइट थीम",
   "Dark theme": "डार्क थीम",
   "Sign out": "साइन आउट",
+  "Fold the menu": "मेन्यू समेटें",
+  "Open the menu": "मेन्यू खोलें",
   "Language": "भाषा",
   "Show times in": "समय इस समय क्षेत्र में दिखाएँ",
   "Page not found": "पृष्ठ नहीं मिला",

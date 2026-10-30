@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, matchPath, useLocation } from "react-router";
 import { Avatar } from "@/standalone/components/Avatar";
+import { BrandLockup } from "@/standalone/components/BrandLockup";
 import { LanguageSwitcher } from "@/standalone/components/LanguageSwitcher";
 import { TimeZoneSwitcher } from "@/standalone/components/TimeZoneSwitcher";
 import { useIsNarrowScreen } from "@/standalone/components/useIsNarrowScreen";
@@ -13,6 +14,8 @@ import { ROLE_LABELS, homeFor } from "@/track/roles";
 import { trackRoutes } from "@/track/routes";
 import { currentTheme, setTheme, type Theme } from "./theme";
 
+const FOLD_KEY = "jt_rail_folded";
+
 /** The frame of every signed-in page: sidebar (per role), top bar (page title, theme, language, account menu) and the page. */
 export function Shell({ user, children }: { user: CurrentUser; children: React.ReactNode }) {
   const t = useT();
@@ -22,6 +25,23 @@ export function Shell({ user, children }: { user: CurrentUser; children: React.R
   const isNarrowScreen = useIsNarrowScreen();
   const sideRef = useRef<HTMLElement>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
+  // the wide-screen menu can be folded to icons; the choice is remembered in this browser (the page works without storage)
+  const [isFolded, setIsFolded] = useState(() => { try { return window.localStorage.getItem(FOLD_KEY) === "1"; } catch { return false; } });
+  const [railTip, setRailTip] = useState<{ text: string; top: number } | null>(null);
+  const toggleFold = () => {
+    const nextFolded = !isFolded;
+    setIsFolded(nextFolded);
+    setRailTip(null);
+    try { window.localStorage.setItem(FOLD_KEY, nextFolded ? "1" : "0"); } catch { /* storage unavailable: the choice lasts for this visit only */ }
+  };
+  // a folded item shows its name beside it on pointer hover or keyboard focus
+  const showRailTip = (e: React.SyntheticEvent) => {
+    if (!isFolded) return;
+    const tipTarget = (e.target as HTMLElement).closest<HTMLElement>("[data-tip]");
+    if (!tipTarget) return;
+    const bounds = tipTarget.getBoundingClientRect();
+    setRailTip({ text: tipTarget.dataset.tip ?? "", top: bounds.top + bounds.height / 2 });
+  };
   const [theme, setThemeState] = useState<Theme>(currentTheme);
   const fullName = fullNameOf(user);
   const navGroups = navFor(user.role);
@@ -78,23 +98,28 @@ export function Shell({ user, children }: { user: CurrentUser; children: React.R
         <a className="skip" href="#main">{t("Skip to content")}</a>
         <div className={`scrim${isSideOpen ? " open" : ""}`} onClick={() => setIsSideOpen(false)}></div>
         {/* a closed drawer is inert: its links are out of the tab order and the accessibility tree */}
-        <aside id="side" ref={sideRef} className={`side${isSideOpen ? " open" : ""}`} aria-label={t("Main menu")} inert={isNarrowScreen && !isSideOpen}>
-          <Link className="ws" to={homeFor(user.role)}>
-            <span className="monogram">{(user.businessName || "J").charAt(0).toUpperCase()}</span>
-            <span style={{ flex: 1, minWidth: 0 }}><b>{user.businessName || "JurisTrack"}</b><small>{t("JurisTrack workspace")}</small></span>
+        <aside id="side" ref={sideRef} className={`side${isSideOpen ? " open" : ""}${isFolded ? " folded" : ""}`} aria-label={t("Main menu")} inert={isNarrowScreen && !isSideOpen} onMouseOver={showRailTip} onFocus={showRailTip} onMouseOut={() => setRailTip(null)} onBlur={() => setRailTip(null)}>
+          <Link className="ws" to={homeFor(user.role)} data-tip="JURIS TRACK">
+            <BrandLockup product="JURIS TRACK" />
           </Link>
           {navGroups.map((navGroup) => (
             <div key={navGroup.title} style={{ display: "contents" }}>
               <div className="group">{t(navGroup.title)}</div>
               {navGroup.items.map((navItem) => (
-                <Link key={navItem.href} to={navItem.href} className={`nav-item${activeHref === navItem.href ? " on" : ""}`} aria-current={activeHref === navItem.href ? "page" : undefined}>
+                <Link key={navItem.href} to={navItem.href} className={`nav-item${activeHref === navItem.href ? " on" : ""}`} aria-current={activeHref === navItem.href ? "page" : undefined} data-tip={t(navItem.label)}>
                   <span className="ic"><Icon name={navItem.icon} size={17} /></span>
-                  {t(navItem.label)}
+                  <span className="nav-label">{t(navItem.label)}</span>
                 </Link>
               ))}
             </div>
           ))}
+          <div className="rail-foot">
+            <button type="button" className="rail-fold" onClick={toggleFold} aria-expanded={!isFolded} aria-label={isFolded ? t("Open the menu") : t("Fold the menu")} data-tip={isFolded ? t("Open the menu") : t("Fold the menu")}>
+              <Icon name="chevL" size={16} /><span className="nav-label">{isFolded ? t("Open the menu") : t("Fold the menu")}</span>
+            </button>
+          </div>
         </aside>
+        {railTip && isFolded && <span role="tooltip" className="rail-tip" style={{ top: railTip.top }}>{railTip.text}</span>}
 
         <div className="main">
           <header className="top">
