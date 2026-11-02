@@ -17,7 +17,7 @@ const NO_ERRORS: FormErrors = { fields: {}, general: null };
 /** The owner adds an employee: they are active at once and sign in with an emailed code. */
 export default function NewEmployeePage() {
   const { t, searchParams } = usePage();
-  const { toast, navigate } = useTrack();
+  const { toast, navigate, areEmployeesAddedInHost } = useTrack();
   const managers = useManagerOptions();
   const shifts = useShifts({ isActive: true });
   // "?managerId=" pre-selects the manager (e.g. "Add a report" from a manager's page)
@@ -28,6 +28,14 @@ export default function NewEmployeePage() {
   const defaultShift = shifts.find((shift) => shift.isDefault);
   const [pickedShiftId, setPickedShiftId] = useState("");
   const shiftId = pickedShiftId || defaultShift?.id || "";
+
+  if (areEmployeesAddedInHost) {
+    return (
+      <div className="col">
+        <PageHeader eyebrow={t("Administration")} title={t("Add employee")} sub={t("Employees are added in JurisOne. They appear here by themselves.")} />
+      </div>
+    );
+  }
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -68,6 +68,8 @@ export interface TrackContextValue {
   greetingFor?: (hour: number) => string;
   /** Called when the API answers 404: the host may find out that the module itself is gone, leave the pages and return the message to show; null for an ordinary 404. */
   onNotFound?: () => Promise<string | null>;
+  /** True when the host adds the employees itself (JurisOne): the pages do not offer "Add employee" and the API refuses it (409 EMPLOYEES_MANAGED_IN_JURISONE). */
+  areEmployeesAddedInHost?: boolean;
   /** True when the host says changes are not allowed (the subscription has ended): the time buttons are disabled and the host's API refuses the writes too. */
   isReadOnly?: boolean;
 }
