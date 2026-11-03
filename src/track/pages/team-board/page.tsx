@@ -15,6 +15,7 @@ import { zoneAbbreviation } from "@/track/lib/time/zone-names";
 import { useDisplayTimeZone } from "@/track/time/useDisplayTimeZone";
 import { useLiveReading } from "@/track/time/useLiveReading";
 import { useServerClock } from "@/track/time/useServerClock";
+import { useTrack } from "@/track/TrackContext";
 import { usePage } from "@/track/usePage";
 import { ScopeControl } from "./ScopeControl";
 import { TeamBoardTable } from "./TeamBoardTable";
@@ -29,6 +30,7 @@ import { TeamMetricsTiles } from "./TeamMetricsTiles";
 export default function TeamBoardPage() {
   const { user, t, searchParams } = usePage();
   const { update } = useListQuery();
+  const { areEmployeesAddedInHost } = useTrack();
   const { timeZone } = useDisplayTimeZone();
   const board = useLiveReading<TeamBoard>(teamBoardPath(user.role, searchParams));
   const reading = board.data;
@@ -68,8 +70,8 @@ export default function TeamBoardPage() {
         {data.rows.length > 0 && <TeamBoardTable rows={data.rows} nowMilliseconds={now} timeZone={timeZone} />}
         {!data.rows.length && data.metrics.total === 0 && (
           isOwner && scope === "all"
-            ? <EmptyState title={t("Nobody to show yet")} text={t("Add employees to see who is working.")}>
-                <TrackLink className="btn btn-sm" to="/admin/employees/new">{t("Add employee")}</TrackLink>
+            ? <EmptyState title={t("Nobody to show yet")} text={areEmployeesAddedInHost ? t("Add employees in JurisOne to see who is working.") : t("Add employees to see who is working.")}>
+                {!areEmployeesAddedInHost && <TrackLink className="btn btn-sm" to="/admin/employees/new">{t("Add employee")}</TrackLink>}
               </EmptyState>
             : <EmptyState title={t("Nobody reports to you yet")}
                 text={isOwner ? t("Assign people to yourself as their manager on the Employees page.") : t("When the owner makes you somebody's manager, they appear here.")} />

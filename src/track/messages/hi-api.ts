@@ -127,4 +127,5 @@ export const trackHindiApiMessages: Record<string, string> = {
   "The sort direction is asc or desc.": "क्रम की दिशा asc या desc होनी चाहिए।",
   "Sort by one of: date, employee, startedAt, productiveSeconds, breakSeconds, spanSeconds, breakCount.": "इनमें से किसी एक के अनुसार क्रम दें: date, employee, startedAt, productiveSeconds, breakSeconds, spanSeconds, breakCount।",
   "Sort by one of: label, workdays, employees, productiveSeconds, breakSeconds, spanSeconds, breakCount, averageProductiveSeconds.": "इनमें से किसी एक के अनुसार क्रम दें: label, workdays, employees, productiveSeconds, breakSeconds, spanSeconds, breakCount, averageProductiveSeconds।",
+  "Employees of this business are added in JurisOne. They appear here by themselves.": "इस बिज़नेस के कर्मचारी ज्यूरिसवन में जोड़े जाते हैं। वे यहाँ अपने आप दिखाई देते हैं।",
 };

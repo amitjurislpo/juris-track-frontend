@@ -228,6 +228,9 @@ export const trackHindiMessages: Record<string, string> = {
   "Reactivate {name}? Its people can sign in and use JurisTrack again.": "{name} को फिर से सक्रिय करें? इसके कर्मचारी फिर से साइन इन करके JurisTrack का उपयोग कर सकेंगे।",
   // owner: employees (pages/admin-employees, admin-employee-new, admin-employee)
   "Everyone in your business, their role and who they report to.": "आपके व्यवसाय के सभी लोग, उनकी भूमिका और वे किसे रिपोर्ट करते हैं।",
+  "Everyone in your business and who they report to. People are added in JurisOne.": "आपके व्यवसाय के सभी लोग और वे किसे रिपोर्ट करते हैं। लोगों को ज्यूरिसवन में जोड़ा जाता है।",
+  "Employees are added in JurisOne. They appear here by themselves.": "कर्मचारियों को ज्यूरिसवन में जोड़ा जाता है। वे यहाँ अपने आप दिखाई देते हैं।",
+  "Add employees in JurisOne to see who is working.": "कौन काम कर रहा है यह देखने के लिए ज्यूरिसवन में कर्मचारी जोड़ें।",
   "Add employee": "कर्मचारी जोड़ें",
   "Adding…": "जोड़ा जा रहा है…",
   "Search name, email or code": "नाम, ईमेल या कोड खोजें",

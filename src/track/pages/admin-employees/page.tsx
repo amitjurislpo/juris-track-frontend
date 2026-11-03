@@ -26,7 +26,7 @@ const FILTERS = ["status", "role", "managerId"];
 /** The owner's people: search, status / role / manager filters, sortable columns and pages; a row opens the employee. */
 export default function EmployeesPage() {
   const { user, t, searchParams } = usePage();
-  const { navigate } = useTrack();
+  const { navigate, areEmployeesAddedInHost } = useTrack();
   const { update } = useListQuery();
   const data = useData<ListPage<Employee>>(listPath("/employees", searchParams, FILTERS));
   const managers = useManagerOptions();
@@ -37,8 +37,8 @@ export default function EmployeesPage() {
 
   return (
     <div className="col">
-      <PageHeader eyebrow={t("Administration")} title={t("Employees")} sub={t("Everyone in your business, their role and who they report to.")}>
-        <TrackLink className="btn btn-gold btn-lg" to="/admin/employees/new"><Icon name="plus" size={16} />{t("Add employee")}</TrackLink>
+      <PageHeader eyebrow={t("Administration")} title={t("Employees")} sub={areEmployeesAddedInHost ? t("Everyone in your business and who they report to. People are added in JurisOne.") : t("Everyone in your business, their role and who they report to.")}>
+        {!areEmployeesAddedInHost && <TrackLink className="btn btn-gold btn-lg" to="/admin/employees/new"><Icon name="plus" size={16} />{t("Add employee")}</TrackLink>}
       </PageHeader>
       <div className="toolbar enter" style={{ ["--i" as string]: 1 }}>
         <SearchBox placeholder={t("Search name, email or code")} label={t("Search employees")} />
